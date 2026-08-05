@@ -13,10 +13,10 @@
 :root {
   /* Ground and surfaces */
   --bg: #0a0b0d;
-  --surface: #14161a;
-  --surface-2: #1b1e23;
-  --line: #262a31;
-  --line-strong: #383d46;
+  --surface: #1c1f26;
+  --surface-2: #262b34;
+  --line: #3a3f4a;
+  --line-strong: #4c5361;
 
   /* Text */
   --ink: #eceae5;
@@ -83,6 +83,29 @@ body {
   font-size: var(--step-0);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+}
+
+/**
+ * Droid Arabic Kufi, scoped to Arabic only — it has no Latin or digit
+ * glyphs, so English stays on the system stack. Falls through to
+ * --font-sans per character, which is what renders KWD prices correctly
+ * even on Arabic pages.
+ *
+ * Targets `body`, not `html`: the rule above sets font-family directly on
+ * <body>, and a direct declaration always wins over inheriting from an
+ * ancestor — so an html[lang="ar"] rule alone never reaches anything
+ * inside <body>, which is everything. This selector has to win on the same
+ * element the conflicting rule is on.
+ *
+ * font-synthesis: none matters here too: only a Regular weight was
+ * supplied, so without this a "bold" heading would get faux-bolded by the
+ * browser — which distorts Arabic letter joining rather than just looking
+ * thicker. Better to have headings render at the same honest weight as
+ * body text.
+ */
+html[lang="ar"] body {
+  font-family: var(--font-arabic-kufi), var(--font-sans);
+  font-synthesis: none;
 }
 
 h1,

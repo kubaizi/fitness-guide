@@ -8,6 +8,7 @@ import {
   isLocale,
 } from "@fg/i18n";
 import { SiteHeader } from "@/components/SiteHeader";
+import { arabicKufi } from "@/fonts";
 import "../globals.css";
 
 /**
@@ -53,7 +54,7 @@ export default async function RootLayout({
   if (!isLocale(locale)) notFound();
 
   return (
-    <html lang={locale} dir={directionOf(locale)}>
+    <html lang={locale} dir={directionOf(locale)} className={arabicKufi.variable}>
       <body>
         <SiteHeader locale={locale} />
         {children}
