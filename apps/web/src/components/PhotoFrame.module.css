@@ -1,0 +1,28 @@
+.frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(
+      115deg,
+      rgba(212, 175, 55, 0.05) 0 2px,
+      transparent 2px 9px
+    ),
+    linear-gradient(150deg, hsl(calc(38deg + var(--shift, 0deg)) 30% 16%), #101216 70%);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+}
+
+.tall {
+  aspect-ratio: 4 / 3;
+}
+
+.mark {
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-weight: 700;
+  color: rgba(212, 175, 55, 0.22);
+  line-height: 1;
+  user-select: none;
+}

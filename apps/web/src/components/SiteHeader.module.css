@@ -1,0 +1,76 @@
+.header {
+  border-block-end: 1px solid var(--line);
+  background: rgba(10, 11, 13, 0.85);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 10;
+}
+
+.inner {
+  max-width: var(--page);
+  margin-inline: auto;
+  padding-inline: var(--sp-5);
+  padding-block: var(--sp-3);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.logo {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--gold);
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  flex: none;
+}
+
+.word {
+  font-weight: 650;
+  font-size: var(--step-1);
+}
+
+.nav {
+  display: none;
+  gap: var(--sp-5);
+  margin-inline-start: auto;
+}
+
+.link {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.link:hover {
+  color: var(--ink);
+}
+
+/* Not built yet — visually distinct from a real, clickable nav link. */
+.soon {
+  color: var(--line-strong);
+  font-size: 0.95rem;
+  cursor: default;
+}
+
+@media (min-width: 780px) {
+  .nav {
+    display: flex;
+  }
+}
+
+@media (max-width: 779px) {
+  .inner > :last-child {
+    margin-inline-start: auto;
+  }
+}

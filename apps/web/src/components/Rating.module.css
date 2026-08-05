@@ -1,0 +1,27 @@
+.wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.star {
+  width: 15px;
+  height: 15px;
+  fill: var(--gold);
+  flex: none;
+}
+
+.value {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.count {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.empty {
+  color: var(--muted);
+  font-size: 0.9rem;
+}

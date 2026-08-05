@@ -1,0 +1,32 @@
+.price {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.sm {
+  font-size: 0.9rem;
+}
+
+.md {
+  font-size: var(--step-1);
+  font-weight: 650;
+  color: var(--gold);
+}
+
+.lg {
+  font-size: var(--step-3);
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.muted {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.strike {
+  text-decoration: line-through;
+  color: var(--muted);
+  font-weight: 400;
+}

@@ -1,0 +1,67 @@
+{
+  // ─── Formatting ──────────────────────────────────────────────────────────
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  // The repo is LF everywhere (see .editorconfig). Windows defaults to CRLF,
+  // which produces diffs where nothing actually changed.
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+
+  // ─── TypeScript ──────────────────────────────────────────────────────────
+  // Use the repo's TypeScript, not the one bundled with VS Code, so the editor
+  // and `npm run typecheck` always agree.
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+
+  // Extensionless relative imports ("./money", not "./money.js"). This is the
+  // correct convention under moduleResolution: Bundler, and it is what
+  // Turbopack's own resolver expects for workspace source packages — a .js
+  // specifier pointing at a .ts file is a tsc-only trick that Turbopack does
+  // not honour, and the dev server fails to resolve it.
+  "typescript.preferences.importModuleSpecifierEnding": "minimal",
+  "javascript.preferences.importModuleSpecifierEnding": "minimal",
+
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "typescript.inlayHints.parameterNames.enabled": "literals",
+
+  // ─── ESLint ──────────────────────────────────────────────────────────────
+  "eslint.useFlatConfig": true,
+  "eslint.validate": ["javascript", "typescript", "typescriptreact"],
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+
+  // ─── Arabic content ──────────────────────────────────────────────────────
+  // Locale files mix RTL text with LTR code. This keeps the cursor and
+  // selection behaving predictably when editing them.
+  "editor.unicodeHighlight.allowedLocales": { "ar": true },
+  "[typescript]": {
+    "editor.wordWrap": "off"
+  },
+
+  // ─── Noise reduction ─────────────────────────────────────────────────────
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.next": true,
+    "**/.turbo": true,
+    "**/coverage": true,
+    "**/package-lock.json": true,
+    "preview.html": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.turbo/**": true,
+    "**/dist/**": true,
+    "**/.next/**": true
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "package.json": "package-lock.json, turbo.json, .npmrc, tsconfig*.json, eslint.config.*, .prettier*, .editorconfig, .gitignore, .env*",
+    "*.ts": "${capture}.test.ts"
+  }
+}

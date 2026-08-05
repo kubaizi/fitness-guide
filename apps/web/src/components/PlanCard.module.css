@@ -1,0 +1,82 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.featured {
+  border-color: var(--gold-dim);
+  background: linear-gradient(180deg, var(--gold-wash), var(--surface) 60%);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.name {
+  font-size: var(--step-1);
+  font-weight: 650;
+}
+
+.tag {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius);
+  padding-block: 2px;
+  padding-inline: var(--sp-2);
+  white-space: nowrap;
+}
+
+.prices {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.saving {
+  font-size: 0.9rem;
+  color: var(--ok);
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-1);
+}
+
+.cta {
+  margin-block-start: auto;
+  padding-block: var(--sp-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink);
+  font-weight: 600;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.cta:hover {
+  background: var(--surface-2);
+  border-color: var(--gold-dim);
+}
+
+.featured .cta {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #14130d;
+}
+
+.featured .cta:hover {
+  background: var(--gold-bright);
+  border-color: var(--gold-bright);
+}

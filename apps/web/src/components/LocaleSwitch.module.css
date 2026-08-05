@@ -1,0 +1,29 @@
+.group {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.option,
+.active {
+  padding-block: var(--sp-2);
+  padding-inline: var(--sp-4);
+  font-size: 0.88rem;
+  transition: background 0.15s ease;
+}
+
+.option {
+  color: var(--muted);
+}
+
+.option:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.active {
+  background: var(--gold);
+  color: #14130d;
+  font-weight: 600;
+}
