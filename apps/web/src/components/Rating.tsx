@@ -1,5 +1,5 @@
-import type { Locale } from "@fg/i18n";
-import { createTranslator, formatNumber } from "@fg/i18n";
+import type { Locale, TranslationKey } from "@fg/i18n";
+import { createTranslator, formatNumber, pluralForm } from "@fg/i18n";
 import styles from "./Rating.module.css";
 
 /**
@@ -28,7 +28,8 @@ export function Rating({
       </svg>
       <b className={styles.value}>{rating.toFixed(1)}</b>
       <span className={styles.count}>
-        {formatNumber(count, locale)} {t("gym.reviews")}
+        {formatNumber(count, locale)}{" "}
+        {t(`gym.reviews.${pluralForm(count, locale)}` as TranslationKey)}
       </span>
     </span>
   );

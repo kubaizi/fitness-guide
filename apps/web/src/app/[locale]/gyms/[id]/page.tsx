@@ -97,9 +97,9 @@ export default async function GymProfilePage({
           <div className={styles.headAction}>
             <span className={styles.fromLabel}>{t("gym.startingFrom")}</span>
             <Price amount={gym.startingPrice} locale={locale} size="lg" />
-            <button type="button" className={styles.cta}>
+            <a href="#plans" className={styles.cta}>
               {t("gym.viewPlans")}
-            </button>
+            </a>
           </div>
         )}
       </header>

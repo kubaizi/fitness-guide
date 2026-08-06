@@ -95,6 +95,8 @@
   border: none;
   border-radius: var(--radius);
   white-space: nowrap;
+  display: inline-block;
+  text-align: center;
 }
 
 .cta:hover {

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { subtract } from "@fg/core";
 import type { MembershipPlan } from "@fg/core";
 import type { Locale } from "@fg/i18n";
@@ -31,9 +32,9 @@ export function PlanCard({ plan, locale }: { plan: MembershipPlan; locale: Local
         </p>
       )}
 
-      <button type="button" className={styles.cta}>
+      <Link href={`/${locale}/checkout/${plan.id}`} className={styles.cta}>
         {t("plan.choose")}
-      </button>
+      </Link>
     </article>
   );
 }

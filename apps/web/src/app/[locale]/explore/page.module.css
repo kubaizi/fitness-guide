@@ -1,0 +1,11 @@
+.main {
+  max-width: var(--page);
+  margin-inline: auto;
+  padding: var(--sp-7) var(--sp-5) var(--sp-8);
+}
+
+.title {
+  font-size: clamp(1.8rem, 4vw, var(--step-4));
+  font-weight: 700;
+  margin-block-end: var(--sp-5);
+}

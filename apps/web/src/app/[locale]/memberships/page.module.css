@@ -1,0 +1,107 @@
+.main {
+  max-width: 780px;
+  margin-inline: auto;
+  padding: var(--sp-7) var(--sp-5) var(--sp-8);
+}
+
+.title {
+  font-size: clamp(1.8rem, 4vw, var(--step-4));
+  font-weight: 700;
+  margin-block-end: var(--sp-5);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+  flex-wrap: wrap;
+}
+
+.row:hover {
+  border-color: var(--gold-dim);
+  transform: translateY(-1px);
+}
+
+.rowMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.rowTop {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.gymName {
+  font-weight: 650;
+  font-size: var(--step-1);
+}
+
+.planName {
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+.dates {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.cta {
+  padding-block: var(--sp-2);
+  padding-inline: var(--sp-4);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius);
+  color: var(--gold);
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: var(--sp-8) var(--sp-5);
+  text-align: center;
+  background: var(--surface);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.emptyTitle {
+  font-size: var(--step-1);
+  font-weight: 650;
+}
+
+.emptyHint {
+  color: var(--muted);
+}
+
+.browse {
+  margin-block-start: var(--sp-3);
+  padding-block: var(--sp-3);
+  padding-inline: var(--sp-6);
+  background: var(--gold);
+  color: #14130d;
+  border-radius: var(--radius);
+  font-weight: 650;
+}

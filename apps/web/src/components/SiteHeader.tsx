@@ -19,14 +19,12 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           <Link href={`/${locale}`} className={styles.link}>
             {t("nav.home")}
           </Link>
-          {/* Explore and Memberships have no screen yet. A disabled label is
-              honest about that; a Link back to Home would look like a bug. */}
-          <span className={styles.soon} aria-disabled="true">
+          <Link href={`/${locale}/explore`} className={styles.link}>
             {t("nav.explore")}
-          </span>
-          <span className={styles.soon} aria-disabled="true">
+          </Link>
+          <Link href={`/${locale}/memberships`} className={styles.link}>
             {t("nav.memberships")}
-          </span>
+          </Link>
         </nav>
 
         <LocaleSwitch current={locale} />
