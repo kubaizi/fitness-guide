@@ -14,8 +14,10 @@ export const ar = {
     back: "رجوع",
     viewAll: "عرض الكل",
     from: "يبدأ من",
+    close: "إغلاق",
   },
   nav: {
+    menu: "القائمة",
     home: "الرئيسية",
     explore: "استكشف",
     memberships: "اشتراكاتي",

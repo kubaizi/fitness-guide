@@ -17,8 +17,10 @@ export const en = {
     back: "Back",
     viewAll: "View all",
     from: "From",
+    close: "Close",
   },
   nav: {
+    menu: "Menu",
     home: "Home",
     explore: "Explore",
     memberships: "Memberships",

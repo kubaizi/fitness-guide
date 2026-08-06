@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Locale } from "@fg/i18n";
 import { createTranslator } from "@fg/i18n";
 import { LocaleSwitch } from "./LocaleSwitch";
+import { MobileMenu } from "./MobileMenu";
 import styles from "./SiteHeader.module.css";
 
 export function SiteHeader({ locale }: { locale: Locale }) {
@@ -27,7 +28,16 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           </Link>
         </nav>
 
-        <LocaleSwitch current={locale} />
+        {/*
+          The locale switch is two full words wide. On a 375px screen it does
+          not fit alongside the wordmark and the menu trigger, so on mobile it
+          moves inside the drawer instead.
+        */}
+        <div className={styles.desktopLocale}>
+          <LocaleSwitch current={locale} />
+        </div>
+
+        <MobileMenu locale={locale} />
       </div>
     </header>
   );
