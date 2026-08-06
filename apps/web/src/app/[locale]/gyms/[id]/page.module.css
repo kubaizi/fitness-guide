@@ -15,12 +15,17 @@
 
 /* ── gallery ── */
 
+/**
+ * Hero fills the left column across both rows; the two thumbnails stack in
+ * the right column, one per row. With three columns the second row of the
+ * thumbnail columns had nothing to put in it and left a dead gap.
+ */
 .gallery {
   max-width: var(--page);
   margin-inline: auto;
   padding: var(--sp-4) var(--sp-5) 0;
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr;
   grid-template-rows: repeat(2, 1fr);
   gap: var(--sp-2);
   height: 340px;
@@ -28,6 +33,19 @@
 
 .galleryMain {
   grid-row: 1 / 3;
+}
+
+/* Stacked thumbnails get too narrow to be worth showing on a phone. */
+@media (max-width: 640px) {
+  .gallery {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    height: 240px;
+  }
+
+  .gallery > :not(.galleryMain) {
+    display: none;
+  }
 }
 
 /* ── header block ── */

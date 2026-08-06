@@ -6,7 +6,7 @@ import { findGym, plansForGym } from "@/lib/gyms";
 import { Badge } from "@/components/Badge";
 import { Rating } from "@/components/Rating";
 import { Price } from "@/components/Price";
-import { PhotoFrame } from "@/components/PhotoFrame";
+import { GymPhoto } from "@/components/GymPhoto";
 import { Amenities } from "@/components/Amenities";
 import { PlanCard } from "@/components/PlanCard";
 import styles from "./page.module.css";
@@ -61,10 +61,30 @@ export default async function GymProfilePage({
 
       <div className={styles.gallery}>
         <div className={styles.galleryMain}>
-          <PhotoFrame seed={gym.id} label={gym.name[locale]} />
+          {/* The hero image is the largest thing above the fold, so it is the
+              one worth preloading — everything else can wait. */}
+          <GymPhoto
+            src={gym.photos[0]}
+            alt={gym.name[locale]}
+            seed={gym.id}
+            sizes="(max-width: 900px) 100vw, 540px"
+            priority
+          />
         </div>
-        <PhotoFrame seed={gym.id + "-2"} label={t("gym.photos")} tall />
-        <PhotoFrame seed={gym.id + "-3"} label={t("gym.photos")} tall />
+        <GymPhoto
+          src={gym.photos[1]}
+          alt={`${gym.name[locale]} — ${t("gym.photos")}`}
+          seed={gym.id + "-2"}
+          sizes="(max-width: 900px) 50vw, 270px"
+          tall
+        />
+        <GymPhoto
+          src={gym.photos[2]}
+          alt={`${gym.name[locale]} — ${t("gym.photos")}`}
+          seed={gym.id + "-3"}
+          sizes="(max-width: 900px) 50vw, 270px"
+          tall
+        />
       </div>
 
       <header className={styles.head}>

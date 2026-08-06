@@ -3,7 +3,7 @@ import type { Locale } from "@fg/i18n";
 import { createTranslator } from "@fg/i18n";
 import type { GymDetail } from "@/lib/gyms";
 import { Badge } from "./Badge";
-import { PhotoFrame } from "./PhotoFrame";
+import { GymPhoto } from "./GymPhoto";
 import { Price } from "./Price";
 import { Rating } from "./Rating";
 import styles from "./GymCard.module.css";
@@ -21,7 +21,12 @@ export function GymCard({ gym, locale }: { gym: GymDetail; locale: Locale }) {
 
   return (
     <Link href={`/${locale}/gyms/${gym.id}`} className={styles.card}>
-      <PhotoFrame seed={gym.id} label={gym.name[locale]} />
+      <GymPhoto
+        src={gym.photos[0]}
+        alt={gym.name[locale]}
+        seed={gym.id}
+        sizes="(max-width: 640px) 100vw, (max-width: 1080px) 50vw, 340px"
+      />
 
       <div className={styles.body}>
         <div className={styles.top}>
