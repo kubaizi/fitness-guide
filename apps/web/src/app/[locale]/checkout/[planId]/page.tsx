@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { subtract } from "@fg/core";
 import { createTranslator, formatDate, isLocale } from "@fg/i18n";
-import { PLANS, findGym } from "@/lib/gyms";
+import { findPlanWithGym } from "@/lib/gyms";
 import { Price } from "@/components/Price";
 import { PaymentMethods } from "@/components/PaymentMethods";
 import styles from "./page.module.css";
@@ -18,11 +18,9 @@ export default async function CheckoutPage({
   if (!isLocale(raw)) notFound();
   const locale = raw;
 
-  const plan = PLANS.find((p) => p.id === planId);
-  if (!plan) notFound();
-
-  const gym = findGym(plan.gymId);
-  if (!gym) notFound();
+  const found = await findPlanWithGym(planId);
+  if (!found) notFound();
+  const { plan, gym } = found;
 
   const t = createTranslator(locale);
 
@@ -35,7 +33,7 @@ export default async function CheckoutPage({
   return (
     <main className={styles.main}>
       <nav className={styles.crumb}>
-        <Link href={`/${locale}/gyms/${gym.id}`}>{gym.name[locale]}</Link>
+        <Link href={`/${locale}/gyms/${gym.slug}`}>{gym.name[locale]}</Link>
         <span aria-hidden="true">/</span>
         <span>{t("checkout.title")}</span>
       </nav>

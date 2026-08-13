@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import type { Membership } from "@fg/core";
 import type { Locale, TranslationKey } from "@fg/i18n";
 import { createTranslator, formatDate, isLocale } from "@fg/i18n";
-import { MEMBERSHIPS } from "@/lib/memberships";
-import { PLANS, findGym } from "@/lib/gyms";
+import { getMyMembershipsWithDetails } from "@/lib/memberships";
 import { Badge } from "@/components/Badge";
 import { Price } from "@/components/Price";
 import styles from "./page.module.css";
@@ -54,12 +53,13 @@ export default async function MembershipsPage({
   if (!isLocale(raw)) notFound();
   const locale: Locale = raw;
   const t = createTranslator(locale);
+  const items = await getMyMembershipsWithDetails();
 
   return (
     <main className={styles.main}>
       <h1 className={styles.title}>{t("membership.title")}</h1>
 
-      {MEMBERSHIPS.length === 0 ? (
+      {items.length === 0 ? (
         <div className={styles.empty}>
           <p className={styles.emptyTitle}>{t("membership.none")}</p>
           <p className={styles.emptyHint}>{t("membership.noneHint")}</p>
@@ -69,11 +69,7 @@ export default async function MembershipsPage({
         </div>
       ) : (
         <ul className={styles.list}>
-          {MEMBERSHIPS.map((m) => {
-            const gym = findGym(m.gymId);
-            const plan = PLANS.find((p) => p.id === m.planId);
-            if (!gym || !plan) return null;
-
+          {items.map(({ membership: m, gymName, planName }) => {
             const { key, tone } = describe(m.status);
             const endsOn = endDateOf(m.status);
             const isActive = m.status.state === "active";
@@ -83,11 +79,11 @@ export default async function MembershipsPage({
                 <Link href={`/${locale}/memberships/${m.id}`} className={styles.row}>
                   <div className={styles.rowMain}>
                     <div className={styles.rowTop}>
-                      <span className={styles.gymName}>{gym.name[locale]}</span>
+                      <span className={styles.gymName}>{gymName[locale]}</span>
                       <Badge tone={tone}>{t(key)}</Badge>
                     </div>
                     <span className={styles.planName}>
-                      {plan.name[locale]} ·{" "}
+                      {planName[locale]} ·{" "}
                       <Price amount={m.pricePaid} locale={locale} size="sm" />
                     </span>
                     {endsOn && (

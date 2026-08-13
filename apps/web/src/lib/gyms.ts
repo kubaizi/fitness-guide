@@ -1,164 +1,186 @@
-import { parseKwd } from "@fg/core";
+import { fils } from "@fg/core";
 import type { Gym, MembershipPlan } from "@fg/core";
+import { prisma } from "./prisma";
 
 /**
- * Sample data standing in for the API.
+ * The gym data layer.
  *
- * It is typed against the real domain types from `@fg/core`, so when the
- * backend arrives only this file is deleted — every screen already handles the
- * correct shapes, including the awkward cases (an unrated gym, a pending
- * verification, a plan with no offer).
+ * Every function here returns the DOMAIN types from @fg/core, not Prisma's
+ * generated row types. That boundary is deliberate: the screens already speak
+ * the domain language, so swapping the sample arrays for real queries did not
+ * change a single component's props.
+ *
+ * It also converts money at the edge. Prisma types an `Int` column as a plain
+ * `number`; `fils()` turns it into the branded `Fils` type and throws if the
+ * value is somehow not a whole number.
  */
 
 export interface GymDetail extends Gym {
+  /** Stable, human-readable URL identifier. Routes use this, never the id. */
+  readonly slug: string;
   readonly hours: { readonly ar: string; readonly en: string };
   readonly address: { readonly ar: string; readonly en: string };
   readonly openNow: boolean;
 }
 
-export const GYMS: readonly GymDetail[] = [
-  {
-    id: "iron-club",
-    name: { ar: "نادي الحديد", en: "Iron Club" },
-    description: {
-      ar: "نادٍ متكامل للرجال في قلب السالمية، مجهّز بأحدث الأجهزة ومساحة أوزان حرة واسعة، مع مدربين معتمدين طوال اليوم.",
-      en: "A full-service men's gym in the heart of Salmiya, with a large free-weights floor, modern cardio equipment and certified trainers on the floor all day.",
-    },
-    governorate: "hawalli",
-    area: { ar: "السالمية", en: "Salmiya" },
-    address: { ar: "شارع سالم المبارك، السالمية", en: "Salem Al Mubarak St, Salmiya" },
-    hours: { ar: "٦:٠٠ ص – ١٢:٠٠ م", en: "6:00 AM – 12:00 AM" },
+/** The shape Prisma gives back for the queries below. */
+type GymRow = {
+  id: string;
+  slug: string;
+  nameAr: string;
+  nameEn: string;
+  descriptionAr: string;
+  descriptionEn: string;
+  areaAr: string;
+  areaEn: string;
+  addressAr: string;
+  addressEn: string;
+  hoursAr: string;
+  hoursEn: string;
+  governorate: Gym["governorate"];
+  access: Gym["access"];
+  verification: string;
+  verifiedAt: Date | null;
+  submittedAt: Date | null;
+  rejectionReason: string | null;
+  rating: number | null;
+  reviewCount: number;
+  latitude: number;
+  longitude: number;
+  amenities: string[];
+  photos: { url: string }[];
+  plans: { listPrice: number; offerPrice: number | null }[];
+};
+
+/**
+ * Rebuilds the discriminated union from the flat columns.
+ *
+ * The database stores verification as an enum plus a few nullable dates,
+ * because that is what relational schemas do. The application wants a union
+ * where each state carries only its own data. This is where one becomes the
+ * other — and the `default` throw means an unhandled enum value fails loudly
+ * rather than rendering as unverified.
+ */
+function toVerification(row: GymRow): Gym["verification"] {
+  switch (row.verification) {
+    case "verified":
+      return {
+        state: "verified",
+        verifiedAt: (row.verifiedAt ?? new Date()).toISOString(),
+      };
+    case "pending":
+      return {
+        state: "pending",
+        submittedAt: (row.submittedAt ?? new Date()).toISOString(),
+      };
+    case "rejected":
+      return {
+        state: "rejected",
+        reason: row.rejectionReason ?? "",
+        rejectedAt: (row.verifiedAt ?? new Date()).toISOString(),
+      };
+    case "unverified":
+      return { state: "unverified" };
+    default:
+      throw new Error(`Unknown verification state: ${row.verification}`);
+  }
+}
+
+function toGymDetail(row: GymRow): GymDetail {
+  // The cheapest active plan is what the card advertises.
+  const prices = row.plans.map((p) => p.offerPrice ?? p.listPrice);
+  const startingPrice = prices.length > 0 ? fils(Math.min(...prices)) : null;
+
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: { ar: row.nameAr, en: row.nameEn },
+    description: { ar: row.descriptionAr, en: row.descriptionEn },
+    area: { ar: row.areaAr, en: row.areaEn },
+    address: { ar: row.addressAr, en: row.addressEn },
+    hours: { ar: row.hoursAr, en: row.hoursEn },
+    governorate: row.governorate,
+    access: row.access,
+    verification: toVerification(row),
+    rating: row.rating,
+    reviewCount: row.reviewCount,
+    startingPrice,
+    photos: row.photos.map((p) => p.url),
+    amenities: row.amenities,
+    location: { lat: row.latitude, lng: row.longitude },
+    // TODO: derive from the opening-hours schedule once that model exists.
+    // Hardcoding it here is honest about the fact that it is not real yet.
     openNow: true,
-    access: "men",
-    verification: { state: "verified", verifiedAt: "2026-05-02T09:00:00Z" },
-    rating: 4.7,
-    reviewCount: 213,
-    startingPrice: parseKwd("19.900"),
-    photos: ["/gyms/iron-club-1.jpg", "/gyms/iron-club-2.jpg", "/gyms/iron-club-3.jpg"],
-    amenities: [
-      "freeWeights",
-      "cardio",
-      "sauna",
-      "parking",
-      "lockers",
-      "personalTraining",
-    ],
-    location: { lat: 29.33, lng: 48.07 },
-  },
-  {
-    id: "nawa-studio",
-    name: { ar: "ستوديو نُوَى", en: "Nawa Studio" },
-    description: {
-      ar: "ستوديو نسائي بالكامل في الشويخ، يركّز على الحصص الجماعية والتدريب الوظيفي، مع خصوصية تامة وحضانة أطفال.",
-      en: "A women-only studio in Shuwaikh focused on group classes and functional training, with full privacy and on-site childcare.",
-    },
-    governorate: "capital",
-    area: { ar: "الشويخ", en: "Shuwaikh" },
-    address: { ar: "شارع الاستقلال، الشويخ", en: "Istiqlal St, Shuwaikh" },
-    hours: { ar: "٧:٠٠ ص – ١٠:٠٠ م", en: "7:00 AM – 10:00 PM" },
-    openNow: true,
-    access: "women",
-    verification: { state: "verified", verifiedAt: "2026-06-11T09:00:00Z" },
-    rating: 4.9,
-    reviewCount: 88,
-    startingPrice: parseKwd("32.500"),
-    photos: [
-      "/gyms/nawa-studio-1.jpg",
-      "/gyms/nawa-studio-2.jpg",
-      "/gyms/nawa-studio-3.jpg",
-    ],
-    amenities: ["classes", "childcare", "lockers", "personalTraining"],
-    location: { lat: 29.35, lng: 47.93 },
-  },
-  {
-    id: "gulf-fitness",
-    name: { ar: "مركز الخليج للياقة", en: "Gulf Fitness Centre" },
-    description: {
-      ar: "مركز بأقسام منفصلة للرجال والنساء في الفروانية، بأسعار في متناول الجميع ومسبح داخلي.",
-      en: "Separate men's and women's sections in Farwaniya, at accessible prices, with an indoor pool.",
-    },
-    governorate: "farwaniya",
-    area: { ar: "الفروانية", en: "Farwaniya" },
-    address: { ar: "شارع حبيب مناور، الفروانية", en: "Habib Munawer St, Farwaniya" },
-    hours: { ar: "٥:٠٠ ص – ١١:٠٠ م", en: "5:00 AM – 11:00 PM" },
-    openNow: false,
-    access: "separate_sections",
-    // Not yet approved — the profile must still render, without a verified badge.
-    verification: { state: "pending", submittedAt: "2026-07-20T09:00:00Z" },
-    rating: null,
-    reviewCount: 0,
-    startingPrice: parseKwd("18.750"),
-    photos: [
-      "/gyms/gulf-fitness-1.jpg",
-      "/gyms/gulf-fitness-2.jpg",
-      "/gyms/gulf-fitness-3.jpg",
-    ],
-    amenities: ["pool", "parking", "cardio", "lockers"],
-    location: { lat: 29.27, lng: 47.95 },
-  },
-];
+  };
+}
 
-export const PLANS: readonly MembershipPlan[] = [
-  {
-    id: "iron-day",
-    gymId: "iron-club",
-    name: { ar: "دخول يومي", en: "Day pass" },
-    duration: "day_pass",
-    listPrice: parseKwd("3.000"),
-    offerPrice: null,
-  },
-  {
-    id: "iron-monthly",
-    gymId: "iron-club",
-    name: { ar: "شهري", en: "Monthly" },
-    duration: "monthly",
-    listPrice: parseKwd("25.000"),
-    offerPrice: parseKwd("19.900"),
-  },
-  {
-    id: "iron-quarterly",
-    gymId: "iron-club",
-    name: { ar: "ربع سنوي", en: "Quarterly" },
-    duration: "quarterly",
-    listPrice: parseKwd("67.500"),
-    offerPrice: null,
-  },
-  {
-    id: "iron-yearly",
-    gymId: "iron-club",
-    name: { ar: "سنوي", en: "Yearly" },
-    duration: "yearly",
-    listPrice: parseKwd("240.000"),
-    offerPrice: parseKwd("199.999"),
-  },
-  {
-    id: "nawa-monthly",
-    gymId: "nawa-studio",
-    name: { ar: "شهري", en: "Monthly" },
-    duration: "monthly",
-    listPrice: parseKwd("38.000"),
-    offerPrice: parseKwd("32.500"),
-  },
-  {
-    id: "nawa-yearly",
-    gymId: "nawa-studio",
-    name: { ar: "سنوي", en: "Yearly" },
-    duration: "yearly",
-    listPrice: parseKwd("360.000"),
-    offerPrice: null,
-  },
-  {
-    id: "gulf-monthly",
-    gymId: "gulf-fitness",
-    name: { ar: "شهري", en: "Monthly" },
-    duration: "monthly",
-    listPrice: parseKwd("18.750"),
-    offerPrice: null,
-  },
-];
+const gymInclude = {
+  photos: { orderBy: { position: "asc" } },
+  plans: { where: { active: true }, select: { listPrice: true, offerPrice: true } },
+} as const;
 
-export const findGym = (id: string): GymDetail | undefined =>
-  GYMS.find((g) => g.id === id);
+export async function getGyms(): Promise<readonly GymDetail[]> {
+  const rows = await prisma.gym.findMany({
+    include: gymInclude,
+    orderBy: { createdAt: "asc" },
+  });
+  return rows.map((r) => toGymDetail(r as GymRow));
+}
 
-export const plansForGym = (gymId: string): readonly MembershipPlan[] =>
-  PLANS.filter((p) => p.gymId === gymId);
+export async function findGymBySlug(slug: string): Promise<GymDetail | null> {
+  const row = await prisma.gym.findUnique({ where: { slug }, include: gymInclude });
+  return row ? toGymDetail(row as GymRow) : null;
+}
+
+/** By primary key — for following a foreign key, not for routing. */
+export async function findGymById(id: string): Promise<GymDetail | null> {
+  const row = await prisma.gym.findUnique({ where: { id }, include: gymInclude });
+  return row ? toGymDetail(row as GymRow) : null;
+}
+
+// ────────────────────────────────────────────────────────────────────── plans
+
+type PlanRow = {
+  id: string;
+  gymId: string;
+  nameAr: string;
+  nameEn: string;
+  duration: MembershipPlan["duration"];
+  listPrice: number;
+  offerPrice: number | null;
+};
+
+const toPlan = (row: PlanRow): MembershipPlan => ({
+  id: row.id,
+  gymId: row.gymId,
+  name: { ar: row.nameAr, en: row.nameEn },
+  duration: row.duration,
+  listPrice: fils(row.listPrice),
+  offerPrice: row.offerPrice === null ? null : fils(row.offerPrice),
+});
+
+/** Plan ordering is by price, so the cheapest option reads first. */
+export async function plansForGym(gymId: string): Promise<readonly MembershipPlan[]> {
+  const rows = await prisma.membershipPlan.findMany({
+    where: { gymId, active: true },
+    orderBy: { listPrice: "asc" },
+  });
+  return rows.map((r) => toPlan(r as PlanRow));
+}
+
+export async function findPlan(id: string): Promise<MembershipPlan | null> {
+  const row = await prisma.membershipPlan.findUnique({ where: { id } });
+  return row ? toPlan(row as PlanRow) : null;
+}
+
+/** The gym a plan belongs to — checkout needs both together. */
+export async function findPlanWithGym(
+  id: string,
+): Promise<{ plan: MembershipPlan; gym: GymDetail } | null> {
+  const row = await prisma.membershipPlan.findUnique({
+    where: { id },
+    include: { gym: { include: gymInclude } },
+  });
+  if (!row) return null;
+  return { plan: toPlan(row as PlanRow), gym: toGymDetail(row.gym as GymRow) };
+}

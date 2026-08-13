@@ -1,0 +1,301 @@
+// Fitness Guide — database schema.
+//
+// Coming from EF Core: this file is your DbContext and your entity classes
+// combined. `prisma migrate dev` is Add-Migration + Update-Database in one,
+// and it generates a fully typed client from whatever is written here.
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// MONEY IS ALWAYS AN INTEGER COUNT OF FILS.
+// Every price column below is `Int`, never Decimal or Float. KWD has three
+// decimal places, so 19.900 KWD is stored as 19900. The @fg/core money module
+// is the only thing allowed to format it. See packages/core/src/money.ts.
+// ─────────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // The connection URL lives in prisma.config.ts as of Prisma 7 — it is no
+  // longer permitted in this file.
+}
+
+// ─────────────────────────────────────────────────────────────────── enums
+// These mirror the union types in @fg/core/domain. Postgres enforces them at
+// the database level, so bad data cannot get in even through a raw SQL insert.
+
+enum Governorate {
+  capital
+  hawalli
+  farwaniya
+  ahmadi
+  jahra
+  mubarak_al_kabeer
+}
+
+enum GymAccess {
+  men
+  women
+  mixed
+  separate_sections
+}
+
+enum VerificationState {
+  unverified
+  pending
+  verified
+  rejected
+}
+
+enum PlanDuration {
+  day_pass
+  monthly
+  quarterly
+  half_yearly
+  yearly
+}
+
+enum MembershipState {
+  pending_payment
+  active
+  frozen
+  expired
+  cancelled
+}
+
+enum UserRole {
+  member
+  gym_staff
+  gym_owner
+  admin
+}
+
+// ─────────────────────────────────────────────────────────────────── models
+
+model User {
+  id        String   @id @default(cuid())
+  // Phone is the primary identity in this market, not email.
+  phone     String   @unique
+  email     String?  @unique
+  name      String
+  // Drives gym eligibility, so it is required rather than optional.
+  gender    String
+  dateOfBirth DateTime? @db.Date
+  role      UserRole @default(member)
+  locale    String   @default("ar")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  reviews     Review[]
+  checkIns    CheckIn[]
+  // A gym owner or staff member is linked to the gym they work at.
+  staffAtGym  Gym?     @relation("GymStaff", fields: [staffAtGymId], references: [id])
+  staffAtGymId String?
+
+  @@index([staffAtGymId])
+}
+
+model Gym {
+  id          String      @id @default(cuid())
+  slug        String      @unique
+
+  // Bilingual content is a pair of columns rather than a JSON blob, so the
+  // database can index and full-text search each language independently.
+  nameAr        String
+  nameEn        String
+  descriptionAr String
+  descriptionEn String
+  areaAr        String
+  areaEn        String
+  addressAr     String
+  addressEn     String
+  hoursAr       String
+  hoursEn       String
+
+  governorate Governorate
+  access      GymAccess
+
+  verification   VerificationState @default(unverified)
+  verifiedAt     DateTime?
+  // Populated only when verification is `rejected` — the gym is shown this.
+  rejectionReason String?
+  submittedAt    DateTime?
+
+  // Denormalised from Review on purpose: every gym card in a list needs these,
+  // and recomputing an average per card would be a query per card.
+  // Recalculated whenever a review is written.
+  rating      Float?
+  reviewCount Int    @default(0)
+
+  latitude    Float
+  longitude   Float
+
+  amenities   String[]
+  photos      GymPhoto[]
+
+  // Per-gym override of the platform commission, in basis points
+  // (1500 = 15%). Null means "use the platform default" — launch partners
+  // get a lower rate without hardcoding it per gym.
+  commissionBps Int?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  plans       MembershipPlan[]
+  memberships Membership[]
+  reviews     Review[]
+  checkIns    CheckIn[]
+  staff       User[]   @relation("GymStaff")
+
+  // Listing queries filter on these constantly.
+  @@index([governorate, access])
+  @@index([verification])
+}
+
+model GymPhoto {
+  id       String @id @default(cuid())
+  gym      Gym    @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  gymId    String
+  url      String
+  // Explicit ordering — array position is not a reliable sort key.
+  position Int    @default(0)
+
+  @@index([gymId, position])
+}
+
+model MembershipPlan {
+  id        String       @id @default(cuid())
+  gym       Gym          @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  gymId     String
+
+  nameAr    String
+  nameEn    String
+  duration  PlanDuration
+
+  /// Fils. What the gym charges normally.
+  listPrice  Int
+  /// Fils. The exclusive in-app price. Null when no offer is running.
+  offerPrice Int?
+
+  active    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+
+  @@index([gymId, active])
+}
+
+model Membership {
+  id       String          @id @default(cuid())
+  user     User            @relation(fields: [userId], references: [id])
+  userId   String
+  gym      Gym             @relation(fields: [gymId], references: [id])
+  gymId    String
+  plan     MembershipPlan  @relation(fields: [planId], references: [id])
+  planId   String
+
+  state    MembershipState @default(pending_payment)
+
+  // Nullable because which dates exist depends on the state — an unpaid
+  // membership has no start date, a cancelled one has no end date.
+  startsOn    DateTime?
+  endsOn      DateTime?
+  frozenAt    DateTime?
+  resumesOn   DateTime?
+  cancelledAt DateTime?
+  endedOn     DateTime?
+
+  /// Fils. What the member actually paid, captured at purchase time so a
+  /// later price change never rewrites history.
+  pricePaid   Int
+  /// Fils. Refunded amount, when cancelled.
+  refundAmount Int?
+
+  // The rotating value behind the QR. Never the membership id, so a leaked
+  // screenshot cannot be replayed forever.
+  checkInToken String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payment   Payment?
+  checkIns  CheckIn[]
+  review    Review?
+
+  @@index([userId, state])
+  @@index([gymId, state])
+}
+
+model Payment {
+  id           String   @id @default(cuid())
+  membership   Membership @relation(fields: [membershipId], references: [id])
+  membershipId String   @unique
+
+  /// Fils. The full amount charged to the customer.
+  amount       Int
+  /// Fils. The platform's commission on this payment.
+  platformFee  Int
+  /// Fils. What the gym is owed. platformFee + gymAmount must equal amount.
+  gymAmount    Int
+  /// Basis points actually applied, recorded so a later rate change does not
+  /// retroactively alter what a gym was owed.
+  commissionBps Int
+
+  provider     String   // "myfatoorah" | "tap" — kept as text so swapping
+                        // gateway does not need a migration.
+  providerRef  String?  @unique
+  method       String?  // "knet" | "card"
+  status       String   @default("pending")
+
+  paidAt       DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status])
+}
+
+model CheckIn {
+  id           String     @id @default(cuid())
+  membership   Membership @relation(fields: [membershipId], references: [id])
+  membershipId String
+  user         User       @relation(fields: [userId], references: [id])
+  userId       String
+  gym          Gym        @relation(fields: [gymId], references: [id])
+  gymId        String
+
+  scannedAt    DateTime   @default(now())
+
+  // Attendance history and streaks are built from this table — it is the
+  // daily-engagement signal, so it gets queried a lot.
+  @@index([userId, scannedAt])
+  @@index([gymId, scannedAt])
+}
+
+model Review {
+  id           String     @id @default(cuid())
+  user         User       @relation(fields: [userId], references: [id])
+  userId       String
+  gym          Gym        @relation(fields: [gymId], references: [id])
+  gymId        String
+  // Reviews are gated on having bought a membership. Linking to it enforces
+  // that at the schema level, and the unique constraint stops review spam.
+  membership   Membership @relation(fields: [membershipId], references: [id])
+  membershipId String     @unique
+
+  rating    Int      // 1–5, enforced in application code and a check constraint
+  body      String?
+  reply     String?  // The gym's public response
+  repliedAt DateTime?
+
+  hidden    Boolean  @default(false) // Set by admin moderation
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([gymId, hidden])
+}

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { createTranslator, formatDate, isLocale } from "@fg/i18n";
 import { findMembership } from "@/lib/memberships";
-import { PLANS, findGym } from "@/lib/gyms";
+import { findPlan, findGymById } from "@/lib/gyms";
 import { Badge } from "@/components/Badge";
 import { Price } from "@/components/Price";
 import styles from "./page.module.css";
@@ -25,11 +25,13 @@ export default async function MembershipCardPage({
   if (!isLocale(raw)) notFound();
   const locale = raw;
 
-  const membership = findMembership(id);
+  const membership = await findMembership(id);
   if (!membership) notFound();
 
-  const gym = findGym(membership.gymId);
-  const plan = PLANS.find((p) => p.id === membership.planId);
+  const [gym, plan] = await Promise.all([
+    findGymById(membership.gymId),
+    findPlan(membership.planId),
+  ]);
   if (!gym || !plan) notFound();
 
   const t = createTranslator(locale);
@@ -78,7 +80,7 @@ export default async function MembershipCardPage({
         ) : (
           <div className={styles.expiredBox}>
             <p>{t("membership.expired")}</p>
-            <Link href={`/${locale}/gyms/${gym.id}`} className={styles.renew}>
+            <Link href={`/${locale}/gyms/${gym.slug}`} className={styles.renew}>
               {t("membership.renew")}
             </Link>
           </div>

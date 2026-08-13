@@ -20,7 +20,7 @@ export function GymCard({ gym, locale }: { gym: GymDetail; locale: Locale }) {
   const verified = gym.verification.state === "verified";
 
   return (
-    <Link href={`/${locale}/gyms/${gym.id}`} className={styles.card}>
+    <Link href={`/${locale}/gyms/${gym.slug}`} className={styles.card}>
       <GymPhoto
         src={gym.photos[0]}
         alt={gym.name[locale]}

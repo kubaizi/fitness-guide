@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createTranslator, isLocale } from "@fg/i18n";
-import { PLANS, findGym } from "@/lib/gyms";
-import { MEMBERSHIPS } from "@/lib/memberships";
+import { findPlanWithGym } from "@/lib/gyms";
+import { findMembershipForGym } from "@/lib/memberships";
 import { Price } from "@/components/Price";
 import styles from "./page.module.css";
 
@@ -15,18 +15,16 @@ export default async function ConfirmedPage({
   if (!isLocale(raw)) notFound();
   const locale = raw;
 
-  const plan = PLANS.find((p) => p.id === planId);
-  if (!plan) notFound();
-
-  const gym = findGym(plan.gymId);
-  if (!gym) notFound();
+  const found = await findPlanWithGym(planId);
+  if (!found) notFound();
+  const { plan, gym } = found;
 
   const t = createTranslator(locale);
   const total = plan.offerPrice ?? plan.listPrice;
 
   // Until purchases persist, link to the seeded membership for this gym if
   // there is one, so the card screen has something real to render.
-  const membership = MEMBERSHIPS.find((m) => m.gymId === gym.id);
+  const membership = await findMembershipForGym(gym.id);
 
   return (
     <main className={styles.main}>

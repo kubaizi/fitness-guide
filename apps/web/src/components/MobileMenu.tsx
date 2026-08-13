@@ -1,12 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@fg/i18n";
 import { createTranslator } from "@fg/i18n";
 import { LocaleSwitch } from "./LocaleSwitch";
 import styles from "./MobileMenu.module.css";
+
+/** Never fires — `mounted` only needs to differ between server and client. */
+const subscribeNoop = () => () => {};
 
 /**
  * The mobile navigation drawer.
@@ -27,7 +31,24 @@ export function MobileMenu({ locale }: { locale: Locale }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
-  const close = useCallback(() => setOpen(false), []);
+  // setOpen is a stable setter, so listing it changes nothing at runtime —
+  // React Compiler just refuses to infer that on our behalf.
+  const close = useCallback(() => setOpen(false), [setOpen]);
+
+  /**
+   * The drawer has to be portalled OUT of the header.
+   *
+   * SiteHeader sets `backdrop-filter: blur(8px)`, and backdrop-filter (like
+   * transform, filter and perspective) makes an element a CONTAINING BLOCK for
+   * its `position: fixed` descendants. Rendered in place, the drawer was
+   * therefore fixed to the 64px-tall header rather than to the viewport —
+   * `inset-block: 0` resolved to the header's box, not the screen. The header
+   * also opens a stacking context, so the panel's z-index:50 was trapped
+   * beneath later page content no matter how high it went.
+   *
+   * Portalling to <body> puts it back in the viewport's containing block.
+   */
+  const mounted = useSyncExternalStore(subscribeNoop, () => true, () => false);
 
   useEffect(() => {
     if (!open) return;
@@ -84,22 +105,8 @@ export function MobileMenu({ locale }: { locale: Locale }) {
     { href: `/${locale}/memberships`, label: t("nav.memberships") },
   ];
 
-  return (
+  const drawer = (
     <>
-      <button
-        ref={triggerRef}
-        type="button"
-        className={styles.trigger}
-        aria-label={t("nav.menu")}
-        aria-expanded={open}
-        aria-controls="mobile-menu"
-        onClick={() => setOpen(true)}
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M3 6h18M3 12h18M3 18h18" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      </button>
-
       <div
         className={`${styles.backdrop} ${open ? styles.backdropOpen : ""}`}
         onClick={close}
@@ -158,6 +165,28 @@ export function MobileMenu({ locale }: { locale: Locale }) {
           <LocaleSwitch current={locale} />
         </div>
       </div>
+    </>
+  );
+
+  return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        className={styles.trigger}
+        aria-label={t("nav.menu")}
+        aria-expanded={open}
+        aria-controls="mobile-menu"
+        onClick={() => setOpen(true)}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 6h18M3 12h18M3 18h18" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      </button>
+
+      {/* Portals need a real DOM node, so this waits for hydration. The drawer
+          is closed on first paint anyway, so nothing visible is deferred. */}
+      {mounted ? createPortal(drawer, document.body) : null}
     </>
   );
 }

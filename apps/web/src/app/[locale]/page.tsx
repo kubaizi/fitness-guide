@@ -1,6 +1,6 @@
 import { isLocale, createTranslator } from "@fg/i18n";
 import { notFound } from "next/navigation";
-import { GYMS } from "@/lib/gyms";
+import { getGyms } from "@/lib/gyms";
 import { GymCard } from "@/components/GymCard";
 import styles from "./page.module.css";
 
@@ -11,6 +11,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   if (!isLocale(raw)) notFound();
   const locale = raw;
   const t = createTranslator(locale);
+  const gyms = await getGyms();
 
   return (
     <>
@@ -28,7 +29,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         </div>
 
         <div className={styles.grid}>
-          {GYMS.map((gym) => (
+          {gyms.map((gym) => (
             <GymCard key={gym.id} gym={gym} locale={locale} />
           ))}
         </div>
