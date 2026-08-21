@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Locale } from "@fg/i18n";
 import { createTranslator } from "@fg/i18n";
-import type { GymDetail } from "@/lib/gyms";
+import type { GymDetail } from "@/lib/db";
 import { Badge } from "./Badge";
 import { GymPhoto } from "./GymPhoto";
 import { Price } from "./Price";

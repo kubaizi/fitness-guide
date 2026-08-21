@@ -1,0 +1,86 @@
+[
+  {
+    "id": "cmsrdn5af0005f8ftnsbp39yi",
+    "gymId": "cmsrdn5ac0001f8ftcmmjp9y0",
+    "name": {
+      "ar": "دخول يومي",
+      "en": "Day pass"
+    },
+    "duration": "day_pass",
+    "listPrice": 3000,
+    "offerPrice": null,
+    "active": true
+  },
+  {
+    "id": "cmsrdn5aw000jf8ftuyglyz6l",
+    "gymId": "cmsrdn5av000ff8ftkjlqgw48",
+    "name": {
+      "ar": "شهري",
+      "en": "Monthly"
+    },
+    "duration": "monthly",
+    "listPrice": 18750,
+    "offerPrice": null,
+    "active": true
+  },
+  {
+    "id": "cmsrdn5af0006f8ftcdvzkp70",
+    "gymId": "cmsrdn5ac0001f8ftcmmjp9y0",
+    "name": {
+      "ar": "شهري",
+      "en": "Monthly"
+    },
+    "duration": "monthly",
+    "listPrice": 25000,
+    "offerPrice": 19900,
+    "active": true
+  },
+  {
+    "id": "cmsrdn5ao000df8ftt6htuq28",
+    "gymId": "cmsrdn5am0009f8ftzliyvz7q",
+    "name": {
+      "ar": "شهري",
+      "en": "Monthly"
+    },
+    "duration": "monthly",
+    "listPrice": 38000,
+    "offerPrice": 32500,
+    "active": true
+  },
+  {
+    "id": "cmsrdn5af0007f8ft2l75jrq9",
+    "gymId": "cmsrdn5ac0001f8ftcmmjp9y0",
+    "name": {
+      "ar": "ربع سنوي",
+      "en": "Quarterly"
+    },
+    "duration": "quarterly",
+    "listPrice": 67500,
+    "offerPrice": null,
+    "active": true
+  },
+  {
+    "id": "cmsrdn5af0008f8ftwf24d76x",
+    "gymId": "cmsrdn5ac0001f8ftcmmjp9y0",
+    "name": {
+      "ar": "سنوي",
+      "en": "Yearly"
+    },
+    "duration": "yearly",
+    "listPrice": 240000,
+    "offerPrice": 199999,
+    "active": true
+  },
+  {
+    "id": "cmsrdn5ao000ef8ftm47boz11",
+    "gymId": "cmsrdn5am0009f8ftzliyvz7q",
+    "name": {
+      "ar": "سنوي",
+      "en": "Yearly"
+    },
+    "duration": "yearly",
+    "listPrice": 360000,
+    "offerPrice": null,
+    "active": true
+  }
+]

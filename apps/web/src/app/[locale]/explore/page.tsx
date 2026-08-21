@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createTranslator, isLocale } from "@fg/i18n";
-import { getGyms } from "@/lib/gyms";
+import { getGyms } from "@/lib/db";
 import { ExploreBrowser } from "@/components/ExploreBrowser";
 import styles from "./page.module.css";
 
@@ -12,7 +12,7 @@ export default async function ExplorePage({ params }: PageProps<"/[locale]/explo
   if (!isLocale(raw)) notFound();
   const locale = raw;
   const t = createTranslator(locale);
-  const gyms = await getGyms();
+  const gyms = getGyms();
 
   return (
     <main className={styles.main}>

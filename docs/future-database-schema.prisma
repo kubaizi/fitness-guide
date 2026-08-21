@@ -1,4 +1,10 @@
-// Fitness Guide — database schema.
+// Fitness Guide — database schema, KEPT FOR LATER.
+//
+// NOT IN USE. The app currently reads JSON files from apps/web/db/ so the demo
+// deploys with no database at all. This file is the design that was already
+// built and migrated against PostgreSQL — keep it, because it is the target
+// shape for whatever backend comes next (Azure SQL, AWS RDS, or Postgres
+// again). Nothing imports it; it is documentation.
 //
 // Coming from EF Core: this file is your DbContext and your entity classes
 // combined. `prisma migrate dev` is Add-Migration + Update-Database in one,

@@ -1,112 +1,124 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
-import { SESSION_TTL_MS } from "@fg/core";
-import { prisma } from "./prisma";
+import { OTP_TTL_MS, SESSION_TTL_MS } from "@fg/core";
 
 /**
- * Session cookie handling.
+ * Cookie-based sessions — no database.
  *
- * `server-only` at the top is not decoration: it makes the build FAIL if any
- * of this is ever imported into a client component, which is what stops the
- * signing secret from being bundled into JavaScript sent to browsers.
+ * There is no database in the demo build, so a session cannot be a row that
+ * gets looked up. Instead the session lives entirely in a signed cookie: the
+ * server can verify it was issued here (the signature proves that) without
+ * storing anything.
  *
- * The cookie carries an encrypted session *id*, nothing else — no user id, no
- * role, no name. Anything the cookie asserts, an attacker could tamper with;
- * anything looked up from the database on each request, they cannot. It also
- * means signing out actually revokes access rather than hoping the token
- * expires.
+ * TRADEOFF, stated plainly: a cookie session cannot be revoked server-side.
+ * Signing out clears the cookie on that browser, but a copy taken beforehand
+ * stays valid until it expires. With a real database this goes back to a
+ * Session row that can be deleted — see the `Session` model kept in
+ * docs/future-database-schema.prisma for when that day comes.
+ *
+ * Acceptable here because the demo holds no real customer data.
  */
 
-const COOKIE_NAME = "fg_session";
+const SESSION_COOKIE = "fg_session";
+const OTP_COOKIE = "fg_otp";
 
 function secretKey(): Uint8Array {
-  const secret = process.env["SESSION_SECRET"];
-  if (!secret || secret.length < 32) {
-    throw new Error(
-      "SESSION_SECRET must be set to at least 32 characters. See .env.example.",
-    );
+  const secret = process.env["SESSION_SECRET"] ?? "";
+  if (secret.length < 32) {
+    throw new Error("SESSION_SECRET must be at least 32 characters. See .env.example.");
   }
   return new TextEncoder().encode(secret);
 }
 
-async function seal(sessionId: string, expiresAt: Date): Promise<string> {
-  return new SignJWT({ sid: sessionId })
+async function sign(payload: Record<string, unknown>, expiresAt: Date): Promise<string> {
+  return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(expiresAt)
     .sign(secretKey());
 }
 
-async function unseal(token: string): Promise<string | null> {
+async function verify<T>(token: string): Promise<T | null> {
   try {
     const { payload } = await jwtVerify(token, secretKey(), { algorithms: ["HS256"] });
-    const sid = payload["sid"];
-    return typeof sid === "string" ? sid : null;
+    return payload as T;
   } catch {
-    // Tampered, expired or signed with a different secret — all mean "no session".
+    // Tampered, expired, or signed with another secret — all mean "no".
     return null;
   }
 }
 
-/** Creates a database session and sets the cookie. */
-export async function createSession(
-  userId: string,
-  meta?: { userAgent?: string | undefined; ipAddress?: string | undefined },
-): Promise<void> {
+// ──────────────────────────────────────────────────────────────────── session
+
+export async function createSession(userId: string): Promise<void> {
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
-
-  const session = await prisma.session.create({
-    data: {
-      userId,
-      expiresAt,
-      userAgent: meta?.userAgent ?? null,
-      ipAddress: meta?.ipAddress ?? null,
-    },
-  });
-
   const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, await seal(session.id, expiresAt), {
-    httpOnly: true, // unreadable from document.cookie, so XSS cannot steal it
-    secure: process.env.NODE_ENV === "production", // HTTPS only in production
-    sameSite: "lax", // survives normal navigation, blocks cross-site POSTs
+
+  cookieStore.set(SESSION_COOKIE, await sign({ uid: userId }, expiresAt), {
+    httpOnly: true, // invisible to document.cookie, so XSS cannot read it
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
     expires: expiresAt,
     path: "/",
   });
 }
 
-/** The signed-in user's id, or null. Verifies against the database every time. */
 export async function getSessionUserId(): Promise<string | null> {
   const cookieStore = await cookies();
-  const token = cookieStore.get(COOKIE_NAME)?.value;
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return null;
 
-  const sessionId = await unseal(token);
-  if (!sessionId) return null;
-
-  const session = await prisma.session.findUnique({ where: { id: sessionId } });
-  if (!session) return null;
-
-  // Expired rows are deleted rather than left to accumulate.
-  if (session.expiresAt <= new Date()) {
-    await prisma.session.delete({ where: { id: session.id } }).catch(() => {});
-    return null;
-  }
-
-  return session.userId;
+  const payload = await verify<{ uid?: unknown }>(token);
+  return typeof payload?.uid === "string" ? payload.uid : null;
 }
 
-/** Revokes the session server-side and clears the cookie. */
 export async function destroySession(): Promise<void> {
   const cookieStore = await cookies();
-  const token = cookieStore.get(COOKIE_NAME)?.value;
+  cookieStore.delete(SESSION_COOKIE);
+}
 
-  if (token) {
-    const sessionId = await unseal(token);
-    if (sessionId) {
-      await prisma.session.delete({ where: { id: sessionId } }).catch(() => {});
-    }
+// ─────────────────────────────────────────────────────────────── pending OTP
+
+/**
+ * The pending code, carried in its own short-lived signed cookie.
+ *
+ * Between "send code" and "verify code" the server must remember what it sent.
+ * With no database, the cookie is that memory — and because it is signed, the
+ * browser cannot alter the phone number or the expected code.
+ *
+ * Only the HASH travels, never the code itself, so the cookie cannot be read
+ * to discover the answer.
+ */
+export async function setPendingOtp(phone: string, codeHash: string): Promise<void> {
+  const expiresAt = new Date(Date.now() + OTP_TTL_MS);
+  const cookieStore = await cookies();
+
+  cookieStore.set(OTP_COOKIE, await sign({ phone, codeHash }, expiresAt), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    expires: expiresAt,
+    path: "/",
+  });
+}
+
+export async function getPendingOtp(): Promise<{
+  phone: string;
+  codeHash: string;
+} | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(OTP_COOKIE)?.value;
+  if (!token) return null;
+
+  const payload = await verify<{ phone?: unknown; codeHash?: unknown }>(token);
+  if (typeof payload?.phone !== "string" || typeof payload?.codeHash !== "string") {
+    return null;
   }
+  return { phone: payload.phone, codeHash: payload.codeHash };
+}
 
-  cookieStore.delete(COOKIE_NAME);
+export async function clearPendingOtp(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.delete(OTP_COOKIE);
 }

@@ -12,10 +12,14 @@ Arabic is the default language. English is a full peer, not an afterthought.
 
 ```bash
 npm install
-npm test
+npm run dev
 ```
 
-That should give you 34 passing tests. If it does, your toolchain works.
+That is the whole setup. **There is no database to install or start** — the
+app reads JSON files from `apps/web/db/`, so it runs anywhere with nothing
+configured.
+
+`npm test` gives you 54 passing tests if you want to check the toolchain.
 
 Other commands, all run from the repo root:
 
@@ -58,9 +62,11 @@ Press **F5** on any `.test.ts` to debug it with breakpoints.
 fitness-guide/
 ├── apps/
 │   ├── web/            Next.js — public site, gym dashboard, admin console
-│   └── mobile/         Expo — the customer app
+│   │   └── db/         JSON data files — the "database" for now
+│   └── mobile/         Expo — the customer app (not generated yet)
+├── docs/               future-database-schema.prisma, for when a DB returns
 └── packages/
-    ├── core/           Money, domain types, Result — no UI, no framework
+    ├── core/           Money, domain types, OTP rules — no UI, no framework
     └── i18n/           Locales, translation, direction, formatting
 ```
 
@@ -147,14 +153,22 @@ A few things that surprise people arriving from .NET:
 
 ---
 
-## Not built yet
+## Data
 
-`apps/web` and `apps/mobile` are empty. See `apps/README.md` for the commands
-that generate them and how to wire `@fg/i18n` into each.
+`apps/web/db/*.json` holds every gym, plan, user and membership. Edit a file,
+refresh the page — no migration, no seed, no server. See
+[apps/web/db/README.md](apps/web/db/README.md) for the two rules that matter
+(money is integer fils; ids must match across files).
 
-Two decisions are still blocking real work rather than scaffolding:
+Nothing writes back to those files, so signing in does not create an account
+and "Pay" does not create a membership. Both need a real database.
+
+`docs/future-database-schema.prisma` is the full PostgreSQL schema, already
+designed and previously migrated. When a backend is chosen — Azure, AWS, or
+Postgres again — only `apps/web/src/lib/db.ts` changes.
+
+## Still blocked on decisions, not code
 
 - **Payments** need a KNET merchant account, which needs a licensed entity.
-  Build against the gateway sandbox until that exists.
 - **The wallet** may be a regulated activity if it holds withdrawable money.
   Until a lawyer says otherwise, treat it as non-cashable platform credit.

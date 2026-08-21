@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import type { Governorate } from "@fg/core";
 import type { Locale, TranslationKey } from "@fg/i18n";
 import { createTranslator, formatNumber, pluralForm } from "@fg/i18n";
-import type { GymDetail } from "@/lib/gyms";
+import type { GymDetail } from "@/lib/db";
 import { GymCard } from "./GymCard";
 import styles from "./ExploreBrowser.module.css";
 

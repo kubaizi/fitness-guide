@@ -7,17 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
-    "prisma:studio": "prisma studio",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:generate": "prisma generate",
-    "db:seed": "vite-node prisma/seed.ts"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@fg/core": "*",
     "@fg/i18n": "*",
-    "@prisma/adapter-pg": "^7.9.1",
-    "@prisma/client": "^7.9.1",
     "jose": "^6.2.9",
     "next": "16.3.0",
     "qrcode": "^1.5.4",
@@ -33,7 +27,6 @@
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
-    "prisma": "^7.9.1",
     "typescript": "^5"
   }
 }

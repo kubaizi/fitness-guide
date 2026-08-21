@@ -2,9 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { createTranslator, formatDate, isLocale } from "@fg/i18n";
-import { findMembership } from "@/lib/memberships";
+import { findMembershipForUser, findPlan, findGymById } from "@/lib/db";
 import { requireUser } from "@/lib/dal";
-import { findPlan, findGymById } from "@/lib/gyms";
 import { Badge } from "@/components/Badge";
 import { Price } from "@/components/Price";
 import styles from "./page.module.css";
@@ -26,15 +25,13 @@ export default async function MembershipCardPage({
   if (!isLocale(raw)) notFound();
   const locale = raw;
 
-  await requireUser(locale);
+  const user = await requireUser(locale);
 
-  const membership = await findMembership(id);
+  const membership = findMembershipForUser(id, user.id);
   if (!membership) notFound();
 
-  const [gym, plan] = await Promise.all([
-    findGymById(membership.gymId),
-    findPlan(membership.planId),
-  ]);
+  const gym = findGymById(membership.gymId);
+  const plan = findPlan(membership.planId);
   if (!gym || !plan) notFound();
 
   const t = createTranslator(locale);

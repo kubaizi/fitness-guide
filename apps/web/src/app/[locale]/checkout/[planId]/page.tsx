@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { subtract } from "@fg/core";
 import { createTranslator, formatDate, isLocale } from "@fg/i18n";
-import { findPlanWithGym } from "@/lib/gyms";
+import { findPlanWithGym } from "@/lib/db";
 import { Price } from "@/components/Price";
 import { PaymentMethods } from "@/components/PaymentMethods";
 import styles from "./page.module.css";
@@ -18,7 +18,7 @@ export default async function CheckoutPage({
   if (!isLocale(raw)) notFound();
   const locale = raw;
 
-  const found = await findPlanWithGym(planId);
+  const found = findPlanWithGym(planId);
   if (!found) notFound();
   const { plan, gym } = found;
 

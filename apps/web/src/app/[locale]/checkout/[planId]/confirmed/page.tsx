@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createTranslator, isLocale } from "@fg/i18n";
-import { findPlanWithGym } from "@/lib/gyms";
-import { findMembershipForGym } from "@/lib/memberships";
+import { findPlanWithGym } from "@/lib/db";
+import { findMembershipForGym } from "@/lib/db";
 import { Price } from "@/components/Price";
 import styles from "./page.module.css";
 
@@ -15,7 +15,7 @@ export default async function ConfirmedPage({
   if (!isLocale(raw)) notFound();
   const locale = raw;
 
-  const found = await findPlanWithGym(planId);
+  const found = findPlanWithGym(planId);
   if (!found) notFound();
   const { plan, gym } = found;
 
@@ -24,7 +24,7 @@ export default async function ConfirmedPage({
 
   // Until purchases persist, link to the seeded membership for this gym if
   // there is one, so the card screen has something real to render.
-  const membership = await findMembershipForGym(gym.id);
+  const membership = findMembershipForGym(gym.id);
 
   return (
     <main className={styles.main}>

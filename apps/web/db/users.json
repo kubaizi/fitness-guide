@@ -1,0 +1,18 @@
+[
+  {
+    "id": "cmsrdn5990000f8ftg2dpl7x3",
+    "phone": "+96590000001",
+    "name": "عبدالله",
+    "gender": "male",
+    "role": "member",
+    "locale": "ar"
+  },
+  {
+    "id": "cmt2zdmxr00018cftna6gg832",
+    "phone": "+96591234567",
+    "name": "New member",
+    "gender": "unspecified",
+    "role": "member",
+    "locale": "en"
+  }
+]

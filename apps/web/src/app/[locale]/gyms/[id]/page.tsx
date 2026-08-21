@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, createTranslator } from "@fg/i18n";
-import { findGymBySlug, plansForGym } from "@/lib/gyms";
+import { findGymBySlug, plansForGym } from "@/lib/db";
 import { Badge } from "@/components/Badge";
 import { Rating } from "@/components/Rating";
 import { Price } from "@/components/Price";
@@ -24,7 +24,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string; id: string }>;
 }): Promise<Metadata> {
   const { locale: raw, id } = await params;
-  const gym = await findGymBySlug(id);
+  const gym = findGymBySlug(id);
   if (!isLocale(raw) || !gym) return {};
   return { title: `${gym.name[raw]} — ${gym.area[raw]}` };
 }
@@ -39,10 +39,10 @@ export default async function GymProfilePage({
   if (!isLocale(raw)) notFound();
   const locale = raw;
 
-  const gym = await findGymBySlug(id);
+  const gym = findGymBySlug(id);
   if (!gym) notFound();
 
-  const plans = await plansForGym(gym.id);
+  const plans = plansForGym(gym.id);
   const t = createTranslator(locale);
   const verified = gym.verification.state === "verified";
 

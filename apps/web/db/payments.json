@@ -1,0 +1,14 @@
+[
+  {
+    "id": "cmsrdn5b1000lf8ftj8f73qhv",
+    "membershipId": "cmsrdn5b0000kf8ftfp39ge2y",
+    "amount": 19900,
+    "platformFee": 2985,
+    "gymAmount": 16915,
+    "commissionBps": 1500,
+    "provider": "myfatoorah",
+    "method": "knet",
+    "status": "paid",
+    "paidAt": "2026-07-12T00:00:00.000Z"
+  }
+]

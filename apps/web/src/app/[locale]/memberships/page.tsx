@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Membership } from "@fg/core";
 import type { Locale, TranslationKey } from "@fg/i18n";
 import { createTranslator, formatDate, isLocale } from "@fg/i18n";
-import { getMyMembershipsWithDetails } from "@/lib/memberships";
+import { membershipsWithDetailsForUser } from "@/lib/db";
 import { requireUser } from "@/lib/dal";
 import { Badge } from "@/components/Badge";
 import { Price } from "@/components/Price";
@@ -56,8 +56,8 @@ export default async function MembershipsPage({
   const t = createTranslator(locale);
 
   // Redirects to login when signed out. The data layer checks again anyway.
-  await requireUser(locale);
-  const items = await getMyMembershipsWithDetails();
+  const user = await requireUser(locale);
+  const items = membershipsWithDetailsForUser(user.id);
 
   return (
     <main className={styles.main}>
