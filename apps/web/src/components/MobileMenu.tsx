@@ -48,7 +48,11 @@ export function MobileMenu({ locale }: { locale: Locale }) {
    *
    * Portalling to <body> puts it back in the viewport's containing block.
    */
-  const mounted = useSyncExternalStore(subscribeNoop, () => true, () => false);
+  const mounted = useSyncExternalStore(
+    subscribeNoop,
+    () => true,
+    () => false,
+  );
 
   useEffect(() => {
     if (!open) return;

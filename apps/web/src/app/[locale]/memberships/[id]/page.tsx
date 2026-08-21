@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { createTranslator, formatDate, isLocale } from "@fg/i18n";
 import { findMembership } from "@/lib/memberships";
+import { requireUser } from "@/lib/dal";
 import { findPlan, findGymById } from "@/lib/gyms";
 import { Badge } from "@/components/Badge";
 import { Price } from "@/components/Price";
@@ -24,6 +25,8 @@ export default async function MembershipCardPage({
   const { locale: raw, id } = await params;
   if (!isLocale(raw)) notFound();
   const locale = raw;
+
+  await requireUser(locale);
 
   const membership = await findMembership(id);
   if (!membership) notFound();

@@ -3,6 +3,7 @@ import type { Locale } from "@fg/i18n";
 import { createTranslator } from "@fg/i18n";
 import { LocaleSwitch } from "./LocaleSwitch";
 import { MobileMenu } from "./MobileMenu";
+import { AuthButton } from "./AuthButton";
 import styles from "./SiteHeader.module.css";
 
 export function SiteHeader({ locale }: { locale: Locale }) {
@@ -34,6 +35,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           moves inside the drawer instead.
         */}
         <div className={styles.desktopLocale}>
+          <AuthButton locale={locale} />
           <LocaleSwitch current={locale} />
         </div>
 

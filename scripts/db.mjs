@@ -44,21 +44,45 @@ if (command === "start") {
 
   const child = spawn(
     exe("pg_ctl"),
-    ["-D", PG_DATA, "-l", path.join(PG_DATA, "server.log"), "-o", `-p ${PG_PORT}`, "start"],
+    [
+      "-D",
+      PG_DATA,
+      "-l",
+      path.join(PG_DATA, "server.log"),
+      "-o",
+      `-p ${PG_PORT}`,
+      "start",
+    ],
     { detached: true, stdio: "ignore" },
   );
   child.unref();
 
   // pg_ctl returns before the server finishes accepting connections.
-  const deadline = Date.now() + 20_000;
+  //
+  // 90s, not 20s: if the machine was shut down without stopping Postgres, the
+  // server does crash recovery on the next start — it fsyncs the whole data
+  // directory, which took over 30 seconds here. A shorter timeout reports
+  // failure while the server is in fact starting perfectly normally.
+  const deadline = Date.now() + 90_000;
+  let announced = false;
+
   const poll = () => {
-    const r = spawnSync(exe("pg_isready"), ["-h", "127.0.0.1", "-p", PG_PORT]);
+    const r = spawnSync(exe("pg_isready"), ["-h", "127.0.0.1", "-p", PG_PORT], {
+      encoding: "utf8",
+    });
     if (r.status === 0) {
       console.log(`PostgreSQL ready on port ${PG_PORT}.`);
       process.exit(0);
     }
+
+    // pg_isready distinguishes "starting up" from "not there at all".
+    if (!announced && `${r.stdout ?? ""}`.includes("rejecting")) {
+      announced = true;
+      console.log("Recovering from an unclean shutdown — this can take a minute...");
+    }
+
     if (Date.now() > deadline) {
-      console.error(`Timed out. Check ${path.join(PG_DATA, "server.log")}`);
+      console.error(`Timed out after 90s. Check ${path.join(PG_DATA, "server.log")}`);
       process.exit(1);
     }
     setTimeout(poll, 500);
@@ -74,7 +98,9 @@ if (command === "start") {
   const r = spawnSync(exe("pg_isready"), ["-h", "127.0.0.1", "-p", PG_PORT], {
     encoding: "utf8",
   });
-  console.log(r.stdout?.trim() || (r.status === 0 ? "accepting connections" : "not running"));
+  console.log(
+    r.stdout?.trim() || (r.status === 0 ? "accepting connections" : "not running"),
+  );
   process.exit(r.status ?? 0);
 } else {
   console.error("Usage: node scripts/db.mjs <start|stop|status>");

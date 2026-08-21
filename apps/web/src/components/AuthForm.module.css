@@ -1,0 +1,114 @@
+.main {
+  max-width: 420px;
+  margin-inline: auto;
+  padding: var(--sp-8) var(--sp-5);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-6) var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.title {
+  font-size: var(--step-3);
+  font-weight: 700;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.subtitle b {
+  color: var(--ink);
+  font-weight: 600;
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}
+
+.label {
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-block-end: var(--sp-2);
+  display: block;
+}
+
+.input {
+  width: 100%;
+  padding-block: var(--sp-3);
+  padding-inline: var(--sp-4);
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--step-1);
+  /* Phone numbers and codes are always LTR, even on an Arabic page. */
+  direction: ltr;
+  text-align: start;
+}
+
+.input:focus {
+  border-color: var(--gold-dim);
+  outline: none;
+}
+
+.code {
+  letter-spacing: 0.5em;
+  text-align: center;
+  font-family: var(--font-mono);
+}
+
+.submit {
+  padding-block: var(--sp-3);
+  background: var(--gold);
+  color: #14130d;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 650;
+  font-size: var(--step-0);
+}
+
+.submit:hover:not(:disabled) {
+  background: var(--gold-bright);
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.error {
+  background: var(--crit-wash, #26140f);
+  color: var(--crit, #e07a63);
+  border-radius: var(--radius);
+  padding: var(--sp-3) var(--sp-4);
+  font-size: 0.9rem;
+}
+
+.hint {
+  color: var(--warn);
+  background: var(--warn-wash);
+  border-radius: var(--radius);
+  padding: var(--sp-2) var(--sp-3);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.alt {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.alt a:hover {
+  color: var(--gold);
+}

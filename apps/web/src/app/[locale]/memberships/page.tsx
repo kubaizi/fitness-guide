@@ -4,6 +4,7 @@ import type { Membership } from "@fg/core";
 import type { Locale, TranslationKey } from "@fg/i18n";
 import { createTranslator, formatDate, isLocale } from "@fg/i18n";
 import { getMyMembershipsWithDetails } from "@/lib/memberships";
+import { requireUser } from "@/lib/dal";
 import { Badge } from "@/components/Badge";
 import { Price } from "@/components/Price";
 import styles from "./page.module.css";
@@ -53,6 +54,9 @@ export default async function MembershipsPage({
   if (!isLocale(raw)) notFound();
   const locale: Locale = raw;
   const t = createTranslator(locale);
+
+  // Redirects to login when signed out. The data layer checks again anyway.
+  await requireUser(locale);
   const items = await getMyMembershipsWithDetails();
 
   return (

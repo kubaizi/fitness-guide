@@ -70,7 +70,14 @@ async function main() {
       reviewCount: 213,
       latitude: 29.33,
       longitude: 48.07,
-      amenities: ["freeWeights", "cardio", "sauna", "parking", "lockers", "personalTraining"],
+      amenities: [
+        "freeWeights",
+        "cardio",
+        "sauna",
+        "parking",
+        "lockers",
+        "personalTraining",
+      ],
       photos: {
         create: [
           { url: "/gyms/iron-club-1.jpg", position: 0 },

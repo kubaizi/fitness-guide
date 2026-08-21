@@ -91,6 +91,7 @@ model User {
   memberships Membership[]
   reviews     Review[]
   checkIns    CheckIn[]
+  sessions    Session[]
   // A gym owner or staff member is linked to the gym they work at.
   staffAtGym  Gym?     @relation("GymStaff", fields: [staffAtGymId], references: [id])
   staffAtGymId String?
@@ -298,4 +299,48 @@ model Review {
   updatedAt DateTime @updatedAt
 
   @@index([gymId, hidden])
+}
+
+// ───────────────────────────────────────────────────────────── authentication
+
+/**
+ * A signed-in session.
+ *
+ * Stored in the database rather than encoded entirely in the cookie, so a
+ * session can be revoked server-side — sign out everywhere, or cut off a
+ * stolen cookie. The cookie carries only this row's id.
+ */
+model Session {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // Recorded for a future "your active sessions" screen and for abuse triage.
+  userAgent String?
+  ipAddress String?
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/**
+ * A one-time login code sent by SMS.
+ *
+ * `codeHash`, never the code itself: anyone with read access to this table
+ * could otherwise sign in as any user. `attempts` caps brute force — six
+ * digits is only a million combinations, which is nothing without a limit.
+ */
+model OtpCode {
+  id         String    @id @default(cuid())
+  phone      String
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  // Looking up the newest unconsumed code for a phone is the hot path.
+  @@index([phone, createdAt])
 }

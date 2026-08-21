@@ -1,6 +1,8 @@
+import "server-only";
 import { fils } from "@fg/core";
 import type { Membership } from "@fg/core";
 import { prisma } from "./prisma";
+import { getCurrentUser } from "./dal";
 
 /**
  * The membership data layer.
@@ -67,11 +69,12 @@ const toMembership = (row: MembershipRow): Membership => ({
 /**
  * Memberships for the signed-in user.
  *
- * There is no authentication yet, so this takes the first seeded member.
- * When auth lands, this signature grows a `userId` and nothing else changes.
+ * The authorisation check lives HERE, not only in the page above it. Next's
+ * auth guide is explicit that route-level checks are a first pass — this is
+ * the one that actually guards the data, so no caller can forget it.
  */
 export async function getMyMemberships(): Promise<readonly Membership[]> {
-  const user = await prisma.user.findFirst({ where: { role: "member" } });
+  const user = await getCurrentUser();
   if (!user) return [];
 
   const rows = await prisma.membership.findMany({
@@ -81,8 +84,17 @@ export async function getMyMemberships(): Promise<readonly Membership[]> {
   return rows.map((r) => toMembership(r as MembershipRow));
 }
 
+/**
+ * A single membership, scoped to its owner.
+ *
+ * Scoping by `userId` as well as `id` is what stops someone pasting another
+ * member's id into the URL and seeing their QR entry code.
+ */
 export async function findMembership(id: string): Promise<Membership | null> {
-  const row = await prisma.membership.findUnique({ where: { id } });
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  const row = await prisma.membership.findFirst({ where: { id, userId: user.id } });
   return row ? toMembership(row as MembershipRow) : null;
 }
 
@@ -99,8 +111,10 @@ export interface MembershipListItem {
  * Looking each one up per row would be an N+1: one query for the list, then
  * two more per membership. `include` makes it one round trip.
  */
-export async function getMyMembershipsWithDetails(): Promise<readonly MembershipListItem[]> {
-  const user = await prisma.user.findFirst({ where: { role: "member" } });
+export async function getMyMembershipsWithDetails(): Promise<
+  readonly MembershipListItem[]
+> {
+  const user = await getCurrentUser();
   if (!user) return [];
 
   const rows = await prisma.membership.findMany({
