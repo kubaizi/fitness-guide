@@ -1,7 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
-import { OTP_TTL_MS, SESSION_TTL_MS } from "@fg/core";
+import { SESSION_TTL_MS } from "@fg/core";
 
 /**
  * Cookie-based sessions — no database.
@@ -21,7 +21,6 @@ import { OTP_TTL_MS, SESSION_TTL_MS } from "@fg/core";
  */
 
 const SESSION_COOKIE = "fg_session";
-const OTP_COOKIE = "fg_otp";
 
 function secretKey(): Uint8Array {
   const secret = process.env["SESSION_SECRET"] ?? "";
@@ -76,49 +75,4 @@ export async function getSessionUserId(): Promise<string | null> {
 export async function destroySession(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE);
-}
-
-// ─────────────────────────────────────────────────────────────── pending OTP
-
-/**
- * The pending code, carried in its own short-lived signed cookie.
- *
- * Between "send code" and "verify code" the server must remember what it sent.
- * With no database, the cookie is that memory — and because it is signed, the
- * browser cannot alter the phone number or the expected code.
- *
- * Only the HASH travels, never the code itself, so the cookie cannot be read
- * to discover the answer.
- */
-export async function setPendingOtp(phone: string, codeHash: string): Promise<void> {
-  const expiresAt = new Date(Date.now() + OTP_TTL_MS);
-  const cookieStore = await cookies();
-
-  cookieStore.set(OTP_COOKIE, await sign({ phone, codeHash }, expiresAt), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    expires: expiresAt,
-    path: "/",
-  });
-}
-
-export async function getPendingOtp(): Promise<{
-  phone: string;
-  codeHash: string;
-} | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(OTP_COOKIE)?.value;
-  if (!token) return null;
-
-  const payload = await verify<{ phone?: unknown; codeHash?: unknown }>(token);
-  if (typeof payload?.phone !== "string" || typeof payload?.codeHash !== "string") {
-    return null;
-  }
-  return { phone: payload.phone, codeHash: payload.codeHash };
-}
-
-export async function clearPendingOtp(): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.delete(OTP_COOKIE);
 }

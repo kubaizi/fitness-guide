@@ -161,21 +161,49 @@ export const findPlanWithGym = (
 
 export interface DemoUser {
   readonly id: string;
-  readonly phone: string;
+  readonly username: string;
+  /** Null for the admin account, which signs in by username only. */
+  readonly phone: string | null;
   readonly name: string;
   readonly role: string;
   readonly locale: string;
 }
 
-export const findUserById = (id: string): DemoUser | null =>
-  usersJson.find((u) => u.id === id) ?? null;
+/** Everything above, plus the stored hash. Never leaves the server. */
+interface StoredUser extends DemoUser {
+  readonly passwordSalt: string;
+  readonly passwordHash: string;
+}
 
-export const findUserByPhone = (phone: string): DemoUser | null =>
-  usersJson.find((u) => u.phone === phone) ?? null;
+/** Strips the password fields — this is what the rest of the app may see. */
+const publicUser = (u: StoredUser): DemoUser => ({
+  id: u.id,
+  username: u.username,
+  phone: u.phone,
+  name: u.name,
+  role: u.role,
+  locale: u.locale,
+});
 
-/** The account the demo signs into when an unknown number is used. */
-export const demoUser = (): DemoUser | null =>
-  usersJson.find((u) => u.role === "member") ?? null;
+export const findUserById = (id: string): DemoUser | null => {
+  const u = usersJson.find((x) => x.id === id);
+  return u ? publicUser(u) : null;
+};
+
+/**
+ * Looks up an account by username OR phone number, for the login form.
+ *
+ * Returns the STORED user, hash included, so only the sign-in action can call
+ * it. Everything else uses findUserById, which cannot leak a hash.
+ */
+export const findUserForLogin = (identifier: string): StoredUser | null => {
+  const needle = identifier.trim().toLowerCase();
+  return (
+    usersJson.find((u) => u.username.toLowerCase() === needle) ??
+    usersJson.find((u) => u.phone !== null && u.phone === identifier) ??
+    null
+  );
+};
 
 // ──────────────────────────────────────────────────────────────── memberships
 

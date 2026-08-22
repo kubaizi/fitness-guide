@@ -1,18 +1,32 @@
 [
   {
-    "id": "cmsrdn5990000f8ftg2dpl7x3",
-    "phone": "+96590000001",
-    "name": "عبدالله",
-    "gender": "male",
+    "id": "usr-emad",
+    "username": "emad",
+    "phone": "+96551338855",
+    "name": "عماد",
     "role": "member",
-    "locale": "ar"
+    "locale": "ar",
+    "passwordSalt": "b99b8cb02562a30b7beec9264607ecc1",
+    "passwordHash": "22ed4b94822ef0a30a87ac94ce1625706a51c98794ddc6ad996351e3be960e56db8bc14b20a75dd4f67d0181d55fd067d7f708c20a27099065cb83d3b3655245"
   },
   {
-    "id": "cmt2zdmxr00018cftna6gg832",
-    "phone": "+96591234567",
-    "name": "New member",
-    "gender": "unspecified",
+    "id": "usr-rodi",
+    "username": "rodi",
+    "phone": "+96550946363",
+    "name": "رودي",
     "role": "member",
-    "locale": "en"
+    "locale": "ar",
+    "passwordSalt": "2814e0c28aef769a6b6a33ef67709ba0",
+    "passwordHash": "eee3605c01dd448007f0e302acf4770b29dc43576cd649019aa164d8fed21313671151894401139f3e69edde6df9ac597826237c4bf28428ab5be1f4c5ed98b6"
+  },
+  {
+    "id": "usr-admin",
+    "username": "admin",
+    "phone": null,
+    "name": "Admin",
+    "role": "admin",
+    "locale": "en",
+    "passwordSalt": "18edf86da40f5968d62882e8391b571b",
+    "passwordHash": "db0baae810bdd836aebf27cc56a6636e319cfe37df17ffc487af848455aa401f33b6d15b3d118f8dac77f0cf2db60fa9ec93d460f08d760f28de4ce4bb32d66e"
   }
 ]

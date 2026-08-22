@@ -19,7 +19,7 @@ That is the whole setup. **There is no database to install or start** — the
 app reads JSON files from `apps/web/db/`, so it runs anywhere with nothing
 configured.
 
-`npm test` gives you 54 passing tests if you want to check the toolchain.
+`npm test` gives you 47 passing tests if you want to check the toolchain.
 
 Other commands, all run from the repo root:
 
@@ -66,7 +66,7 @@ fitness-guide/
 │   └── mobile/         Expo — the customer app (not generated yet)
 ├── docs/               future-database-schema.prisma, for when a DB returns
 └── packages/
-    ├── core/           Money, domain types, OTP rules — no UI, no framework
+    ├── core/           Money, domain types, passwords — no UI, no framework
     └── i18n/           Locales, translation, direction, formatting
 ```
 
@@ -152,6 +152,21 @@ A few things that surprise people arriving from .NET:
   `T | undefined`, which is correct and occasionally annoying.
 
 ---
+
+## Signing in
+
+| Username | Phone      | Role   | Password |
+| -------- | ---------- | ------ | -------- |
+| `emad`   | `51338855` | member | `123`    |
+| `rodi`   | `50946363` | member | `123`    |
+| `admin`  | —          | admin  | `123`    |
+
+Either the username or the phone number works. Passwords are scrypt-hashed
+with a per-user salt in `apps/web/db/users.json` — `123` is a demo password,
+but the storage is the real shape.
+
+There is no sign-up: the three accounts above are the whole user list, because
+nothing can write back to the JSON files.
 
 ## Data
 

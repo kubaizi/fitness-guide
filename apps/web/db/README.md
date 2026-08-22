@@ -11,7 +11,7 @@ time and work anywhere, including a Vercel deploy with nothing set up.
 | ------------------ | ------------------------------------------- |
 | `gyms.json`        | Gyms, with their photos and bilingual text  |
 | `plans.json`       | Membership plans, linked by `gymId`         |
-| `users.json`       | Demo accounts                               |
+| `users.json`       | Demo accounts, scrypt-hashed passwords      |
 | `memberships.json` | Memberships, linked by `userId` and `gymId` |
 | `payments.json`    | Payment records with the commission split   |
 
@@ -29,6 +29,31 @@ Two rules worth keeping:
    and a membership's `planId` a real plan `id`. Nothing enforces this the way
    a database's foreign keys would, so a typo produces a missing row rather
    than an error.
+
+## Demo accounts
+
+| Username | Phone      | Role   | Password |
+| -------- | ---------- | ------ | -------- |
+| `emad`   | `51338855` | member | `123`    |
+| `rodi`   | `50946363` | member | `123`    |
+| `admin`  | —          | admin  | `123`    |
+
+Sign in with **either** the username or the phone number. The phone can be
+typed however you like — `50946363`, `+965 5094 6363` — it is normalised
+before matching. The admin has no phone and signs in by username only.
+
+Passwords are stored as **scrypt hashes with a per-user salt**, never in plain
+text. That is why all three share the password `123` yet have three completely
+different hashes. `123` is obviously not a real password — the point is that
+the storage is the correct shape, so a real one dropped in later is actually
+protected.
+
+To change a password, run this from `apps/web` and paste the result into
+`users.json`:
+
+```bash
+node -e "const{hashPassword}=require('@fg/core');console.log(hashPassword('new-password'))"
+```
 
 ## Read-only
 

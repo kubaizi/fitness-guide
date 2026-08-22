@@ -1,4 +1,5 @@
 export * from "./money";
 export * from "./result";
-export * from "./otp";
+export * from "./phone";
+export * from "./password";
 export * from "./domain/index";
