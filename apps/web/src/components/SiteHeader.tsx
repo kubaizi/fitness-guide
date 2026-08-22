@@ -1,13 +1,22 @@
 import Link from "next/link";
 import type { Locale } from "@fg/i18n";
 import { createTranslator } from "@fg/i18n";
+import { getCurrentUser } from "@/lib/dal";
+import { navItemsFor } from "@/lib/nav";
 import { LocaleSwitch } from "./LocaleSwitch";
 import { MobileMenu } from "./MobileMenu";
 import { AuthButton } from "./AuthButton";
 import styles from "./SiteHeader.module.css";
 
-export function SiteHeader({ locale }: { locale: Locale }) {
+/**
+ * A server component, so the navigation is decided before anything reaches
+ * the browser — no flash of links the visitor is not entitled to, and no
+ * auth state duplicated on the client.
+ */
+export async function SiteHeader({ locale }: { locale: Locale }) {
   const t = createTranslator(locale);
+  const user = await getCurrentUser();
+  const items = navItemsFor(user, locale);
 
   return (
     <header className={styles.header}>
@@ -18,15 +27,11 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         </Link>
 
         <nav className={styles.nav}>
-          <Link href={`/${locale}`} className={styles.link}>
-            {t("nav.home")}
-          </Link>
-          <Link href={`/${locale}/explore`} className={styles.link}>
-            {t("nav.explore")}
-          </Link>
-          <Link href={`/${locale}/memberships`} className={styles.link}>
-            {t("nav.memberships")}
-          </Link>
+          {items.map((it) => (
+            <Link key={it.href} href={it.href} className={styles.link}>
+              {it.label}
+            </Link>
+          ))}
         </nav>
 
         {/*
@@ -39,7 +44,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           <LocaleSwitch current={locale} />
         </div>
 
-        <MobileMenu locale={locale} />
+        <MobileMenu locale={locale} items={items} />
       </div>
     </header>
   );

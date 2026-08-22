@@ -1,0 +1,94 @@
+.main {
+  max-width: var(--page);
+  margin-inline: auto;
+  padding: var(--sp-7) var(--sp-5) var(--sp-8);
+}
+
+.head {
+  margin-block-end: var(--sp-5);
+}
+
+.title {
+  font-size: clamp(1.8rem, 4vw, var(--step-4));
+  font-weight: 700;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-block-start: var(--sp-2);
+}
+
+/* Wide tables scroll inside their own box so the page never scrolls sideways. */
+.scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  min-width: 720px;
+}
+
+.table th {
+  text-align: start;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  padding: var(--sp-3) var(--sp-4);
+  border-block-end: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--sp-3) var(--sp-4);
+  border-block-end: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-block-end: none;
+}
+
+.table tbody tr:hover {
+  background: var(--surface-2);
+}
+
+.name {
+  font-weight: 650;
+}
+
+.sub {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Numbers and identifiers stay LTR even in Arabic, or bidi reorders them. */
+.num {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.count {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-block-start: var(--sp-4);
+}

@@ -244,3 +244,51 @@ export const findMembershipForGym = (gymId: string): Membership | null => {
   const m = membershipsJson.find((x) => x.gymId === gymId);
   return m ? toMembership(m) : null;
 };
+
+// ────────────────────────────────────────────────────────────────────── admin
+
+export interface AdminUserRow {
+  readonly user: DemoUser;
+  readonly membershipCount: number;
+  readonly activeCount: number;
+  /** Fils. Everything this user has paid, across all memberships. */
+  readonly totalPaid: number;
+}
+
+/**
+ * Every user, with a few figures worth seeing at a glance.
+ *
+ * Goes through `publicUser`, so the password hash and salt cannot reach a
+ * page even by accident.
+ */
+export function adminUsers(): readonly AdminUserRow[] {
+  return usersJson.map((u) => {
+    const mine = membershipsJson.filter((m) => m.userId === u.id);
+    return {
+      user: publicUser(u),
+      membershipCount: mine.length,
+      activeCount: mine.filter((m) => m.state === "active").length,
+      totalPaid: mine.reduce((sum, m) => sum + m.pricePaid, 0),
+    };
+  });
+}
+
+export interface AdminGymRow {
+  readonly gym: GymDetail;
+  readonly planCount: number;
+  readonly memberCount: number;
+  /** Fils. Gross taken through this gym, across all its memberships. */
+  readonly grossRevenue: number;
+}
+
+export function adminGyms(): readonly AdminGymRow[] {
+  return gymsJson.map((g) => {
+    const mine = membershipsJson.filter((m) => m.gymId === g.id);
+    return {
+      gym: toGym(g),
+      planCount: plansJson.filter((p) => p.gymId === g.id && p.active).length,
+      memberCount: mine.filter((m) => m.state === "active").length,
+      grossRevenue: mine.reduce((sum, m) => sum + m.pricePaid, 0),
+    };
+  });
+}

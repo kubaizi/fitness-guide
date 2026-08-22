@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { DEFAULT_LOCALE, type Locale } from "@fg/i18n";
 import { getSessionUserId } from "./session";
 import { findUserById, type DemoUser } from "./db";
@@ -26,5 +26,21 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 export async function requireUser(locale: Locale = DEFAULT_LOCALE): Promise<CurrentUser> {
   const user = await getCurrentUser();
   if (!user) redirect(`/${locale}/login`);
+  return user;
+}
+
+/**
+ * Requires an admin.
+ *
+ * Signed out redirects to login, but a signed-in non-admin gets a 404 rather
+ * than "forbidden" — telling someone a page exists but is off-limits is an
+ * invitation. As far as a member is concerned, /admin simply is not a route.
+ */
+export async function requireAdmin(
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<CurrentUser> {
+  const user = await getCurrentUser();
+  if (!user) redirect(`/${locale}/login`);
+  if (user.role !== "admin") notFound();
   return user;
 }

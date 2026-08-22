@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@fg/i18n";
 import { createTranslator } from "@fg/i18n";
+import type { NavItem } from "@/lib/nav";
 import { LocaleSwitch } from "./LocaleSwitch";
 import styles from "./MobileMenu.module.css";
 
@@ -22,7 +23,13 @@ const subscribeNoop = () => () => {};
  * traps Tab rather than just claiming to. It also closes on Escape, on
  * backdrop click, and on navigation, and restores focus to the trigger.
  */
-export function MobileMenu({ locale }: { locale: Locale }) {
+export function MobileMenu({
+  locale,
+  items,
+}: {
+  locale: Locale;
+  items: readonly NavItem[];
+}) {
   const t = createTranslator(locale);
   const pathname = usePathname();
 
@@ -103,12 +110,8 @@ export function MobileMenu({ locale }: { locale: Locale }) {
     };
   }, [open, close]);
 
-  const links = [
-    { href: `/${locale}`, label: t("nav.home") },
-    { href: `/${locale}/explore`, label: t("nav.explore") },
-    { href: `/${locale}/memberships`, label: t("nav.memberships") },
-  ];
-
+  // Items come from the server, so the drawer shows exactly what the header
+  // shows — including hiding links the visitor is not signed in for.
   const drawer = (
     <>
       <div
@@ -144,7 +147,7 @@ export function MobileMenu({ locale }: { locale: Locale }) {
         </div>
 
         <nav className={styles.panelNav}>
-          {links.map((link) => {
+          {items.map((link) => {
             const isCurrent = pathname === link.href;
             return (
               <Link
