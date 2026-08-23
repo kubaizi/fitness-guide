@@ -18,9 +18,23 @@ import membershipsJson from "@/db/memberships.json";
  * below already returns the domain types from @fg/core, so no screen knows or
  * cares where the data came from.
  *
- * Read-only by design. On a serverless host the filesystem is read-only and
- * ephemeral, so writing back to these files would silently do nothing.
+ * ─── On writing ──────────────────────────────────────────────────────────
+ *
+ * The imported JSON is frozen by the bundler, so edits go to the mutable
+ * copies below. `persist()` then tries to write the file back, which succeeds
+ * locally and fails on a serverless host, where the filesystem is read-only.
+ *
+ * That means: edits always show immediately, they survive a restart on your
+ * machine, and on Vercel they last only as long as that server instance. The
+ * editor screens say so plainly rather than pretending otherwise.
  */
+
+/**
+ * Mutable working copies. structuredClone because the imported JSON is shared
+ * module state — mutating it directly would corrupt the pristine import.
+ */
+const gyms: RawGym[] = structuredClone(gymsJson);
+const plans: RawPlan[] = structuredClone(plansJson);
 
 export interface GymDetail extends Gym {
   readonly slug: string;
@@ -55,7 +69,7 @@ function toVerification(g: RawGym): Gym["verification"] {
 }
 
 function toGym(g: RawGym): GymDetail {
-  const prices = plansJson
+  const prices = plans
     .filter((p) => p.gymId === g.id && p.active)
     .map((p) => p.offerPrice ?? p.listPrice);
 
@@ -122,37 +136,37 @@ const toMembership = (m: RawMembership): Membership => ({
 
 // ─────────────────────────────────────────────────────────────────────── gyms
 
-export const getGyms = (): readonly GymDetail[] => gymsJson.map(toGym);
+export const getGyms = (): readonly GymDetail[] => gyms.map(toGym);
 
 export const findGymBySlug = (slug: string): GymDetail | null => {
-  const g = gymsJson.find((x) => x.slug === slug);
+  const g = gyms.find((x) => x.slug === slug);
   return g ? toGym(g) : null;
 };
 
 export const findGymById = (id: string): GymDetail | null => {
-  const g = gymsJson.find((x) => x.id === id);
+  const g = gyms.find((x) => x.id === id);
   return g ? toGym(g) : null;
 };
 
 // ────────────────────────────────────────────────────────────────────── plans
 
 export const plansForGym = (gymId: string): readonly MembershipPlan[] =>
-  plansJson
+  plans
     .filter((p) => p.gymId === gymId && p.active)
     .sort((a, b) => a.listPrice - b.listPrice)
     .map(toPlan);
 
 export const findPlan = (id: string): MembershipPlan | null => {
-  const p = plansJson.find((x) => x.id === id);
+  const p = plans.find((x) => x.id === id);
   return p ? toPlan(p) : null;
 };
 
 export const findPlanWithGym = (
   id: string,
 ): { plan: MembershipPlan; gym: GymDetail } | null => {
-  const p = plansJson.find((x) => x.id === id);
+  const p = plans.find((x) => x.id === id);
   if (!p) return null;
-  const g = gymsJson.find((x) => x.id === p.gymId);
+  const g = gyms.find((x) => x.id === p.gymId);
   if (!g) return null;
   return { plan: toPlan(p), gym: toGym(g) };
 };
@@ -222,8 +236,8 @@ export function membershipsWithDetailsForUser(
   return membershipsJson
     .filter((m) => m.userId === userId)
     .map((m) => {
-      const gym = gymsJson.find((g) => g.id === m.gymId);
-      const plan = plansJson.find((p) => p.id === m.planId);
+      const gym = gyms.find((g) => g.id === m.gymId);
+      const plan = plans.find((p) => p.id === m.planId);
       if (!gym || !plan) return null;
       return {
         membership: toMembership(m),
@@ -282,13 +296,117 @@ export interface AdminGymRow {
 }
 
 export function adminGyms(): readonly AdminGymRow[] {
-  return gymsJson.map((g) => {
+  return gyms.map((g) => {
     const mine = membershipsJson.filter((m) => m.gymId === g.id);
     return {
       gym: toGym(g),
-      planCount: plansJson.filter((p) => p.gymId === g.id && p.active).length,
+      planCount: plans.filter((p) => p.gymId === g.id && p.active).length,
       memberCount: mine.filter((m) => m.state === "active").length,
       grossRevenue: mine.reduce((sum, m) => sum + m.pricePaid, 0),
     };
   });
 }
+
+// ─────────────────────────────────────────────────────────────────── writing
+
+/**
+ * Writes a collection back to its JSON file.
+ *
+ * Succeeds on a normal filesystem, throws EROFS on a serverless host. Either
+ * way the in-memory copy is already updated, so the UI is correct — this only
+ * decides whether the change outlives the process. The dynamic import keeps
+ * node:fs out of any client bundle.
+ */
+async function persist(file: string, data: unknown): Promise<"file" | "memory"> {
+  try {
+    const { writeFile } = await import("node:fs/promises");
+    const path = await import("node:path");
+    await writeFile(
+      path.join(process.cwd(), "db", `${file}.json`),
+      JSON.stringify(data, null, 2) + "\n",
+      "utf8",
+    );
+    return "file";
+  } catch {
+    // Read-only filesystem, or running from a bundle. Not an error here.
+    return "memory";
+  }
+}
+
+export interface GymProfileInput {
+  readonly nameAr: string;
+  readonly nameEn: string;
+  readonly descriptionAr: string;
+  readonly descriptionEn: string;
+  readonly areaAr: string;
+  readonly areaEn: string;
+  readonly addressAr: string;
+  readonly addressEn: string;
+  readonly hoursAr: string;
+  readonly hoursEn: string;
+  readonly governorate: string;
+  readonly access: string;
+  readonly amenities: readonly string[];
+}
+
+export async function updateGymProfile(
+  slug: string,
+  input: GymProfileInput,
+): Promise<"file" | "memory" | null> {
+  const gym = gyms.find((g) => g.slug === slug);
+  if (!gym) return null;
+
+  gym.name = { ar: input.nameAr, en: input.nameEn };
+  gym.description = { ar: input.descriptionAr, en: input.descriptionEn };
+  gym.area = { ar: input.areaAr, en: input.areaEn };
+  gym.address = { ar: input.addressAr, en: input.addressEn };
+  gym.hours = { ar: input.hoursAr, en: input.hoursEn };
+  gym.governorate = input.governorate;
+  gym.access = input.access;
+  gym.amenities = [...input.amenities];
+
+  return persist("gyms", gyms);
+}
+
+export interface PlanInput {
+  readonly nameAr: string;
+  readonly nameEn: string;
+  /** Human-written KWD, e.g. "19.900". Converted to fils by parseKwd. */
+  readonly listPrice: number;
+  readonly offerPrice: number | null;
+  readonly active: boolean;
+}
+
+export async function updatePlan(
+  id: string,
+  input: PlanInput,
+): Promise<"file" | "memory" | null> {
+  const plan = plans.find((p) => p.id === id);
+  if (!plan) return null;
+
+  plan.name = { ar: input.nameAr, en: input.nameEn };
+  plan.listPrice = input.listPrice;
+  plan.offerPrice = input.offerPrice;
+  plan.active = input.active;
+
+  return persist("plans", plans);
+}
+
+/** Every plan for a gym, including inactive ones — the editor must see those. */
+export const allPlansForGym = (gymId: string): readonly MembershipPlan[] =>
+  plans
+    .filter((p) => p.gymId === gymId)
+    .sort((a, b) => a.listPrice - b.listPrice)
+    .map(toPlan);
+
+export const isPlanActive = (id: string): boolean =>
+  plans.find((p) => p.id === id)?.active ?? false;
+
+/** The gym a staff member or owner belongs to. */
+export const gymForStaff = (userId: string): GymDetail | null => {
+  const u = usersJson.find((x) => x.id === userId);
+  const staffAtGymId = (u as { staffAtGymId?: string } | undefined)?.staffAtGymId;
+  if (!staffAtGymId) return null;
+  const g = gyms.find((x) => x.id === staffAtGymId);
+  return g ? toGym(g) : null;
+};

@@ -5,3 +5,9 @@ dist
 coverage
 package-lock.json
 preview.html
+
+# The app writes these itself (persist() in apps/web/src/lib/db.ts) with
+# JSON.stringify(…, 2). Prettier collapses short arrays onto one line, so if
+# both formatted them, every gym save would rewrite unrelated records and the
+# diff would hide the actual change. One writer owns the file.
+apps/web/db/*.json

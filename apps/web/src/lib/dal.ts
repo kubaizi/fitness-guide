@@ -3,7 +3,7 @@ import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { DEFAULT_LOCALE, type Locale } from "@fg/i18n";
 import { getSessionUserId } from "./session";
-import { findUserById, type DemoUser } from "./db";
+import { findUserById, gymForStaff, type DemoUser } from "./db";
 
 /**
  * The Data Access Layer.
@@ -43,4 +43,31 @@ export async function requireAdmin(
   if (!user) redirect(`/${locale}/login`);
   if (user.role !== "admin") notFound();
   return user;
+}
+
+/**
+ * Requires permission to edit a specific gym.
+ *
+ * An admin may edit any gym. A gym owner or staff member may edit only the
+ * gym they are attached to — checked against the stored link, never against
+ * anything the browser sent, so changing the URL achieves nothing.
+ *
+ * Anyone else gets a 404 rather than "forbidden", for the same reason as
+ * requireAdmin: a refusal that confirms the page exists is still information.
+ */
+export async function requireGymAccess(
+  slug: string,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<{ user: CurrentUser; isAdmin: boolean }> {
+  const user = await getCurrentUser();
+  if (!user) redirect(`/${locale}/login`);
+
+  if (user.role === "admin") return { user, isAdmin: true };
+
+  if (user.role === "gym_owner" || user.role === "gym_staff") {
+    const own = gymForStaff(user.id);
+    if (own && own.slug === slug) return { user, isAdmin: false };
+  }
+
+  notFound();
 }

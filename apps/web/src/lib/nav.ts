@@ -1,6 +1,7 @@
 import type { Locale, TranslationKey } from "@fg/i18n";
 import { createTranslator } from "@fg/i18n";
 import type { CurrentUser } from "./dal";
+import { gymForStaff } from "./db";
 
 /**
  * What appears in the navigation, for a given visitor.
@@ -33,6 +34,14 @@ export function navItemsFor(user: CurrentUser | null, locale: Locale): NavItem[]
     // the two things an admin actually needs.
     items.push(item("admin/users", "nav.users"), item("admin/gyms", "nav.gyms"));
     return items;
+  }
+
+  // A gym owner or staff member gets a direct link to the gym they run.
+  if (user.role === "gym_owner" || user.role === "gym_staff") {
+    const own = gymForStaff(user.id);
+    if (own) {
+      items.push({ href: `/${locale}/manage/${own.slug}`, label: t("nav.myGym") });
+    }
   }
 
   items.push(item("memberships", "nav.memberships"));

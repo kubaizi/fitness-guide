@@ -20,6 +20,17 @@
     "passwordHash": "eee3605c01dd448007f0e302acf4770b29dc43576cd649019aa164d8fed21313671151894401139f3e69edde6df9ac597826237c4bf28428ab5be1f4c5ed98b6"
   },
   {
+    "id": "usr-ironclub",
+    "username": "ironclub",
+    "phone": "+96555512345",
+    "name": "نادي الحديد — الإدارة",
+    "role": "gym_owner",
+    "locale": "ar",
+    "staffAtGymId": "cmsrdn5ac0001f8ftcmmjp9y0",
+    "passwordSalt": "8c3b06c0e0ee8599966cc41eab646789",
+    "passwordHash": "19cabb8516a93b4258a7af36acab8c4ab651b70558513b9954705eeef8a95c8f0a015d612c89e7df68ae9ac672c1870b9d1a2cd27864d32334232be6942707b9"
+  },
+  {
     "id": "usr-admin",
     "username": "admin",
     "phone": null,

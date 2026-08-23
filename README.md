@@ -155,18 +155,21 @@ A few things that surprise people arriving from .NET:
 
 ## Signing in
 
-| Username | Phone      | Role   | Password |
-| -------- | ---------- | ------ | -------- |
-| `emad`   | `51338855` | member | `123`    |
-| `rodi`   | `50946363` | member | `123`    |
-| `admin`  | —          | admin  | `123`    |
+| Username   | Phone      | Role      | Password | Sees                        |
+| ---------- | ---------- | --------- | -------- | --------------------------- |
+| `emad`     | `51338855` | member    | `123`    | Memberships                 |
+| `rodi`     | `50946363` | member    | `123`    | Memberships                 |
+| `ironclub` | `55512345` | gym owner | `123`    | **My gym** → Iron Club only |
+| `admin`    | —          | admin     | `123`    | Users, Gyms, every gym      |
 
 Either the username or the phone number works. Passwords are scrypt-hashed
 with a per-user salt in `apps/web/db/users.json` — `123` is a demo password,
 but the storage is the real shape.
 
-There is no sign-up: the three accounts above are the whole user list, because
-nothing can write back to the JSON files.
+There is no sign-up: the four accounts above are the whole user list.
+
+The navigation is decided on the server from the signed-in role, so a link the
+visitor is not entitled to never reaches the browser at all.
 
 ## Data
 
@@ -175,8 +178,17 @@ refresh the page — no migration, no seed, no server. See
 [apps/web/db/README.md](apps/web/db/README.md) for the two rules that matter
 (money is integer fils; ids must match across files).
 
-Nothing writes back to those files, so signing in does not create an account
-and "Pay" does not create a membership. Both need a real database.
+The **gym dashboard writes back**: saving a profile or a plan rewrites the JSON
+on disk, and the public pages update immediately via `revalidatePath`. Where
+the filesystem is read-only — Vercel, for one — the same save falls back to an
+in-memory edit and the screen says so plainly rather than pretending it stuck.
+
+Everything else is still read-only: signing in does not create an account, and
+"Pay" does not create a membership. Both need a real database.
+
+Prettier deliberately ignores `apps/web/db/*.json` (see `.prettierignore`).
+The app writes them with `JSON.stringify(…, 2)`; if Prettier reformatted them
+too, every save would rewrite unrelated records and bury the real change.
 
 `docs/future-database-schema.prisma` is the full PostgreSQL schema, already
 designed and previously migrated. When a backend is chosen — Azure, AWS, or
