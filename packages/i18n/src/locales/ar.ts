@@ -26,8 +26,13 @@ export const ar = {
     gyms: "الأندية",
   },
   home: {
-    title: "اعثر على ناديك",
-    subtitle: "أندية موثّقة في الكويت، بأسعار حصرية داخل التطبيق",
+    // The brochure's own headline, under the FITNESS GUIDE wordmark:
+    // "كل ما تحتاجه في عالم اللياقة... في تطبيق واحد".
+    // The title carries the full vision; the subtitle stays honest about
+    // what is actually live today.
+    title: "كل ما تحتاجه في عالم اللياقة",
+    subtitle:
+      "منصة واحدة تجمع الأندية والمدربين والتغذية والطب الرياضي. نبدأ بالأندية في الكويت.",
     nearbyGyms: "أندية قريبة",
     todaysOffers: "عروض اليوم",
   },

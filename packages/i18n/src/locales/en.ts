@@ -29,8 +29,9 @@ export const en = {
     gyms: "Gyms",
   },
   home: {
-    title: "Find your gym",
-    subtitle: "Verified gyms across Kuwait, at prices exclusive to the app",
+    title: "Everything you need in fitness",
+    subtitle:
+      "One platform for gyms, trainers, nutrition and sports medicine. Starting with gyms in Kuwait.",
     nearbyGyms: "Nearby gyms",
     todaysOffers: "Today's offers",
   },
