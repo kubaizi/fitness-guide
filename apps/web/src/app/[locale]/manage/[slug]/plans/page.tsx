@@ -4,6 +4,7 @@ import { createTranslator, isLocale } from "@fg/i18n";
 import { requireGymAccess } from "@/lib/dal";
 import { allPlansForGym, findGymBySlug, isPlanActive } from "@/lib/db";
 import { PlanEditor } from "@/components/PlanEditor";
+import { ManageTabs } from "@/components/ManageTabs";
 import styles from "@/components/ManageForm.module.css";
 
 /** G-10 — membership plan editor. */
@@ -36,12 +37,7 @@ export default async function ManagePlansPage({
         </Link>
       </div>
 
-      <nav className={styles.tabs}>
-        <Link href={`/${locale}/manage/${gym.slug}`} className={styles.tab}>
-          {t("manage.editProfile")}
-        </Link>
-        <span className={styles.tabActive}>{t("manage.editPlans")}</span>
-      </nav>
+      <ManageTabs current="plans" slug={gym.slug} locale={locale} />
 
       <p className={styles.notice}>{t("manage.demoWarning")}</p>
 

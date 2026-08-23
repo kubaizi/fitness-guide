@@ -236,6 +236,38 @@ export const ar = {
     viewPublic: "عرض الصفحة العامة",
     demoWarning:
       "نسخة تجريبية: التعديلات تُحفظ في ملفات محلية، وقد لا تبقى على الاستضافة.",
+
+    // الأعضاء
+    membersTitle: "الأعضاء",
+    membersSubtitle: "كل من اشترك في ناديك",
+    editMembers: "الأعضاء",
+    colMember: "العضو",
+    colPlan: "الباقة",
+    colState: "الحالة",
+    colStarted: "البداية",
+    colExpires: "الانتهاء",
+    colPaid: "المدفوع",
+    colVisits: "الزيارات",
+    colLastVisit: "آخر زيارة",
+    neverVisited: "لم يحضر بعد",
+    noMembers: "لا يوجد أعضاء بعد",
+    noMembersHint: "سيظهر هنا كل من يشترك في ناديك",
+    activeMembers: "أعضاء نشطون",
+
+    // سجل الدخول
+    checkInsTitle: "سجل الدخول",
+    checkInsSubtitle: "كل عملية مسح لرمز الدخول عند المدخل",
+    editCheckIns: "سجل الدخول",
+    colDate: "التاريخ",
+    colTime: "الوقت",
+    colToken: "رمز الدخول",
+    statToday: "اليوم",
+    statLast7: "آخر 7 أيام",
+    statLast30: "آخر 30 يوماً",
+    statUnique: "أعضاء مختلفون",
+    noCheckIns: "لا توجد عمليات دخول بعد",
+    noCheckInsHint: "سيظهر هنا كل مسح لرمز الدخول عند مدخل النادي",
+    recentOnly: "أحدث العمليات فقط",
   },
   errors: {
     paymentDeclined: "لم تتم الموافقة على الدفع. جرّب بطاقة أخرى.",

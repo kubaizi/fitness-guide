@@ -39,5 +39,105 @@
     "locale": "en",
     "passwordSalt": "18edf86da40f5968d62882e8391b571b",
     "passwordHash": "db0baae810bdd836aebf27cc56a6636e319cfe37df17ffc487af848455aa401f33b6d15b3d118f8dac77f0cf2db60fa9ec93d460f08d760f28de4ce4bb32d66e"
+  },
+  {
+    "id": "usr-yousef",
+    "username": "yousef",
+    "phone": "+96555010203",
+    "name": "يوسف العنزي",
+    "role": "member",
+    "locale": "ar",
+    "passwordSalt": "demo0000000000000000000000000000",
+    "passwordHash": "8f5aaaf9aa504a4fef383e0763a5052262be5a6d4cd0cbda3977af4ebccfde2ee42f58dfa74689074f98c1da1d930bacc2b86452a76bcccc262783239fb84dcb"
+  },
+  {
+    "id": "usr-bader",
+    "username": "bader",
+    "phone": "+96555020304",
+    "name": "بدر المطيري",
+    "role": "member",
+    "locale": "ar",
+    "passwordSalt": "demo0100000000000000000000000000",
+    "passwordHash": "430aa7885ee674f4a2560ab6ebe64354e0e09849c96c0cbc66fbab9546cbc5c602752261d18a3fb20d32d2f1f9c57f9dca84ae10067c1538216db154e7704695"
+  },
+  {
+    "id": "usr-khaled",
+    "username": "khaled",
+    "phone": "+96555030405",
+    "name": "خالد الرشيدي",
+    "role": "member",
+    "locale": "ar",
+    "passwordSalt": "demo0200000000000000000000000000",
+    "passwordHash": "41a45c986923b665eed67e597e9ee194be900fc3b5465dccfb837057e8ad27223219a9a21a133683b02103c27c384cb005abc487c250f8d8d1481d45a30c3df8"
+  },
+  {
+    "id": "usr-faisal",
+    "username": "faisal",
+    "phone": "+96555040506",
+    "name": "فيصل العجمي",
+    "role": "member",
+    "locale": "ar",
+    "passwordSalt": "demo0300000000000000000000000000",
+    "passwordHash": "fa6b9663bf117171e7a9e7551c0cb327dbada2d8441963940948b1214fa14d83868f132c072277f42f656af480354c99d37afaccdbc8c489424d0d877786fdf6"
+  },
+  {
+    "id": "usr-nasser",
+    "username": "nasser",
+    "phone": "+96555050607",
+    "name": "ناصر الشمري",
+    "role": "member",
+    "locale": "ar",
+    "passwordSalt": "demo0400000000000000000000000000",
+    "passwordHash": "719670e62021c3a43d491934f998519ca5200c73bd84771abdc990b55c45ba9966f883347695afe44272bd6367513f07ce6a89c6a3b436b5067ba7d81f68f2eb"
+  },
+  {
+    "id": "usr-hamad",
+    "username": "hamad",
+    "phone": "+96555060708",
+    "name": "حمد الصباح",
+    "role": "member",
+    "locale": "ar",
+    "passwordSalt": "demo0500000000000000000000000000",
+    "passwordHash": "af679ed21616e38b1f2f90c8fd98cc2aaed96011acce396631abe4c8be6b8ec9c9a1ee1a3a425a337abd538b10cfd1bff54f76ca5eba5483dddf87f409c4418a"
+  },
+  {
+    "id": "usr-salem",
+    "username": "salem",
+    "phone": "+96555070809",
+    "name": "سالم الفضلي",
+    "role": "member",
+    "locale": "ar",
+    "passwordSalt": "demo0600000000000000000000000000",
+    "passwordHash": "dec21e30c77b1cce35e2f5705677162503a430887078c8b07d0d9072d23d5c4c7d390842eb1212004d5ef96f172b0f36802ec0e7affa62f31724293528750f67"
+  },
+  {
+    "id": "usr-mishari",
+    "username": "mishari",
+    "phone": "+96555080910",
+    "name": "مشاري الدوسري",
+    "role": "member",
+    "locale": "ar",
+    "passwordSalt": "demo0700000000000000000000000000",
+    "passwordHash": "970388b4e6078482482e81fd896ce51d37b839dbc840fe545292bd900f0852d5b2ae4fd95bd7eb886d861391a5aafa11eba0f4341312c7f85b3361d2939ebcde"
+  },
+  {
+    "id": "usr-noura",
+    "username": "noura",
+    "phone": "+96555091011",
+    "name": "نورة العلي",
+    "role": "member",
+    "locale": "ar",
+    "passwordSalt": "demo0800000000000000000000000000",
+    "passwordHash": "3d1ac206d706b6fc43f520a49e41b8c4aee7d1936f9d5dfe39b415261674334cd6c2db74fd93ec63d7f817bc37adc8c709589dd4f7b7472f2a704bd0017da356"
+  },
+  {
+    "id": "usr-dana",
+    "username": "dana",
+    "phone": "+96555101112",
+    "name": "دانة الخالد",
+    "role": "member",
+    "locale": "ar",
+    "passwordSalt": "demo0900000000000000000000000000",
+    "passwordHash": "a4858cbaf53ce69b0fb576d66aa6f371d86e9e8360300f8b1b56a269455679eab365e524129881a7c061c2ec04f85c40950cd762f62095d2ce7dbd900c1d095a"
   }
 ]

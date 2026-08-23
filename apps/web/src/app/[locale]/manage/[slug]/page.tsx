@@ -4,6 +4,7 @@ import { createTranslator, isLocale } from "@fg/i18n";
 import { requireGymAccess } from "@/lib/dal";
 import { findGymBySlug } from "@/lib/db";
 import { GymProfileForm } from "@/components/GymProfileForm";
+import { ManageTabs } from "@/components/ManageTabs";
 import styles from "@/components/ManageForm.module.css";
 
 /** G-07 — gym profile editor. */
@@ -34,12 +35,7 @@ export default async function ManageGymPage({
         </Link>
       </div>
 
-      <nav className={styles.tabs}>
-        <span className={styles.tabActive}>{t("manage.editProfile")}</span>
-        <Link href={`/${locale}/manage/${gym.slug}/plans`} className={styles.tab}>
-          {t("manage.editPlans")}
-        </Link>
-      </nav>
+      <ManageTabs current="profile" slug={gym.slug} locale={locale} />
 
       <p className={styles.notice}>{t("manage.demoWarning")}</p>
 

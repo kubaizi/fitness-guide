@@ -234,6 +234,38 @@ export const en = {
     viewPublic: "View public page",
     demoWarning:
       "Demo build: changes are written to local files and may not persist when hosted.",
+
+    // Members
+    membersTitle: "Members",
+    membersSubtitle: "Everyone who has joined your gym",
+    editMembers: "Members",
+    colMember: "Member",
+    colPlan: "Plan",
+    colState: "Status",
+    colStarted: "Started",
+    colExpires: "Expires",
+    colPaid: "Paid",
+    colVisits: "Visits",
+    colLastVisit: "Last visit",
+    neverVisited: "Never visited",
+    noMembers: "No members yet",
+    noMembersHint: "Anyone who joins your gym will appear here",
+    activeMembers: "active members",
+
+    // Check-in log
+    checkInsTitle: "Check-in log",
+    checkInsSubtitle: "Every entry-code scan at the door",
+    editCheckIns: "Check-ins",
+    colDate: "Date",
+    colTime: "Time",
+    colToken: "Entry code",
+    statToday: "Today",
+    statLast7: "Last 7 days",
+    statLast30: "Last 30 days",
+    statUnique: "Distinct members",
+    noCheckIns: "No check-ins yet",
+    noCheckInsHint: "Every scan at your gym entrance will appear here",
+    recentOnly: "Most recent only",
   },
   errors: {
     paymentDeclined: "Payment was declined. Try another card.",

@@ -9,6 +9,7 @@ import { Badge } from "@/components/Badge";
 import { Price } from "@/components/Price";
 import { Rating } from "@/components/Rating";
 import styles from "../admin.module.css";
+import table from "@/components/DataTable.module.css";
 
 const ACCESS_KEY: Record<string, TranslationKey> = {
   men: "access.men",
@@ -37,8 +38,8 @@ export default async function AdminGymsPage({
         <p className={styles.subtitle}>{t("admin.gymsSubtitle")}</p>
       </div>
 
-      <div className={styles.scroll}>
-        <table className={styles.table}>
+      <div className={table.scroll}>
+        <table className={table.table}>
           <thead>
             <tr>
               <th>{t("admin.colGym")}</th>
@@ -46,9 +47,9 @@ export default async function AdminGymsPage({
               <th>{t("admin.colAccess")}</th>
               <th>{t("admin.colStatus")}</th>
               <th>{t("admin.colRating")}</th>
-              <th className={styles.num}>{t("admin.colPlans")}</th>
-              <th className={styles.num}>{t("admin.colMembers")}</th>
-              <th className={styles.num}>{t("admin.colRevenue")}</th>
+              <th className={table.num}>{t("admin.colPlans")}</th>
+              <th className={table.num}>{t("admin.colMembers")}</th>
+              <th className={table.num}>{t("admin.colRevenue")}</th>
             </tr>
           </thead>
           <tbody>
@@ -57,10 +58,10 @@ export default async function AdminGymsPage({
               return (
                 <tr key={gym.id}>
                   <td>
-                    <Link href={`/${locale}/gyms/${gym.slug}`} className={styles.name}>
+                    <Link href={`/${locale}/gyms/${gym.slug}`} className={table.name}>
                       {gym.name[locale]}
                     </Link>
-                    <div className={`${styles.sub} ${styles.mono} ${styles.ltr}`}>
+                    <div className={`${table.sub} ${table.mono} ${table.ltr}`}>
                       {gym.slug}
                     </div>
                   </td>
@@ -74,9 +75,9 @@ export default async function AdminGymsPage({
                   <td>
                     <Rating rating={gym.rating} count={gym.reviewCount} locale={locale} />
                   </td>
-                  <td className={styles.num}>{formatNumber(planCount, locale)}</td>
-                  <td className={styles.num}>{formatNumber(memberCount, locale)}</td>
-                  <td className={styles.num}>
+                  <td className={table.num}>{formatNumber(planCount, locale)}</td>
+                  <td className={table.num}>{formatNumber(memberCount, locale)}</td>
+                  <td className={table.num}>
                     <Price amount={fils(grossRevenue)} locale={locale} size="sm" />
                   </td>
                 </tr>
@@ -86,7 +87,7 @@ export default async function AdminGymsPage({
         </table>
       </div>
 
-      <p className={styles.count}>
+      <p className={table.count}>
         {t("admin.total")}: {formatNumber(rows.length, locale)}
       </p>
     </main>

@@ -162,11 +162,14 @@ A few things that surprise people arriving from .NET:
 | `ironclub` | `55512345` | gym owner | `123`    | **My gym** → Iron Club only |
 | `admin`    | —          | admin     | `123`    | Users, Gyms, every gym      |
 
+Plus ten seeded members (`yousef`, `bader`, `khaled`, … also `123`) who exist
+to give the gym dashboard a roster worth reading.
+
 Either the username or the phone number works. Passwords are scrypt-hashed
 with a per-user salt in `apps/web/db/users.json` — `123` is a demo password,
 but the storage is the real shape.
 
-There is no sign-up: the four accounts above are the whole user list.
+There is no sign-up — the accounts above are the whole user list.
 
 The navigation is decided on the server from the signed-in role, so a link the
 visitor is not entitled to never reaches the browser at all.

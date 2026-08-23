@@ -7,6 +7,7 @@ import { adminUsers } from "@/lib/db";
 import { Badge } from "@/components/Badge";
 import { Price } from "@/components/Price";
 import styles from "../admin.module.css";
+import table from "@/components/DataTable.module.css";
 
 const ROLE_KEY: Record<string, TranslationKey> = {
   member: "admin.roleMember",
@@ -36,32 +37,32 @@ export default async function AdminUsersPage({
         <p className={styles.subtitle}>{t("admin.usersSubtitle")}</p>
       </div>
 
-      <div className={styles.scroll}>
-        <table className={styles.table}>
+      <div className={table.scroll}>
+        <table className={table.table}>
           <thead>
             <tr>
               <th>{t("admin.colUser")}</th>
               <th>{t("admin.colPhone")}</th>
               <th>{t("admin.colRole")}</th>
-              <th className={styles.num}>{t("admin.colMemberships")}</th>
-              <th className={styles.num}>{t("admin.colActive")}</th>
-              <th className={styles.num}>{t("admin.colTotalPaid")}</th>
+              <th className={table.num}>{t("admin.colMemberships")}</th>
+              <th className={table.num}>{t("admin.colActive")}</th>
+              <th className={table.num}>{t("admin.colTotalPaid")}</th>
             </tr>
           </thead>
           <tbody>
             {rows.map(({ user, membershipCount, activeCount, totalPaid }) => (
               <tr key={user.id}>
                 <td>
-                  <div className={styles.name}>{user.name}</div>
-                  <div className={`${styles.sub} ${styles.mono} ${styles.ltr}`}>
+                  <div className={table.name}>{user.name}</div>
+                  <div className={`${table.sub} ${table.mono} ${table.ltr}`}>
                     {user.username}
                   </div>
                 </td>
                 <td>
                   {user.phone ? (
-                    <span className={`${styles.mono} ${styles.ltr}`}>{user.phone}</span>
+                    <span className={`${table.mono} ${table.ltr}`}>{user.phone}</span>
                   ) : (
-                    <span className={styles.sub}>{t("admin.noPhone")}</span>
+                    <span className={table.sub}>{t("admin.noPhone")}</span>
                   )}
                 </td>
                 <td>
@@ -69,9 +70,9 @@ export default async function AdminUsersPage({
                     {t(ROLE_KEY[user.role] ?? "admin.roleMember")}
                   </Badge>
                 </td>
-                <td className={styles.num}>{formatNumber(membershipCount, locale)}</td>
-                <td className={styles.num}>{formatNumber(activeCount, locale)}</td>
-                <td className={styles.num}>
+                <td className={table.num}>{formatNumber(membershipCount, locale)}</td>
+                <td className={table.num}>{formatNumber(activeCount, locale)}</td>
+                <td className={table.num}>
                   <Price amount={fils(totalPaid)} locale={locale} size="sm" />
                 </td>
               </tr>
@@ -80,7 +81,7 @@ export default async function AdminUsersPage({
         </table>
       </div>
 
-      <p className={styles.count}>
+      <p className={table.count}>
         {t("admin.total")}: {formatNumber(rows.length, locale)}
       </p>
     </main>

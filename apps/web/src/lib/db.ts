@@ -5,6 +5,7 @@ import gymsJson from "@/db/gyms.json";
 import plansJson from "@/db/plans.json";
 import usersJson from "@/db/users.json";
 import membershipsJson from "@/db/memberships.json";
+import checkInsJson from "@/db/checkins.json";
 
 /**
  * The JSON data store.
@@ -305,6 +306,144 @@ export function adminGyms(): readonly AdminGymRow[] {
       grossRevenue: mine.reduce((sum, m) => sum + m.pricePaid, 0),
     };
   });
+}
+
+// ─────────────────────────────────────────────────── gym dashboard: members
+
+export interface GymMemberRow {
+  readonly membership: Membership;
+  readonly member: DemoUser;
+  readonly planName: { readonly ar: string; readonly en: string };
+  readonly checkInCount: number;
+  /** ISO timestamp of the most recent scan, or null if they never came in. */
+  readonly lastCheckIn: string | null;
+}
+
+/**
+ * Everyone who has ever bought a membership at this gym.
+ *
+ * Every state is included, not just active. A gym chasing a lapsed member
+ * needs to see them, and a list that silently hides expired rows makes the
+ * member count look wrong to whoever is reading it.
+ *
+ * Sorted by state first — the people who can walk in today at the top — then
+ * by who is expiring soonest, which is the gym's actual renewal worklist.
+ */
+export function membersForGym(gymId: string): readonly GymMemberRow[] {
+  const rank: Record<string, number> = {
+    active: 0,
+    frozen: 1,
+    pending_payment: 2,
+    expired: 3,
+    cancelled: 4,
+  };
+
+  return membershipsJson
+    .filter((m) => m.gymId === gymId)
+    .map((m) => {
+      const u = usersJson.find((x) => x.id === m.userId);
+      const plan = plans.find((p) => p.id === m.planId);
+      if (!u || !plan) return null;
+
+      const mine = checkInsJson.filter((c) => c.membershipId === m.id);
+      // The array is written sorted ascending, so the last entry is the newest.
+      const last = mine.length > 0 ? mine[mine.length - 1] : undefined;
+
+      return {
+        membership: toMembership(m),
+        member: publicUser(u),
+        planName: plan.name,
+        checkInCount: mine.length,
+        lastCheckIn: last?.scannedAt ?? null,
+      };
+    })
+    .filter((x): x is GymMemberRow => x !== null)
+    .sort((a, b) => {
+      const byState =
+        (rank[a.membership.status.state] ?? 9) - (rank[b.membership.status.state] ?? 9);
+      if (byState !== 0) return byState;
+
+      // Within active, soonest expiry first — that is the renewal queue.
+      const endA =
+        a.membership.status.state === "active" ? a.membership.status.endsOn : "";
+      const endB =
+        b.membership.status.state === "active" ? b.membership.status.endsOn : "";
+      if (endA && endB) return endA.localeCompare(endB);
+
+      return a.member.name.localeCompare(b.member.name, "ar");
+    });
+}
+
+// ────────────────────────────────────────────────── gym dashboard: check-ins
+
+export interface CheckInRow {
+  readonly id: string;
+  readonly scannedAt: string;
+  readonly memberName: string;
+  readonly planName: { readonly ar: string; readonly en: string };
+  /** The QR token that opened the door — what a dispute would be traced by. */
+  readonly checkInToken: string;
+}
+
+export interface CheckInSummary {
+  readonly today: number;
+  readonly last7: number;
+  readonly last30: number;
+  /** Distinct members seen in the last 30 days. */
+  readonly uniqueMembers30: number;
+}
+
+/**
+ * The check-in log, newest first.
+ *
+ * `limit` exists because this table grows without bound — a busy gym scans a
+ * few hundred a week, and rendering all of them would be the first page in
+ * the app to get genuinely slow.
+ */
+export function checkInsForGym(gymId: string, limit = 100): readonly CheckInRow[] {
+  return checkInsJson
+    .filter((c) => c.gymId === gymId)
+    .slice(-limit)
+    .reverse()
+    .map((c) => {
+      const u = usersJson.find((x) => x.id === c.userId);
+      const m = membershipsJson.find((x) => x.id === c.membershipId);
+      const plan = m ? plans.find((p) => p.id === m.planId) : undefined;
+      if (!u || !m || !plan) return null;
+      return {
+        id: c.id,
+        scannedAt: c.scannedAt,
+        memberName: u.name,
+        planName: plan.name,
+        checkInToken: m.checkInToken,
+      };
+    })
+    .filter((x): x is CheckInRow => x !== null);
+}
+
+/**
+ * Counts for the tiles above the log.
+ *
+ * Measured against the real clock, so on a stale demo dataset these read
+ * zero — which is correct, and better than inventing a window that makes
+ * old data look current.
+ */
+export function checkInSummaryForGym(gymId: string, now = new Date()): CheckInSummary {
+  const mine = checkInsJson.filter((c) => c.gymId === gymId);
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const since = (ms: number) => new Date(now.getTime() - ms).toISOString();
+  const day = 86_400_000;
+
+  const in30 = mine.filter((c) => c.scannedAt >= since(30 * day));
+
+  return {
+    today: mine.filter((c) => c.scannedAt >= startOfToday.toISOString()).length,
+    last7: mine.filter((c) => c.scannedAt >= since(7 * day)).length,
+    last30: in30.length,
+    uniqueMembers30: new Set(in30.map((c) => c.userId)).size,
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────── writing
