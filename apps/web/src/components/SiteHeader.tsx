@@ -44,7 +44,11 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
           <LocaleSwitch current={locale} />
         </div>
 
-        <MobileMenu locale={locale} items={items} auth={<AuthButton locale={locale} />} />
+        <MobileMenu
+          locale={locale}
+          items={items}
+          auth={<AuthButton locale={locale} variant="drawer" />}
+        />
       </div>
     </header>
   );

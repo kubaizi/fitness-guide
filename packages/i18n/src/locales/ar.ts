@@ -168,6 +168,9 @@ export const ar = {
     passwordLabel: "كلمة المرور",
     signOut: "تسجيل الخروج",
     signIn: "تسجيل الدخول",
+    // The header shows both doors when signed out, so each has to say which
+    // audience it is for. "تسجيل الدخول" alone would be ambiguous beside it.
+    gymSignIn: "دخول الأندية",
     loginRequired: "سجّل الدخول لعرض اشتراكاتك",
     failed: "اسم المستخدم أو كلمة المرور غير صحيحة",
 

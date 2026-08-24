@@ -4,7 +4,17 @@
   gap: var(--sp-3);
 }
 
+/*
+ * Who is signed in.
+ *
+ * Hidden by default. Between the drawer breakpoint and 900px the header is
+ * carrying the nav, the sign-out control and the language switch at once, and
+ * an admin's Arabic nav fills that row exactly — adding a name there overflows
+ * it. Above 900px there is room, and inside the drawer the panel is full
+ * width, so it always fits.
+ */
 .who {
+  display: none;
   font-size: 0.85rem;
   color: var(--ink-2);
   max-width: 14ch;
@@ -13,12 +23,43 @@
   white-space: nowrap;
 }
 
-/* Below the drawer breakpoint the header is already tight, so the name goes
-   and the Sign out button carries the state on its own. */
-@media (max-width: 520px) {
+/*
+ * 1000px, not 900. The wordmark comes back at 900, so returning the name there
+ * too puts both back in the same step and leaves ~17px of slack for an admin's
+ * Arabic nav. Staggering the two keeps every width comfortable.
+ */
+@media (min-width: 1000px) {
   .who {
-    display: none;
+    display: inline;
   }
+}
+
+.formDrawer .who {
+  display: inline;
+  max-width: 20ch;
+}
+
+/*
+ * The two doors, signed out. In the header they sit side by side; inside the
+ * mobile drawer the container is full width, so they stack instead.
+ */
+.doors {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.gymSignIn {
+  font-size: 0.88rem;
+  color: var(--muted);
+  white-space: nowrap;
+  padding-block: var(--sp-2);
+  border-block-end: 1px solid transparent;
+}
+
+.gymSignIn:hover {
+  color: var(--gold);
+  border-block-end-color: var(--gold-dim);
 }
 
 .signIn,
@@ -37,4 +78,34 @@
 .signOut:hover {
   border-color: var(--gold-dim);
   color: var(--gold);
+}
+
+/*
+ * Drawer variant. Modifier classes rather than a `.drawer .doors` descendant,
+ * because the drawer's own classes come from a different CSS module and would
+ * never match a selector written here.
+ *
+ * On a phone the panel is full width, so the two doors stack and read as a
+ * proper choice instead of two cramped buttons.
+ */
+.doorsDrawer {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--sp-3);
+}
+
+.doorsDrawer .signIn,
+.doorsDrawer .gymSignIn {
+  text-align: center;
+}
+
+.doorsDrawer .gymSignIn {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding-block: var(--sp-2);
+  padding-inline: var(--sp-4);
+}
+
+.formDrawer {
+  justify-content: space-between;
 }

@@ -166,6 +166,7 @@ export const en = {
     passwordLabel: "Password",
     signOut: "Sign out",
     signIn: "Sign in",
+    gymSignIn: "Gym sign in",
     loginRequired: "Sign in to see your memberships",
     failed: "Incorrect username or password",
 

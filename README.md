@@ -163,8 +163,11 @@ jobs and one form describing both described neither:
 | **Members** | `/{locale}/login`         | people who buy memberships   | My memberships    |
 | **Gyms**    | `/{locale}/partner/login` | gym owners, staff, and admin | the gym dashboard |
 
-An account may only use its own door. Right password at the wrong door gets no
-session — just a message and a link to the correct one. Each guarded page sends
+Both doors are linked from the header when signed out — **Sign in** for
+members, **Gym sign in** beside it — and stacked in the mobile drawer, so
+neither audience has to guess. An account may only use its own door. Right
+password at the wrong door gets no session — just a message and a link to the
+correct one. Each guarded page sends
 signed-out visitors to the door that fits: `/memberships` to the member door,
 `/manage/*` and `/admin/*` to the gym door.
 
