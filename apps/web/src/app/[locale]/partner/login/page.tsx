@@ -5,20 +5,27 @@ import { landingFor } from "@/lib/roles";
 import { LoginForm } from "@/components/LoginForm";
 import styles from "@/components/AuthForm.module.css";
 
-/** C-03 — the member door. Gyms and admins sign in at /partner/login. */
-export default async function LoginPage({ params }: PageProps<"/[locale]/login">) {
+/**
+ * G-01 — the gym door.
+ *
+ * Separate from the member door on purpose: a gym signing in is doing a
+ * different job from a member signing in, and one form describing both ends up
+ * describing neither. Admin comes through here too — it is a back-office
+ * account, not a customer one.
+ */
+export default async function PartnerLoginPage({
+  params,
+}: PageProps<"/[locale]/partner/login">) {
   const { locale: raw } = await params;
   if (!isLocale(raw)) notFound();
   const locale = raw;
 
-  // Already signed in? Send them wherever their role belongs, which is not
-  // necessarily this page's audience.
   const user = await getCurrentUser();
   if (user) redirect(landingFor(user, locale));
 
   return (
     <main className={styles.main}>
-      <LoginForm locale={locale} door="member" />
+      <LoginForm locale={locale} door="partner" />
     </main>
   );
 }

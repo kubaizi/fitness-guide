@@ -112,3 +112,23 @@
 .alt a:hover {
   color: var(--gold);
 }
+
+/*
+ * The cross-link to the other sign-in door, once the action has confirmed the
+ * account belongs there. Muted while it is only an offer; emphasised when it
+ * is the actual answer to what just went wrong.
+ */
+.altStrong {
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--gold);
+  border: 1px solid var(--gold-dim);
+  background: var(--gold-wash);
+  border-radius: var(--radius);
+  padding: var(--sp-3);
+}
+
+.altStrong a {
+  color: var(--gold-bright);
+}

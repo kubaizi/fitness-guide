@@ -4,17 +4,20 @@
   gap: var(--sp-3);
 }
 
-.phone {
+.who {
   font-size: 0.85rem;
-  color: var(--muted);
-  direction: ltr;
-  unicode-bidi: isolate;
-  display: none;
+  color: var(--ink-2);
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-@media (min-width: 900px) {
-  .phone {
-    display: inline;
+/* Below the drawer breakpoint the header is already tight, so the name goes
+   and the Sign out button carries the state on its own. */
+@media (max-width: 520px) {
+  .who {
+    display: none;
   }
 }
 

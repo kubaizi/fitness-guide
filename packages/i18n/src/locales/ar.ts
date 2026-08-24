@@ -164,15 +164,28 @@ export const ar = {
     cardHint: "يعمل الرمز بدون اتصال بالإنترنت",
   },
   auth: {
-    loginTitle: "تسجيل الدخول",
-    loginSubtitle: "أدخل اسم المستخدم أو رقم الهاتف وكلمة المرور",
     identifierLabel: "اسم المستخدم أو رقم الهاتف",
-    identifierPlaceholder: "emad أو 51338855",
     passwordLabel: "كلمة المرور",
     signOut: "تسجيل الخروج",
     signIn: "تسجيل الدخول",
-    demoAccounts: "حسابات تجريبية: emad أو rodi أو admin — كلمة المرور 123",
     loginRequired: "سجّل الدخول لعرض اشتراكاتك",
+    failed: "اسم المستخدم أو كلمة المرور غير صحيحة",
+
+    // باب الأعضاء
+    memberTitle: "دخول الأعضاء",
+    memberSubtitle: "لعرض اشتراكاتك وبطاقة الدخول",
+    memberPlaceholder: "emad أو 51338855",
+    memberDemo: "حسابات تجريبية: emad أو rodi — كلمة المرور 123",
+    toPartner: "هل تدير نادياً؟ ادخل من هنا",
+    wrongDoorMember: "هذا الحساب خاص بالأندية. استخدم دخول الأندية بالأسفل.",
+
+    // باب الأندية
+    partnerTitle: "دخول الأندية",
+    partnerSubtitle: "لإدارة ناديك وأسعارك وأعضائك",
+    partnerPlaceholder: "ironclub",
+    partnerDemo: "حسابات تجريبية: ironclub أو admin — كلمة المرور 123",
+    toMember: "هل أنت عضو؟ ادخل من هنا",
+    wrongDoorPartner: "هذا حساب عضو. استخدم دخول الأعضاء بالأسفل.",
   },
   admin: {
     usersTitle: "المستخدمون",

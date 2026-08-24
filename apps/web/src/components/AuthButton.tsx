@@ -28,7 +28,10 @@ export async function AuthButton({ locale }: { locale: Locale }) {
   return (
     <form action={signOut} className={styles.form}>
       <input type="hidden" name="locale" value={locale} />
-      <span className={styles.phone}>{user.phone}</span>
+      {/* The NAME, not the phone. The phone was hidden below 900px and blank
+          for admin, so the header gave no clue you were signed in at all —
+          which made a stale session look like a bug in the navigation. */}
+      <span className={styles.who}>{user.name}</span>
       <button type="submit" className={styles.signOut}>
         {t("auth.signOut")}
       </button>

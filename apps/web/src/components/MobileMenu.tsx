@@ -26,9 +26,19 @@ const subscribeNoop = () => () => {};
 export function MobileMenu({
   locale,
   items,
+  auth,
 }: {
   locale: Locale;
   items: readonly NavItem[];
+  /**
+   * The sign in / sign out control, passed in as rendered output.
+   *
+   * It is a server component and this is a client one, so it arrives as a
+   * slot rather than an import. Without it the drawer had no auth control at
+   * all — and since the header's own control is hidden below 780px, there was
+   * no way to sign in or out on a phone.
+   */
+  auth: React.ReactNode;
 }) {
   const t = createTranslator(locale);
   const pathname = usePathname();
@@ -169,6 +179,7 @@ export function MobileMenu({
         {/* Switching language is a full navigation, so the drawer unmounts
             and reopens closed — no explicit dismissal needed here. */}
         <div className={styles.panelFoot}>
+          {auth}
           <LocaleSwitch current={locale} />
         </div>
       </div>

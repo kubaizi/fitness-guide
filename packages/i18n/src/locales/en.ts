@@ -162,15 +162,28 @@ export const en = {
     cardHint: "This code works without an internet connection",
   },
   auth: {
-    loginTitle: "Sign in",
-    loginSubtitle: "Enter your username or phone number, and your password",
     identifierLabel: "Username or phone number",
-    identifierPlaceholder: "emad or 51338855",
     passwordLabel: "Password",
     signOut: "Sign out",
     signIn: "Sign in",
-    demoAccounts: "Demo accounts: emad, rodi or admin — password 123",
     loginRequired: "Sign in to see your memberships",
+    failed: "Incorrect username or password",
+
+    // Member door
+    memberTitle: "Member sign in",
+    memberSubtitle: "To see your memberships and entry card",
+    memberPlaceholder: "emad or 51338855",
+    memberDemo: "Demo accounts: emad or rodi — password 123",
+    toPartner: "Run a gym? Sign in here",
+    wrongDoorMember: "That account belongs to a gym. Use the gym sign-in below.",
+
+    // Gym door
+    partnerTitle: "Gym sign in",
+    partnerSubtitle: "To manage your gym, its prices and its members",
+    partnerPlaceholder: "ironclub",
+    partnerDemo: "Demo accounts: ironclub or admin — password 123",
+    toMember: "Are you a member? Sign in here",
+    wrongDoorPartner: "That is a member account. Use the member sign-in below.",
   },
   admin: {
     usersTitle: "Users",

@@ -32,7 +32,8 @@ export async function requireUser(locale: Locale = DEFAULT_LOCALE): Promise<Curr
 /**
  * Requires an admin.
  *
- * Signed out redirects to login, but a signed-in non-admin gets a 404 rather
+ * Signed out redirects to the PARTNER door — an admin page is never what a
+ * member was looking for — but a signed-in non-admin gets a 404 rather
  * than "forbidden" — telling someone a page exists but is off-limits is an
  * invitation. As far as a member is concerned, /admin simply is not a route.
  */
@@ -40,7 +41,7 @@ export async function requireAdmin(
   locale: Locale = DEFAULT_LOCALE,
 ): Promise<CurrentUser> {
   const user = await getCurrentUser();
-  if (!user) redirect(`/${locale}/login`);
+  if (!user) redirect(`/${locale}/partner/login`);
   if (user.role !== "admin") notFound();
   return user;
 }
@@ -54,13 +55,16 @@ export async function requireAdmin(
  *
  * Anyone else gets a 404 rather than "forbidden", for the same reason as
  * requireAdmin: a refusal that confirms the page exists is still information.
+ *
+ * Signed out goes to the partner door, since a dashboard URL is only ever
+ * reached by someone who runs a gym.
  */
 export async function requireGymAccess(
   slug: string,
   locale: Locale = DEFAULT_LOCALE,
 ): Promise<{ user: CurrentUser; isAdmin: boolean }> {
   const user = await getCurrentUser();
-  if (!user) redirect(`/${locale}/login`);
+  if (!user) redirect(`/${locale}/partner/login`);
 
   if (user.role === "admin") return { user, isAdmin: true };
 

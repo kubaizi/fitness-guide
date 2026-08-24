@@ -155,6 +155,19 @@ A few things that surprise people arriving from .NET:
 
 ## Signing in
 
+There are **two sign-in doors**, because the two audiences are doing different
+jobs and one form describing both described neither:
+
+| Door        | URL                       | For                          | Lands on          |
+| ----------- | ------------------------- | ---------------------------- | ----------------- |
+| **Members** | `/{locale}/login`         | people who buy memberships   | My memberships    |
+| **Gyms**    | `/{locale}/partner/login` | gym owners, staff, and admin | the gym dashboard |
+
+An account may only use its own door. Right password at the wrong door gets no
+session — just a message and a link to the correct one. Each guarded page sends
+signed-out visitors to the door that fits: `/memberships` to the member door,
+`/manage/*` and `/admin/*` to the gym door.
+
 | Username   | Phone      | Role      | Password | Sees                        |
 | ---------- | ---------- | --------- | -------- | --------------------------- |
 | `emad`     | `51338855` | member    | `123`    | Memberships                 |
@@ -164,6 +177,10 @@ A few things that surprise people arriving from .NET:
 
 Plus ten seeded members (`yousef`, `bader`, `khaled`, … also `123`) who exist
 to give the gym dashboard a roster worth reading.
+
+The header shows the name of whoever is signed in, so a session left open is
+visible rather than mysterious. Sessions last 30 days — if the navigation shows
+more than you expect, you are probably still signed in from earlier.
 
 Either the username or the phone number works. Passwords are scrypt-hashed
 with a per-user salt in `apps/web/db/users.json` — `123` is a demo password,
