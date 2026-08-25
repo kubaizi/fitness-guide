@@ -9,6 +9,7 @@ import { Badge } from "@/components/Badge";
 import { Price } from "@/components/Price";
 import { Rating } from "@/components/Rating";
 import styles from "../admin.module.css";
+import { AdminTabs } from "@/components/AdminTabs";
 import table from "@/components/DataTable.module.css";
 
 const ACCESS_KEY: Record<string, TranslationKey> = {
@@ -37,6 +38,8 @@ export default async function AdminGymsPage({
         <h1 className={styles.title}>{t("admin.gymsTitle")}</h1>
         <p className={styles.subtitle}>{t("admin.gymsSubtitle")}</p>
       </div>
+
+      <AdminTabs current="gyms" locale={locale} />
 
       <div className={table.scroll}>
         <table className={table.table}>

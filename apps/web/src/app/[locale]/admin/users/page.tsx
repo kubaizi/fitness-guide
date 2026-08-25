@@ -7,6 +7,7 @@ import { adminUsers } from "@/lib/db";
 import { Badge } from "@/components/Badge";
 import { Price } from "@/components/Price";
 import styles from "../admin.module.css";
+import { AdminTabs } from "@/components/AdminTabs";
 import table from "@/components/DataTable.module.css";
 
 const ROLE_KEY: Record<string, TranslationKey> = {
@@ -36,6 +37,8 @@ export default async function AdminUsersPage({
         <h1 className={styles.title}>{t("admin.usersTitle")}</h1>
         <p className={styles.subtitle}>{t("admin.usersSubtitle")}</p>
       </div>
+
+      <AdminTabs current="users" locale={locale} />
 
       <div className={table.scroll}>
         <table className={table.table}>

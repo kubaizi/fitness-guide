@@ -176,10 +176,15 @@ signed-out visitors to the door that fits: `/memberships` to the member door,
 | `emad`     | `51338855` | member    | `123`    | Memberships                 |
 | `rodi`     | `50946363` | member    | `123`    | Memberships                 |
 | `ironclub` | `55512345` | gym owner | `123`    | **My gym** → Iron Club only |
-| `admin`    | —          | admin     | `123`    | Users, Gyms, every gym      |
+| `admin`    | —          | admin     | `123`    | **Everything** — see below  |
 
 Plus ten seeded members (`yousef`, `bader`, `khaled`, … also `123`) who exist
 to give the gym dashboard a roster worth reading.
+
+Admin sees the whole platform from `/{locale}/admin`, which has six sections
+of its own: overview, gyms, users, memberships, check-ins and payments. It can
+also open any gym's dashboard. The header carries a single **Admin** link
+rather than one per section — the console navigates itself.
 
 The header shows the name of whoever is signed in, so a session left open is
 visible rather than mysterious. Sessions last 30 days — if the navigation shows

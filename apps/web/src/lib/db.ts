@@ -6,6 +6,7 @@ import plansJson from "@/db/plans.json";
 import usersJson from "@/db/users.json";
 import membershipsJson from "@/db/memberships.json";
 import checkInsJson from "@/db/checkins.json";
+import paymentsJson from "@/db/payments.json";
 
 /**
  * The JSON data store.
@@ -306,6 +307,136 @@ export function adminGyms(): readonly AdminGymRow[] {
       grossRevenue: mine.reduce((sum, m) => sum + m.pricePaid, 0),
     };
   });
+}
+
+// ──────────────────────────────────────────── admin: the whole platform
+//
+// A gym sees only its own rows; admin sees every gym's. These are the same
+// shapes as the gym-dashboard queries with the gymId filter removed and the
+// gym's name added, since without it a cross-gym table is unreadable.
+
+export interface AdminOverview {
+  readonly gyms: number;
+  readonly verifiedGyms: number;
+  readonly users: number;
+  readonly members: number;
+  readonly memberships: number;
+  readonly activeMemberships: number;
+  /** Fils. Everything taken, before the commission split. */
+  readonly grossRevenue: number;
+  /** Fils. The platform's share. */
+  readonly platformRevenue: number;
+  /** Fils. What the gyms keep. */
+  readonly gymRevenue: number;
+  readonly checkIns: number;
+}
+
+export function adminOverview(): AdminOverview {
+  const paid = paymentsJson.filter((p) => p.status === "paid");
+
+  return {
+    gyms: gyms.length,
+    verifiedGyms: gyms.filter((g) => g.verification === "verified").length,
+    users: usersJson.length,
+    members: usersJson.filter((u) => u.role === "member").length,
+    memberships: membershipsJson.length,
+    activeMemberships: membershipsJson.filter((m) => m.state === "active").length,
+    // Refunded payments are excluded rather than netted off: a refund is not
+    // revenue that shrank, it is revenue that never happened.
+    grossRevenue: paid.reduce((sum, p) => sum + p.amount, 0),
+    platformRevenue: paid.reduce((sum, p) => sum + p.platformFee, 0),
+    gymRevenue: paid.reduce((sum, p) => sum + p.gymAmount, 0),
+    checkIns: checkInsJson.length,
+  };
+}
+
+export interface AdminMembershipRow {
+  readonly membership: Membership;
+  readonly memberName: string;
+  readonly gymName: { readonly ar: string; readonly en: string };
+  readonly gymSlug: string;
+  readonly planName: { readonly ar: string; readonly en: string };
+}
+
+/** Every membership on the platform, newest first by whatever date it has. */
+export function adminMemberships(): readonly AdminMembershipRow[] {
+  return membershipsJson
+    .map((m) => {
+      const u = usersJson.find((x) => x.id === m.userId);
+      const gym = gyms.find((g) => g.id === m.gymId);
+      const plan = plans.find((p) => p.id === m.planId);
+      if (!u || !gym || !plan) return null;
+      return {
+        membership: toMembership(m),
+        memberName: u.name,
+        gymName: gym.name,
+        gymSlug: gym.slug,
+        planName: plan.name,
+      };
+    })
+    .filter((x): x is AdminMembershipRow => x !== null)
+    .sort((a, b) => b.membership.pricePaid - a.membership.pricePaid);
+}
+
+export interface AdminCheckInRow {
+  readonly id: string;
+  readonly scannedAt: string;
+  readonly memberName: string;
+  readonly gymName: { readonly ar: string; readonly en: string };
+}
+
+/** Every scan across every gym, newest first. Capped for the same reason
+ *  the gym's own log is: this table grows without bound. */
+export function adminCheckIns(limit = 100): readonly AdminCheckInRow[] {
+  return checkInsJson
+    .slice(-limit)
+    .reverse()
+    .map((c) => {
+      const u = usersJson.find((x) => x.id === c.userId);
+      const gym = gyms.find((g) => g.id === c.gymId);
+      if (!u || !gym) return null;
+      return { id: c.id, scannedAt: c.scannedAt, memberName: u.name, gymName: gym.name };
+    })
+    .filter((x): x is AdminCheckInRow => x !== null);
+}
+
+export interface AdminPaymentRow {
+  readonly id: string;
+  readonly paidAt: string;
+  /** All fils. */
+  readonly amount: number;
+  readonly platformFee: number;
+  readonly gymAmount: number;
+  readonly commissionBps: number;
+  readonly method: string;
+  readonly status: string;
+  readonly memberName: string;
+  readonly gymName: { readonly ar: string; readonly en: string };
+}
+
+/** Every payment, newest first — the platform's commission ledger. */
+export function adminPayments(): readonly AdminPaymentRow[] {
+  return paymentsJson
+    .map((p) => {
+      const m = membershipsJson.find((x) => x.id === p.membershipId);
+      const u = m ? usersJson.find((x) => x.id === m.userId) : undefined;
+      const gym = m ? gyms.find((g) => g.id === m.gymId) : undefined;
+      if (!m || !u || !gym) return null;
+      return {
+        id: p.id,
+        paidAt: p.paidAt,
+        amount: p.amount,
+        platformFee: p.platformFee,
+        gymAmount: p.gymAmount,
+        commissionBps: p.commissionBps,
+        method: p.method,
+        status: p.status,
+        memberName: u.name,
+        gymName: gym.name,
+      };
+    })
+    .filter((x): x is AdminPaymentRow => x !== null)
+    .sort((a, b) => b.paidAt.localeCompare(a.paidAt));
 }
 
 // ─────────────────────────────────────────────────── gym dashboard: members

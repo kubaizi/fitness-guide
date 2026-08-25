@@ -12,6 +12,7 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { hashPassword } from "../packages/core/src/password.ts";
+import { fils, splitCommission } from "../packages/core/src/money.ts";
 
 const TODAY = new Date("2026-08-23T00:00:00.000Z");
 // The seed is anchored to a fixed date so the file is reproducible. NOW is
@@ -223,13 +224,53 @@ for (const m of memberships) {
 
 checkIns.sort((a, b) => a.scannedAt.localeCompare(b.scannedAt));
 
+// ── payments ────────────────────────────────────────────────────────────────
+// Every membership that was actually paid for gets a payment row, so the
+// admin's revenue and commission figures reconcile against the roster rather
+// than reporting on the two hand-written rows that used to be here.
+
+/** Platform default where a gym has no negotiated rate. 15%, in basis points. */
+const DEFAULT_COMMISSION_BPS = 1500;
+
+const gyms = JSON.parse(readFileSync("db/gyms.json", "utf8"));
+const payments = [];
+
+for (const m of memberships) {
+  // Nothing has been taken for a membership still awaiting payment.
+  if (m.state === "pending_payment") continue;
+
+  const gym = gyms.find((g) => g.id === m.gymId);
+  const bps = gym?.commissionBps ?? DEFAULT_COMMISSION_BPS;
+  const { platform, gym: gymAmount } = splitCommission(fils(m.pricePaid), bps);
+
+  // Paid when the membership began; a cancelled one was still paid for first.
+  const paidAt = m.startsOn ?? m.cancelledAt ?? m.endedOn ?? iso(daysAgo(30));
+
+  payments.push({
+    id: `pay-${m.id}`,
+    membershipId: m.id,
+    amount: m.pricePaid,
+    platformFee: platform,
+    gymAmount,
+    commissionBps: bps,
+    provider: "myfatoorah",
+    method: m.pricePaid > 100000 ? "card" : "knet",
+    status: m.state === "cancelled" ? "refunded" : "paid",
+    paidAt,
+  });
+}
+
+payments.sort((a, b) => a.paidAt.localeCompare(b.paidAt));
+
 const w = (f, d) =>
   writeFileSync(`db/${f}.json`, JSON.stringify(d, null, 2) + "\n", "utf8");
 w("users", users);
 w("memberships", memberships);
 w("checkins", checkIns);
+w("payments", payments);
 
 console.log(`users:       ${users.length}`);
 console.log(`memberships: ${memberships.length}`);
 console.log(`check-ins:   ${checkIns.length}`);
 console.log(`  iron-club: ${checkIns.filter((c) => c.gymId === IRON).length}`);
+console.log(`payments:    ${payments.length}`);

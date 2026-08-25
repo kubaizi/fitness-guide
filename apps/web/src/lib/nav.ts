@@ -30,9 +30,10 @@ export function navItemsFor(user: CurrentUser | null, locale: Locale): NavItem[]
   if (!user) return items;
 
   if (user.role === "admin") {
-    // An admin has no memberships of their own, so that link is replaced by
-    // the two things an admin actually needs.
-    items.push(item("admin/users", "nav.users"), item("admin/gyms", "nav.gyms"));
+    // One link, not one per section. The console has six sections and the
+    // header cannot carry six more items — it is already tight in Arabic —
+    // so /admin navigates itself with its own tab strip.
+    items.push(item("admin", "nav.admin"));
     return items;
   }
 

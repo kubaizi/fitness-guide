@@ -35,7 +35,7 @@ export function doorFor(role: string): Door {
  * read as a broken sign-in.
  */
 export function landingFor(user: CurrentUser, locale: Locale): string {
-  if (user.role === "admin") return `/${locale}/admin/gyms`;
+  if (user.role === "admin") return `/${locale}/admin`;
 
   if (user.role === "gym_owner" || user.role === "gym_staff") {
     const own = gymForStaff(user.id);
