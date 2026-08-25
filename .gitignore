@@ -25,3 +25,6 @@ Thumbs.db
 
 # Prisma generated client
 apps/web/src/generated/
+
+# Vercel CLI link data — machine-specific, never shared
+.vercel
