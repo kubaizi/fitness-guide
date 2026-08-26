@@ -24,9 +24,31 @@ const SESSION_COOKIE = "fg_session";
 
 function secretKey(): Uint8Array {
   const secret = process.env["SESSION_SECRET"] ?? "";
-  if (secret.length < 32) {
-    throw new Error("SESSION_SECRET must be at least 32 characters. See .env.example.");
+
+  /*
+   * Two different problems, two different messages.
+   *
+   * "Not set" and "set but too short" need opposite fixes, and a single
+   * message covering both sent someone hunting through Vercel's settings for
+   * a variable that was never there. Worth the extra branch: this throw only
+   * ever surfaces in a log, where the whole job is telling you what to do.
+   */
+  if (secret === "") {
+    throw new Error(
+      "SESSION_SECRET is not set. Locally, copy apps/web/.env.example to .env. " +
+        "On Vercel, add it under Settings > Environment Variables (tick " +
+        "Production) and then REDEPLOY — variables are read at build time, so " +
+        "saving one changes nothing about a build that already exists.",
+    );
   }
+
+  if (secret.length < 32) {
+    throw new Error(
+      `SESSION_SECRET is set but only ${secret.length} characters long; it must ` +
+        "be at least 32. Generate one with: openssl rand -base64 48",
+    );
+  }
+
   return new TextEncoder().encode(secret);
 }
 
