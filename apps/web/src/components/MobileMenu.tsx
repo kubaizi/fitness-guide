@@ -176,10 +176,22 @@ export function MobileMenu({
           })}
         </nav>
 
-        {/* Switching language is a full navigation, so the drawer unmounts
-            and reopens closed — no explicit dismissal needed here. */}
         <div className={styles.panelFoot}>
-          {auth}
+          {/*
+            The sign-in links navigate within the same locale, so the layout
+            is not rebuilt and this drawer survives the navigation — it would
+            sit open on top of the login page, with body scroll still locked.
+            The nav links above dismiss themselves with their own onClick, but
+            `auth` is rendered on the server and cannot carry one, so the click
+            is caught here as it bubbles out.
+
+            Not an interactive element itself: it only listens for clicks from
+            the real controls inside it, which keyboard users reach normally.
+          */}
+          <div onClick={close}>{auth}</div>
+
+          {/* Switching language rebuilds the [locale] layout, so the drawer
+              unmounts and comes back closed — verified, no handler needed. */}
           <LocaleSwitch current={locale} />
         </div>
       </div>
