@@ -1,0 +1,108 @@
+/*
+ * The marketplace category grid.
+ *
+ * Two columns on a phone, four on a desktop — the density Kuwaiti marketplace
+ * apps use, close enough to tap and few enough per row to scan.
+ */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-3);
+}
+
+@media (min-width: 560px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 860px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  min-height: 148px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+/* Only the live tile is a link, so only it gets link affordances. */
+a.tile:hover {
+  border-color: var(--gold-dim);
+  background: var(--surface-2);
+}
+
+a.tile:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/*
+ * Not built yet. Dimmed rather than hidden: the whole point of this grid is
+ * showing the shape of the finished product, so the unbuilt sections have to
+ * be visible AND obviously not ready.
+ */
+.tileSoon {
+  border-style: dashed;
+  background: transparent;
+  color: var(--ink-2);
+}
+
+.icon {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--gold);
+}
+
+.tileSoon .icon {
+  color: var(--muted);
+}
+
+.name {
+  font-weight: 650;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.desc {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  /* Pushes the status chip to the bottom so chips line up across the row
+     even when descriptions wrap to different heights. */
+  flex: 1;
+}
+
+.live,
+.soon {
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  padding: 2px var(--sp-2);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.live {
+  color: var(--ok);
+  background: var(--ok-wash);
+}
+
+.soon {
+  color: var(--muted);
+  background: var(--surface-2);
+}

@@ -46,10 +46,28 @@
   font-weight: 650;
 }
 
+/* Sits under a section title to say what the section is for. */
+.sectionNote {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-block-start: var(--sp-2);
+}
+
+/* The section grid and the gym grid are separate blocks, so the second
+   heading needs air above it or it collides with the tiles. */
+.sectionHead + * {
+  margin-block-end: var(--sp-8);
+}
+
 .viewAll {
   color: var(--gold);
   font-size: 0.9rem;
   white-space: nowrap;
+}
+
+.viewAll:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .grid {

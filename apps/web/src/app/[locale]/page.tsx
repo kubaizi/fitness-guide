@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { isLocale, createTranslator } from "@fg/i18n";
 import { notFound } from "next/navigation";
 import { getGyms } from "@/lib/db";
 import { GymCard } from "@/components/GymCard";
+import { SectionGrid } from "@/components/SectionGrid";
 import styles from "./page.module.css";
 
 // `PageProps<'/[locale]'>` is a Next.js 16 global helper, generated from the
@@ -23,9 +25,26 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       </section>
 
       <main className={styles.main}>
+        {/*
+          The eight verticals come first, the way a marketplace app opens on
+          its category grid. It is the only place the whole product is visible
+          at once — everything below is the one vertical that is actually
+          built.
+        */}
+        <div className={styles.sectionHead}>
+          <div>
+            <h2 className={styles.sectionTitle}>{t("sections.title")}</h2>
+            <p className={styles.sectionNote}>{t("sections.subtitle")}</p>
+          </div>
+        </div>
+
+        <SectionGrid locale={locale} />
+
         <div className={styles.sectionHead}>
           <h2 className={styles.sectionTitle}>{t("home.nearbyGyms")}</h2>
-          <span className={styles.viewAll}>{t("common.viewAll")}</span>
+          <Link href={`/${locale}/explore`} className={styles.viewAll}>
+            {t("common.viewAll")}
+          </Link>
         </div>
 
         <div className={styles.grid}>
