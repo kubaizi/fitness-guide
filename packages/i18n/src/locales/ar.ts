@@ -37,28 +37,68 @@ export const ar = {
     todaysOffers: "عروض اليوم",
   },
   sections: {
-    // الأقسام الثمانية من بروشور عماد. النادي فقط جاهز الآن.
+    // الأقسام العشرة من تصميم عماد، بترتيب صفحته الرئيسية نفسه.
+    // البنود الفرعية تحت كل قسم منقولة من التصميم كما هي.
     title: "كل أقسام دليل اللياقة",
     subtitle: "نبدأ بالأندية، وبقية الأقسام في الطريق",
     available: "متاح الآن",
     soon: "قريباً",
 
+    offers: "العروض والخصومات",
+    offers1: "عروض يومية",
+    offers2: "كوبونات خصم",
+    offers3: "صفقات حصرية",
+    offers4: "خصومات الاشتراكات",
+
     gyms: "الأندية",
-    gymsDesc: "اشترك في النادي المناسب لك",
-    trainers: "المدربون",
-    trainersDesc: "مدربون معتمدون وحصص خاصة",
-    nutrition: "التغذية",
-    nutritionDesc: "خطط غذائية وأخصائيو تغذية",
-    medicine: "الطب الرياضي",
-    medicineDesc: "علاج طبيعي ومتابعة الإصابات",
-    academies: "الأكاديميات",
-    academiesDesc: "أكاديميات ومعسكرات تدريبية",
+    gyms1: "أندية رجال",
+    gyms2: "أندية نساء",
+    gyms3: "الاشتراكات",
+    gyms4: "العروض والخصومات",
+
+    trainers: "المدرب الشخصي",
+    trainers1: "مدربون",
+    trainers2: "مدربات",
+    trainers3: "تدريب حضوري",
+    trainers4: "تدريب أونلاين",
+
+    equipment: "المعدات الرياضية",
+    equipment1: "أجهزة منزلية",
+    equipment2: "أجهزة ثقيلة",
+    equipment3: "إكسسوارات رياضية",
+
+    doctors: "الأطباء",
+    doctors1: "طبيب تغذية",
+    doctors2: "علاج طبيعي",
+    doctors3: "طبيب إصابات رياضية",
+
+    labs: "الفحوصات المخبرية",
+    labs1: "مختبرات معتمدة",
+    labs2: "تحاليل طبية",
+    labs3: "العروض والخصومات",
+
     sportswear: "الملابس الرياضية",
-    sportswearDesc: "ملابس وأحذية رياضية",
-    supplements: "المكملات",
-    supplementsDesc: "بروتين وفيتامينات",
-    store: "المتجر",
-    storeDesc: "أجهزة ومعدات رياضية",
+    sportswear1: "ملابس رجالية",
+    sportswear2: "ملابس نسائية",
+    sportswear3: "أحذية وإكسسوارات",
+
+    restaurants: "مطاعم الدايت",
+    restaurants1: "مطاعم صحية",
+    restaurants2: "وجبات دايت",
+    restaurants3: "اشتراكات",
+    restaurants4: "العروض والخصومات",
+
+    supplements: "المكملات الغذائية",
+    supplements1: "بروتينات",
+    supplements2: "فيتامينات",
+    supplements3: "أحماض أمينية",
+    supplements4: "أعشاب ومكملات طبيعية",
+
+    complaints: "الشكاوى والاقتراحات",
+    complaints1: "تقديم شكوى",
+    complaints2: "تقديم اقتراح",
+    complaints3: "تقييم الخدمات",
+    complaints4: "متابعة الطلب",
   },
   gym: {
     verified: "نادٍ موثّق",

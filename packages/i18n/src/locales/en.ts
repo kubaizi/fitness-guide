@@ -36,28 +36,68 @@ export const en = {
     todaysOffers: "Today's offers",
   },
   sections: {
-    // The eight verticals from the brochure. Only gyms is built.
+    // Emad's ten sections, in the order his home page mockup shows them.
+    // The sub-items under each card are taken straight from that design.
     title: "Everything in Fitness Guide",
     subtitle: "Starting with gyms — the rest are on the way",
     available: "Available now",
     soon: "Soon",
 
+    offers: "Offers & discounts",
+    offers1: "Daily offers",
+    offers2: "Discount coupons",
+    offers3: "Exclusive deals",
+    offers4: "Membership discounts",
+
     gyms: "Gyms",
-    gymsDesc: "Join the gym that suits you",
-    trainers: "Trainers",
-    trainersDesc: "Certified trainers and private sessions",
-    nutrition: "Nutrition",
-    nutritionDesc: "Meal plans and dietitians",
-    medicine: "Sports medicine",
-    medicineDesc: "Physiotherapy and injury care",
-    academies: "Academies",
-    academiesDesc: "Academies and training camps",
+    gyms1: "Men's gyms",
+    gyms2: "Women's gyms",
+    gyms3: "Memberships",
+    gyms4: "Offers & discounts",
+
+    trainers: "Personal trainer",
+    trainers1: "Male trainers",
+    trainers2: "Female trainers",
+    trainers3: "In-person training",
+    trainers4: "Online training",
+
+    equipment: "Sports equipment",
+    equipment1: "Home equipment",
+    equipment2: "Heavy equipment",
+    equipment3: "Accessories",
+
+    doctors: "Doctors",
+    doctors1: "Nutrition doctor",
+    doctors2: "Physiotherapy",
+    doctors3: "Sports injury doctor",
+
+    labs: "Laboratory tests",
+    labs1: "Certified labs",
+    labs2: "Medical tests",
+    labs3: "Offers & discounts",
+
     sportswear: "Sportswear",
-    sportswearDesc: "Clothing and footwear",
+    sportswear1: "Men's wear",
+    sportswear2: "Women's wear",
+    sportswear3: "Shoes & accessories",
+
+    restaurants: "Diet restaurants",
+    restaurants1: "Healthy restaurants",
+    restaurants2: "Diet meals",
+    restaurants3: "Subscriptions",
+    restaurants4: "Offers & discounts",
+
     supplements: "Supplements",
-    supplementsDesc: "Protein and vitamins",
-    store: "Store",
-    storeDesc: "Equipment and gear",
+    supplements1: "Proteins",
+    supplements2: "Vitamins",
+    supplements3: "Amino acids",
+    supplements4: "Herbs & natural",
+
+    complaints: "Complaints & suggestions",
+    complaints1: "Submit a complaint",
+    complaints2: "Submit a suggestion",
+    complaints3: "Rate services",
+    complaints4: "Track your request",
   },
   gym: {
     verified: "Verified gym",

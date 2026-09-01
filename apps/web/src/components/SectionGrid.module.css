@@ -1,8 +1,11 @@
 /*
  * The marketplace category grid.
  *
- * Two columns on a phone, four on a desktop — the density Kuwaiti marketplace
- * apps use, close enough to tap and few enough per row to scan.
+ * Emad's mockup runs three across on a phone, but his cards carry four
+ * sub-items each and English labels like "Herbs & natural supplements" — at
+ * 375px that is roughly 110px per column, which is unreadable. Two across on
+ * a phone, three on a desktop, matching his three-column intent where there is
+ * room for it.
  */
 
 .grid {
@@ -11,29 +14,27 @@
   gap: var(--sp-3);
 }
 
-@media (min-width: 560px) {
+@media (min-width: 720px) {
   .grid {
     grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 860px) {
-  .grid {
-    grid-template-columns: repeat(4, 1fr);
   }
 }
 
 .tile {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--sp-2);
+  gap: var(--sp-3);
   padding: var(--sp-4);
-  min-height: 148px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface);
   color: var(--ink);
+  /*
+   * Grid items default to min-width:auto, so a tile refuses to shrink below
+   * the widest word inside it — which pinned every tile at 162px and pushed
+   * the page sideways at 320px. This lets the track shrink and the text wrap.
+   */
+  min-width: 0;
 }
 
 /* Only the live tile is a link, so only it gets link affordances. */
@@ -48,9 +49,9 @@ a.tile:focus-visible {
 }
 
 /*
- * Not built yet. Dimmed rather than hidden: the whole point of this grid is
- * showing the shape of the finished product, so the unbuilt sections have to
- * be visible AND obviously not ready.
+ * Not built yet. Dimmed rather than hidden: the point of this grid is showing
+ * the shape of the finished product, so the unbuilt sections have to be
+ * visible AND obviously not ready.
  */
 .tileSoon {
   border-style: dashed;
@@ -58,9 +59,16 @@ a.tile:focus-visible {
   color: var(--ink-2);
 }
 
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
 .icon {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
+  flex: none;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.5;
@@ -75,21 +83,50 @@ a.tile:focus-visible {
 
 .name {
   font-weight: 650;
-  font-size: 1rem;
+  font-size: 0.98rem;
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
-.desc {
-  color: var(--muted);
-  font-size: 0.82rem;
-  line-height: 1.35;
-  /* Pushes the status chip to the bottom so chips line up across the row
-     even when descriptions wrap to different heights. */
+/*
+ * The sub-items. `flex: 1` pushes the status chip to the bottom, so chips line
+ * up across a row even where one card has three items and the next has four.
+ */
+.items {
   flex: 1;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.items li {
+  padding-inline-start: var(--sp-3);
+  position: relative;
+}
+
+/* A logical-property bullet, so it sits on the correct side in Arabic. */
+.items li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 0.52em;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.65;
 }
 
 .live,
 .soon {
+  align-self: flex-start;
   font-size: 0.7rem;
   letter-spacing: 0.04em;
   padding: 2px var(--sp-2);
