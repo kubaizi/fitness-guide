@@ -1,14 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Governorate } from "@fg/core";
+import { admits, type AccessFilter, type Governorate } from "@fg/core";
 import type { Locale, TranslationKey } from "@fg/i18n";
 import { createTranslator, formatNumber, pluralForm } from "@fg/i18n";
 import type { GymDetail } from "@/lib/db";
 import { GymCard } from "./GymCard";
 import styles from "./ExploreBrowser.module.css";
 
-type AccessFilter = "all" | GymDetail["access"];
+type AccessChoice = "all" | AccessFilter;
 type GovFilter = "all" | Governorate;
 type Sort = "price" | "rating";
 
@@ -21,12 +21,17 @@ const GOV_KEY: Record<Governorate, TranslationKey> = {
   mubarak_al_kabeer: "governorate.mubarakAlKabeer",
 };
 
-const ACCESS_KEY = {
+/*
+ * Three choices, not four. "Separate sections" describes how a building is
+ * arranged, not who the member is — someone picking "women" wants somewhere
+ * they can train, and admits() puts separate-section gyms under BOTH men and
+ * women rather than hiding them from both.
+ */
+const ACCESS_KEY: Record<AccessFilter, TranslationKey> = {
   men: "access.men",
   women: "access.women",
   mixed: "access.mixed",
-  separate_sections: "access.separateSections",
-} as const;
+};
 
 export function ExploreBrowser({
   gyms,
@@ -39,7 +44,7 @@ export function ExploreBrowser({
 
   const [query, setQuery] = useState("");
   const [gov, setGov] = useState<GovFilter>("all");
-  const [access, setAccess] = useState<AccessFilter>("all");
+  const [access, setAccess] = useState<AccessChoice>("all");
   const [sort, setSort] = useState<Sort>("price");
 
   // Only the governorates that actually have gyms — an empty filter option
@@ -54,7 +59,7 @@ export function ExploreBrowser({
 
     const filtered = gyms.filter((g) => {
       if (gov !== "all" && g.governorate !== gov) return false;
-      if (access !== "all" && g.access !== access) return false;
+      if (access !== "all" && !admits(g.access, access)) return false;
       if (q === "") return true;
       // Match either language, so an Arabic search finds an English name too.
       return (
@@ -91,6 +96,29 @@ export function ExploreBrowser({
           aria-label={t("explore.searchPlaceholder")}
         />
 
+        {/*
+          Men / women / mixed is the first thing a member decides in this
+          market, so it is a row of buttons rather than the middle dropdown of
+          three. Emad asked for it as the primary way into the gyms list.
+        */}
+        <div
+          className={styles.accessRow}
+          role="group"
+          aria-label={t("explore.filterAccess")}
+        >
+          {(["all", "men", "women", "mixed"] as const).map((a) => (
+            <button
+              key={a}
+              type="button"
+              className={a === access ? styles.accessOn : styles.access}
+              aria-pressed={a === access}
+              onClick={() => setAccess(a)}
+            >
+              {t(a === "all" ? "explore.filterAll" : ACCESS_KEY[a])}
+            </button>
+          ))}
+        </div>
+
         <div className={styles.selects}>
           <label className={styles.field}>
             <span className={styles.fieldLabel}>{t("explore.filterArea")}</span>
@@ -103,22 +131,6 @@ export function ExploreBrowser({
               {availableGovs.map((g) => (
                 <option key={g} value={g}>
                   {t(GOV_KEY[g])}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>{t("explore.filterAccess")}</span>
-            <select
-              className={styles.select}
-              value={access}
-              onChange={(e) => setAccess(e.target.value as AccessFilter)}
-            >
-              <option value="all">{t("explore.filterAll")}</option>
-              {(Object.keys(ACCESS_KEY) as Array<keyof typeof ACCESS_KEY>).map((a) => (
-                <option key={a} value={a}>
-                  {t(ACCESS_KEY[a])}
                 </option>
               ))}
             </select>

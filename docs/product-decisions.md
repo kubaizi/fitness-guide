@@ -74,6 +74,14 @@ A gym registers **once per section**. A building with both a men's and a
 women's section is listed twice: once under Men, once under Women. A genuinely
 mixed gym appears only under Mixed.
 
+**How this is actually built**, which differs from the wording above without
+changing what a member sees: the gym stays a single record with
+`access: "separate_sections"`, and `admits()` in `@fg/core` returns it for both
+the Men and the Women filter. One record rather than two duplicates — same
+result on screen, no second copy to keep in step when the gym edits its name or
+prices. It is deliberately excluded from Mixed, since a member choosing Mixed
+wants one shared floor, not two separate ones.
+
 ### Branches
 
 A gym may have several branches, and **the plan carries the scope**, not the

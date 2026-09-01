@@ -141,5 +141,49 @@
     ],
     "commissionBps": null,
     "openNow": true
+  },
+  {
+    "id": "cmsrdn5bz000pf8ftmxdqv411",
+    "slug": "bayan-club",
+    "name": {
+      "ar": "نادي بيان الرياضي",
+      "en": "Bayan Sports Club"
+    },
+    "description": {
+      "ar": "نادٍ مختلط في بيان، مساحة تدريب واحدة للجميع مع حصص جماعية يومية.",
+      "en": "A mixed gym in Bayan — one training floor for everyone, with daily group classes."
+    },
+    "area": {
+      "ar": "بيان",
+      "en": "Bayan"
+    },
+    "address": {
+      "ar": "قطعة 6، شارع 1، بيان",
+      "en": "Block 6, Street 1, Bayan"
+    },
+    "hours": {
+      "ar": "٦:٠٠ ص – ١١:٠٠ م",
+      "en": "6:00 AM – 11:00 PM"
+    },
+    "governorate": "mubarak_al_kabeer",
+    "access": "mixed",
+    "verification": "pending",
+    "verifiedAt": null,
+    "submittedAt": "2026-08-18T10:00:00.000Z",
+    "rejectionReason": null,
+    "rating": null,
+    "reviewCount": 0,
+    "latitude": 29.29,
+    "longitude": 48.05,
+    "amenities": [
+      "classes",
+      "cardio",
+      "freeWeights",
+      "lockers",
+      "parking"
+    ],
+    "photos": [],
+    "commissionBps": null,
+    "openNow": true
   }
 ]

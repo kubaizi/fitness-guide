@@ -82,5 +82,29 @@
     "listPrice": 360000,
     "offerPrice": null,
     "active": true
+  },
+  {
+    "id": "cmsrdn5bz000qf8ftmxdqv412",
+    "gymId": "cmsrdn5bz000pf8ftmxdqv411",
+    "name": {
+      "ar": "شهري",
+      "en": "Monthly"
+    },
+    "duration": "monthly",
+    "listPrice": 22000,
+    "offerPrice": null,
+    "active": true
+  },
+  {
+    "id": "cmsrdn5bz000rf8ftmxdqv413",
+    "gymId": "cmsrdn5bz000pf8ftmxdqv411",
+    "name": {
+      "ar": "ربع سنوي",
+      "en": "Quarterly"
+    },
+    "duration": "quarterly",
+    "listPrice": 60000,
+    "offerPrice": null,
+    "active": true
   }
 ]

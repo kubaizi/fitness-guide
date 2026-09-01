@@ -11,6 +11,28 @@ export type Governorate =
 /** Who a gym admits. Drives eligibility, filtering, and which photos may be shown. */
 export type GymAccess = "men" | "women" | "mixed" | "separate_sections";
 
+/** What a member can filter by. There is no "separate sections" choice: a
+ *  member is looking for somewhere they can train, not for a building
+ *  arrangement. */
+export type AccessFilter = "men" | "women" | "mixed";
+
+/**
+ * Does this gym admit someone searching for `filter`?
+ *
+ * The one that is easy to get wrong: a gym with SEPARATE men's and women's
+ * sections admits both, so it must appear under "men" and under "women". An
+ * exact-equality check hides it from both, which is how a real gym ends up
+ * invisible to every member who would have joined it.
+ *
+ * A mixed gym is deliberately NOT returned for "men" or "women". Someone who
+ * picks "women" in this market usually means a women-only space, and quietly
+ * including mixed gyms would break that expectation.
+ */
+export function admits(access: GymAccess, filter: AccessFilter): boolean {
+  if (access === "separate_sections") return filter === "men" || filter === "women";
+  return access === filter;
+}
+
 export type VerificationStatus =
   | { readonly state: "unverified" }
   | { readonly state: "pending"; readonly submittedAt: string }
