@@ -218,6 +218,11 @@ Prettier deliberately ignores `apps/web/db/*.json` (see `.prettierignore`).
 The app writes them with `JSON.stringify(…, 2)`; if Prettier reformatted them
 too, every save would rewrite unrelated records and bury the real change.
 
+[docs/product-decisions.md](docs/product-decisions.md) records what Emad has
+actually decided — the ten sections, how branches work, ordering rules, the
+10% commission, and what is still open. Check it before guessing at product
+behaviour; three rounds of questions went into it.
+
 `docs/future-database-schema.prisma` is the full PostgreSQL schema, already
 designed and previously migrated. When a backend is chosen — Azure, AWS, or
 Postgres again — only `apps/web/src/lib/db.ts` changes.
