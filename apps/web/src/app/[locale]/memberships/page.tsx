@@ -44,7 +44,7 @@ export default async function MembershipsPage({
         <div className={styles.empty}>
           <p className={styles.emptyTitle}>{t("membership.none")}</p>
           <p className={styles.emptyHint}>{t("membership.noneHint")}</p>
-          <Link href={`/${locale}/explore`} className={styles.browse}>
+          <Link href={`/${locale}/gyms`} className={styles.browse}>
             {t("membership.browseGyms")}
           </Link>
         </div>

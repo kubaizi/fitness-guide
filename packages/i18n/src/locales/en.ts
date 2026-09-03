@@ -47,7 +47,7 @@ export const en = {
   nav: {
     menu: "Menu",
     home: "Home",
-    explore: "Explore",
+    explore: "Gyms",
     memberships: "Memberships",
     profile: "Profile",
     admin: "Admin",
@@ -143,6 +143,22 @@ export const en = {
     complaints3: "Rate services",
     complaints4: "Track your request",
   },
+  gymsPage: {
+    // The gyms section. The design opens on men / women / mixed, which Emad
+    // confirmed is the primary way in rather than a secondary filter.
+    title: "Gyms",
+    subtitle: "Find the gym that suits you",
+    men: "Men's gyms",
+    women: "Women's gyms",
+    mixed: "Mixed gyms",
+    offers: "Offers & discounts",
+    menDesc: "Men only",
+    womenDesc: "Women only",
+    mixedDesc: "One floor for everyone",
+    offersDesc: "Gyms with an offer running",
+    countOne: "gym",
+    countMany: "gyms",
+  },
   gym: {
     verified: "Verified gym",
     pendingReview: "Pending review",
@@ -213,6 +229,7 @@ export const en = {
     clearFilters: "Clear filters",
     searchPlaceholder: "Search by gym name or area",
     filterArea: "Governorate",
+    filterCity: "Area",
     filterAccess: "Type",
     filterAll: "All",
     sortBy: "Sort by",

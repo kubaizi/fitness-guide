@@ -82,7 +82,7 @@ const SECTIONS: readonly Section[] = [
     id: "gyms",
     name: "sections.gyms",
     items: ["sections.gyms1", "sections.gyms2", "sections.gyms3", "sections.gyms4"],
-    href: "explore",
+    href: "gyms",
     icon: icon("M4 10v4", "M7 8v8", "M7 12h10", "M17 8v8", "M20 10v4"),
   },
   {

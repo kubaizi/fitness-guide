@@ -108,6 +108,12 @@ honestly show two prices.
 - GPS needs the member's consent. **Without consent, fall back to the area on
   their profile** — never a random order.
 
+### Where it lives
+
+The gyms section is at `/{locale}/gyms`. `/explore` permanently redirects
+there, query string preserved — the old name no longer says which of the ten
+sections you are exploring, and the link is in browser histories already.
+
 ### Map
 
 **No map screen.** Each gym page keeps a Directions button that opens Google

@@ -48,7 +48,7 @@ export const ar = {
   nav: {
     menu: "القائمة",
     home: "الرئيسية",
-    explore: "استكشف",
+    explore: "الأندية",
     memberships: "اشتراكاتي",
     profile: "حسابي",
     admin: "لوحة التحكم",
@@ -148,6 +148,22 @@ export const ar = {
     complaints3: "تقييم الخدمات",
     complaints4: "متابعة الطلب",
   },
+  gymsPage: {
+    // صفحة قسم الأندية — التصميم يبدأ بأزرار رجال/نساء/مختلط، وهي الطريقة
+    // الأساسية للدخول حسب جواب عماد.
+    title: "الأندية",
+    subtitle: "اعثر على النادي المناسب لك",
+    men: "أندية الرجال",
+    women: "أندية النساء",
+    mixed: "أندية مختلطة",
+    offers: "عروض وخصومات",
+    menDesc: "أندية للرجال فقط",
+    womenDesc: "أندية للنساء فقط",
+    mixedDesc: "صالة واحدة للجميع",
+    offersDesc: "أندية عليها خصم الآن",
+    countOne: "نادٍ",
+    countMany: "نادٍ",
+  },
   gym: {
     verified: "نادٍ موثّق",
     pendingReview: "قيد المراجعة",
@@ -218,7 +234,8 @@ export const ar = {
     noResultsHint: "جرّب توسيع البحث أو إزالة بعض الفلاتر",
     clearFilters: "مسح الفلاتر",
     searchPlaceholder: "ابحث باسم النادي أو المنطقة",
-    filterArea: "المنطقة",
+    filterArea: "المحافظة",
+    filterCity: "المنطقة",
     filterAccess: "النوع",
     filterAll: "الكل",
     sortBy: "ترتيب حسب",

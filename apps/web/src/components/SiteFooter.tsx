@@ -34,7 +34,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
           <Link href={`/${locale}`} className={styles.link}>
             {t("nav.home")}
           </Link>
-          <Link href={`/${locale}/explore`} className={styles.link}>
+          <Link href={`/${locale}/gyms`} className={styles.link}>
             {t("nav.explore")}
           </Link>
           <Link href={`/${locale}/login`} className={styles.link}>

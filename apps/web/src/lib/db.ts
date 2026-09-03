@@ -91,6 +91,14 @@ export interface GymDetail extends Gym {
   readonly hours: { readonly ar: string; readonly en: string };
   readonly address: { readonly ar: string; readonly en: string };
   readonly openNow: boolean;
+  /**
+   * Does this gym currently run an offer on any visible plan?
+   *
+   * Computed here rather than on the page, because "an offer" means "an active
+   * plan whose offerPrice is set" — a rule about plans, which pages should not
+   * have to know. Drives the Offers tile on the gyms landing page.
+   */
+  readonly hasOffer: boolean;
 }
 
 // The JSON is typed loosely on import; these narrow it back to the domain.
@@ -177,6 +185,7 @@ function toGym(g: RawGym): GymDetail {
     // The length check is required: `Math.min()` with no arguments returns
     // Infinity, which would then be passed to `fils()` and throw.
     startingPrice: prices.length > 0 ? fils(Math.min(...prices)) : null,
+    hasOffer: plans.some((p) => p.gymId === g.id && p.active && p.offerPrice !== null),
     photos: g.photos,
     amenities: g.amenities,
     // Renaming as we go: the JSON stores flat `latitude`/`longitude`, the

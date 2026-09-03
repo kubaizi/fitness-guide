@@ -59,12 +59,16 @@ export function ExploreBrowser({
   gyms,
   locale,
   initialQuery = "",
+  initialAccess = "all",
+  initialOffers = false,
 }: {
   gyms: readonly GymDetail[];
   locale: Locale;
-  /** Seeded from ?q= in the URL, so arriving from the home page's search box
-   *  lands on results rather than an empty box. */
+  /** Seeded from the URL, so arriving from the home page's search box or from
+   *  a tile on the gyms page lands on results rather than a blank state. */
   initialQuery?: string;
+  initialAccess?: AccessChoice;
+  initialOffers?: boolean;
 }) {
   const t = createTranslator(locale);
 
@@ -72,7 +76,13 @@ export function ExploreBrowser({
   // rather than in one object means each setter updates exactly one thing.
   const [query, setQuery] = useState(initialQuery);
   const [gov, setGov] = useState<GovFilter>("all");
-  const [access, setAccess] = useState<AccessChoice>("all");
+  const [access, setAccess] = useState<AccessChoice>(initialAccess);
+  // Emad keeps offers inside the gyms section as well as in their own
+  // section, so this is a filter here rather than a separate page.
+  const [offers, setOffers] = useState(initialOffers);
+  // The second half of "governorate then area". Reset whenever the
+  // governorate changes, or it would silently exclude everything.
+  const [area, setArea] = useState<string>("all");
   const [sort, setSort] = useState<Sort>("price");
 
   // ── `useMemo(fn, deps)` — cache an expensive calculation ──
@@ -90,6 +100,21 @@ export function ExploreBrowser({
     () => [...new Set(gyms.map((g) => g.governorate))],
     [gyms],
   );
+
+  /*
+   * "Governorate then area", as Emad asked. The area list narrows to the
+   * chosen governorate — offering Salmiya while Farwaniya is selected would be
+   * a filter that can only ever return nothing.
+   *
+   * Keyed on the English name because it is the stable identifier here; the
+   * Arabic label is looked up for display.
+   */
+  const availableAreas = useMemo(() => {
+    const inGov = gov === "all" ? gyms : gyms.filter((g) => g.governorate === gov);
+    const seen = new Map<string, string>();
+    for (const g of inGov) seen.set(g.area.en, g.area[locale]);
+    return [...seen];
+  }, [gyms, gov, locale]);
 
   // ── DERIVED STATE — the most important pattern in this file ──
   //
@@ -111,6 +136,8 @@ export function ExploreBrowser({
       // A chain of early `false` returns. Cheapest checks first, so an
       // excluded gym is discarded before the string comparisons run.
       if (gov !== "all" && g.governorate !== gov) return false;
+      if (area !== "all" && g.area.en !== area) return false;
+      if (offers && !g.hasOffer) return false;
       // The subtle rule from @fg/core lives in `admits`, not here — see
       // packages/core/src/domain/gym.ts. A plain `g.access === access` would
       // reintroduce the bug where separate-section gyms vanish from both filters.
@@ -140,17 +167,20 @@ export function ExploreBrowser({
     });
     // The dependency array. Miss one of these and the list would go stale —
     // showing results for a filter the user has since changed.
-  }, [gyms, query, gov, access, sort]);
+  }, [gyms, query, gov, area, access, offers, sort]);
 
   // Also derived, and cheap enough not to bother memoising.
-  const isFiltered = query !== "" || gov !== "all" || access !== "all";
+  const isFiltered =
+    query !== "" || gov !== "all" || area !== "all" || access !== "all" || offers;
 
   // Note `sort` is deliberately NOT reset. Clearing filters means "show me
   // everything again", not "forget how I wanted it ordered".
   const clear = () => {
     setQuery("");
     setGov("all");
+    setArea("all");
     setAccess("all");
+    setOffers(false);
   };
 
   return (
@@ -206,6 +236,18 @@ export function ExploreBrowser({
               {t(a === "all" ? "explore.filterAll" : ACCESS_KEY[a])}
             </button>
           ))}
+
+          {/* Offers live inside the gyms section as well as in their own
+              section — Emad's rule. So it belongs beside the access chips
+              rather than buried in a dropdown. */}
+          <button
+            type="button"
+            className={offers ? styles.accessOn : styles.access}
+            aria-pressed={offers}
+            onClick={() => setOffers((v) => !v)}
+          >
+            {t("gymsPage.offers")}
+          </button>
         </div>
 
         <div className={styles.selects}>
@@ -221,7 +263,10 @@ export function ExploreBrowser({
               // plain `string` — it cannot know the option values are limited
               // to the GovFilter union. Safe here because this component
               // renders every option itself.
-              onChange={(e) => setGov(e.target.value as GovFilter)}
+              onChange={(e) => {
+                setGov(e.target.value as GovFilter);
+                setArea("all");
+              }}
             >
               <option value="all">{t("explore.filterAll")}</option>
               {/* Only the governorates that actually have gyms, from the
@@ -233,6 +278,27 @@ export function ExploreBrowser({
               ))}
             </select>
           </label>
+
+          {/* The second location level. Hidden when the chosen governorate
+              has only one area — a dropdown with a single option is furniture,
+              not a control. */}
+          {availableAreas.length > 1 && (
+            <label className={styles.field}>
+              <span className={styles.fieldLabel}>{t("explore.filterCity")}</span>
+              <select
+                className={styles.select}
+                value={area}
+                onChange={(e) => setArea(e.target.value)}
+              >
+                <option value="all">{t("explore.filterAll")}</option>
+                {availableAreas.map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
           <label className={styles.field}>
             <span className={styles.fieldLabel}>{t("explore.sortBy")}</span>

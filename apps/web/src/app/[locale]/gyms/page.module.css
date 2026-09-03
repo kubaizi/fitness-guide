@@ -4,8 +4,20 @@
   padding: var(--sp-7) var(--sp-5) var(--sp-8);
 }
 
+.head {
+  margin-block-end: var(--sp-5);
+}
+
 .title {
   font-size: clamp(1.8rem, 4vw, var(--step-4));
   font-weight: 700;
-  margin-block-end: var(--sp-5);
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-block-start: var(--sp-2);
+}
+
+.adStrip {
+  margin-block-end: var(--sp-6);
 }

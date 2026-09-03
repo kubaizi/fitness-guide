@@ -41,7 +41,7 @@ export function navItemsFor(user: CurrentUser | null, locale: Locale): NavItem[]
   });
 
   // Everyone sees these two, signed in or not.
-  const items = [item("", "nav.home"), item("explore", "nav.explore")];
+  const items = [item("", "nav.home"), item("gyms", "nav.explore")];
 
   // Signed out: no "Memberships". Showing it would promise a page that
   // immediately bounces to login, which reads as broken rather than gated.

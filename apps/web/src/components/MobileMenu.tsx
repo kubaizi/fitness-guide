@@ -69,7 +69,7 @@ export function MobileMenu({
   auth: React.ReactNode;
 }) {
   const t = createTranslator(locale);
-  // A Next.js hook giving the current URL path, e.g. "/ar/explore". Used
+  // A Next.js hook giving the current URL path, e.g. "/ar/gyms". Used
   // below to mark the active link. Hooks may only be called in client
   // components — this line alone would break in a server component.
   const pathname = usePathname();

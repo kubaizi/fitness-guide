@@ -96,7 +96,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           {/* `<Link>` rather than `<a>`. It navigates without a full page
               reload and prefetches the destination when the link scrolls into
               view, which is what makes moving around the app feel instant. */}
-          <Link href={`/${locale}/explore`} className={styles.viewAll}>
+          <Link href={`/${locale}/gyms`} className={styles.viewAll}>
             {t("common.viewAll")}
           </Link>
         </div>

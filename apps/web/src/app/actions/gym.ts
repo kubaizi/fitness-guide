@@ -98,7 +98,7 @@ export async function saveGymProfile(
   // The public gym page and the admin list both show this data.
   revalidatePath(`/${locale}/gyms/${slug}`);
   revalidatePath(`/${locale}`);
-  revalidatePath(`/${locale}/explore`);
+  revalidatePath(`/${locale}/gyms`);
 
   // `storage` is passed back so the editor can tell the user honestly whether
   // the change reached disk or lives only in this server's memory — see the
