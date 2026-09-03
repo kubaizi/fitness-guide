@@ -35,6 +35,20 @@
   grid-row: 1 / 3;
 }
 
+/*
+ * The gallery sets a fixed height, and GymPhoto's frame carries an
+ * aspect-ratio. Given a definite height, that ratio derives a WIDTH from it —
+ * 224px tall at 16/9 is 398px wide — and grid items refuse to shrink below
+ * their min-content, so the track grew past the viewport and the whole page
+ * scrolled sideways. In Arabic that clipped the start of every line.
+ *
+ * min-width: 0 lets the track shrink to its column; the frame's own
+ * width: 100% then fills it, and the fixed height still governs.
+ */
+.gallery > * {
+  min-width: 0;
+}
+
 /* Stacked thumbnails get too narrow to be worth showing on a phone. */
 @media (max-width: 640px) {
   .gallery {
