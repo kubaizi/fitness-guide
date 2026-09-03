@@ -11,6 +11,16 @@ import styles from "../admin.module.css";
 import table from "@/components/DataTable.module.css";
 
 /** A-02 — every membership on the platform, across all gyms. */
+// The cross-gym counterpart of ../../manage/[slug]/members/page.tsx: same
+// shape, with the gymId filter removed and the gym's name added as a column.
+//
+// Note it reuses the exact same three helpers from lib/membership.ts that the
+// gym roster and the member's own list use. Three screens, one definition of
+// what "frozen" looks like — which is precisely why those helpers were pulled
+// out of the pages in the first place.
+//
+// Same admin skeleton as ../page.tsx; table markup explained in
+// ../../manage/[slug]/members/page.tsx.
 export default async function AdminMembershipsPage({
   params,
 }: PageProps<"/[locale]/admin/memberships">) {

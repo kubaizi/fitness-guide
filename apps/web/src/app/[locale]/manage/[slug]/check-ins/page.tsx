@@ -14,9 +14,14 @@ import styles from "@/components/ManageForm.module.css";
 import table from "@/components/DataTable.module.css";
 
 /** How many scans the log shows before it stops. */
+// A named constant, used twice: once to fetch and once to decide whether to
+// show "recent only" at the bottom. Two separate literal 100s could drift
+// apart, and the footnote would then lie about what is on screen.
 const LIMIT = 100;
 
 /** G-15 — the door's check-in log. */
+// Same dashboard skeleton as the other three — see ../page.tsx.
+// Table markup is explained in ../members/page.tsx.
 export default async function ManageCheckInsPage({
   params,
 }: PageProps<"/[locale]/manage/[slug]/check-ins">) {
@@ -33,6 +38,15 @@ export default async function ManageCheckInsPage({
   const rows = checkInsForGym(gym.id, LIMIT);
   const summary = checkInSummaryForGym(gym.id);
 
+  // Four summary tiles described as DATA, then rendered by one small loop
+  // below — rather than four near-identical blocks of markup that could drift
+  // apart. The same data-driven approach as SectionGrid.tsx and AdminTabs.tsx.
+  //
+  // `as const` keeps the labels as exact literals so they satisfy
+  // `TranslationKey` when passed to `t()`.
+  //
+  // Note these tiles read zero on the stale demo dataset. That is correct
+  // behaviour on old data, not a bug — see checkInSummaryForGym in lib/db.ts.
   const stats = [
     { label: "manage.statToday", value: summary.today },
     { label: "manage.statLast7", value: summary.last7 },
@@ -102,6 +116,12 @@ export default async function ManageCheckInsPage({
             </table>
           </div>
 
+          {/* Says "recent only" exactly when the list was truncated — i.e.
+              when it came back full. Without this, a gym reading "100" would
+              have no way to tell whether that is the total or a cap, which is
+              the sort of small dishonesty that erodes trust in a dashboard.
+
+              The empty string in the false branch renders nothing. */}
           <p className={table.count}>
             {formatNumber(rows.length, locale)}
             {rows.length === LIMIT ? ` · ${t("manage.recentOnly")}` : ""}

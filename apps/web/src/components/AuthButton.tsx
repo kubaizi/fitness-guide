@@ -19,6 +19,13 @@ import styles from "./AuthButton.module.css";
  * Server Action rather than a link — it changes state, so it must not be a GET
  * that a prefetch or a crawler could trigger.
  */
+// ── That last sentence is a genuinely important web principle ──
+// GET requests must not change anything. Browsers prefetch links, crawlers
+// follow them, and Next prefetches <Link> destinations on hover. A sign-out
+// implemented as a link would fire when someone merely hovered near it.
+//
+// Anything that changes state belongs in a POST — which, in this codebase,
+// means a <form> posting to a Server Action.
 export async function AuthButton({
   locale,
   variant = "header",
@@ -29,8 +36,15 @@ export async function AuthButton({
 }) {
   const inDrawer = variant === "drawer";
   const t = createTranslator(locale);
+  // An async server component awaiting the session directly. This same
+  // component is rendered twice per page — once for the desktop header, once
+  // passed into the mobile drawer — but `cache()` in lib/dal.ts means the
+  // session is still only resolved once.
   const user = await getCurrentUser();
 
+  // TWO COMPLETELY DIFFERENT RETURNS from one component. Signed out gets two
+  // links; signed in gets a form. Cleaner than one return full of ternaries,
+  // since the two cases share no markup.
   if (!user) {
     return (
       <div className={`${styles.doors} ${inDrawer ? styles.doorsDrawer : ""}`}>
@@ -45,10 +59,22 @@ export async function AuthButton({
   }
 
   return (
+    // ── `action={signOut}` ──
+    // A Server Action passed straight to a form's `action`. No onSubmit, no
+    // fetch, no API route: Next wires up the POST and runs `signOut` on the
+    // server. See src/app/actions/auth.ts.
+    //
+    // Because this is real HTML form submission, it works even if JavaScript
+    // has not loaded yet — the progressive-enhancement payoff of the whole
+    // Server Actions design.
     <form
       action={signOut}
       className={`${styles.form} ${inDrawer ? styles.formDrawer : ""}`}
     >
+      {/* A hidden input is how you pass extra data to a Server Action. The
+          action reads it back with `formData.get("locale")`. There is no
+          other way to hand an argument to a form action — the function
+          receives only FormData. */}
       <input type="hidden" name="locale" value={locale} />
       {/* The NAME, not the phone. The phone was hidden below 900px and blank
           for admin, so the header gave no clue you were signed in at all —

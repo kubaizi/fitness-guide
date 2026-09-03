@@ -12,6 +12,12 @@ import styles from "../admin.module.css";
 import { AdminTabs } from "@/components/AdminTabs";
 import table from "@/components/DataTable.module.css";
 
+// `Record<string, TranslationKey>` — keyed by plain `string`, not by the
+// `GymAccess` union. A looser type than GymCard.tsx's version of the same
+// table, and the reason is the `?? "access.mixed"` fallback at the call site:
+// indexing a `Record<string, …>` can miss, so the lookup must cope with an
+// unrecognised value from the JSON. The stricter union type would guarantee a
+// hit but would then reject any data that had drifted.
 const ACCESS_KEY: Record<string, TranslationKey> = {
   men: "access.men",
   women: "access.women",
@@ -20,6 +26,8 @@ const ACCESS_KEY: Record<string, TranslationKey> = {
 };
 
 /** Admin: every gym, with the figures that matter for oversight. */
+// Same admin skeleton as ../page.tsx; same table markup as
+// ../../manage/[slug]/members/page.tsx.
 export default async function AdminGymsPage({
   params,
 }: PageProps<"/[locale]/admin/gyms">) {
@@ -60,6 +68,9 @@ export default async function AdminGymsPage({
               const verified = gym.verification.state === "verified";
               return (
                 <tr key={gym.id}>
+                  {/* Name links to the public page, with the slug beneath it
+                      in monospace — the identifier an admin needs when
+                      matching a row against a URL or a support ticket. */}
                   <td>
                     <Link href={`/${locale}/gyms/${gym.slug}`} className={table.name}>
                       {gym.name[locale]}

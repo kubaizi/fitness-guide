@@ -8,6 +8,22 @@ import { saveGymProfile, type EditState } from "@/app/actions/gym";
 import type { GymDetail } from "@/lib/db";
 import styles from "./ManageForm.module.css";
 
+/**
+ * The gym's own profile editor — the longest form in the app.
+ *
+ * It is long but not complicated: the same label/input pair repeated for
+ * every field, in Arabic and English. Read one pair and you have read them
+ * all. The parts genuinely worth studying are marked below.
+ *
+ * Uses UNCONTROLLED inputs (`defaultValue`, no state). The contrast with
+ * controlled inputs is explained at the top of PlanEditor.tsx — read that
+ * first if the distinction is new.
+ */
+
+// `Governorate[]` — the ORDER for the dropdown. TypeScript checks every entry
+// is a real governorate, but note it does NOT check that all six are present:
+// an array can hold any number of them. Compare with the Record below, which
+// does require all six.
 const GOVERNORATES: Governorate[] = [
   "capital",
   "hawalli",
@@ -26,7 +42,14 @@ const GOV_KEY: Record<Governorate, TranslationKey> = {
   mubarak_al_kabeer: "governorate.mubarakAlKabeer",
 };
 
+// Note this list has FOUR options while ExploreBrowser's filter has three.
+// Deliberate, and the distinction matters: a gym describes itself as having
+// separate sections, but a member never searches for that — see the comment
+// on `AccessFilter` in packages/core/src/domain/gym.ts.
 const ACCESS = ["men", "women", "mixed", "separate_sections"] as const;
+// `(typeof ACCESS)[number]` derives the union from the array above — the same
+// technique as `Locale` in packages/i18n/src/types.ts. So adding a fifth
+// option to ACCESS makes this Record demand a fifth translation key.
 const ACCESS_KEY: Record<(typeof ACCESS)[number], TranslationKey> = {
   men: "access.men",
   women: "access.women",
@@ -68,6 +91,14 @@ export function GymProfileForm({ gym, locale }: { gym: GymDetail; locale: Locale
       <div className={styles.card}>
         <p className={styles.section}>{t("manage.sectionIdentity")}</p>
 
+        {/* ── THE PATTERN, ONCE. Every field below repeats it. ──
+            • wrapped in a <label>, so clicking the text focuses the input
+              (no id/htmlFor pairing needed when the input is inside)
+            • `name` is what the Server Action reads back —
+              `formData.get("nameAr")` in actions/gym.ts
+            • `defaultValue` seeds it; the browser owns it from then on
+            • `dir` forces the writing direction per language, so Arabic and
+              English fields each behave correctly on either locale's page */}
         <div className={styles.pair}>
           <label className={styles.field}>
             <span className={styles.label}>{t("manage.nameAr")}</span>
@@ -119,6 +150,9 @@ export function GymProfileForm({ gym, locale }: { gym: GymDetail; locale: Locale
         <div className={styles.pair}>
           <label className={styles.field}>
             <span className={styles.label}>{t("manage.governorate")}</span>
+            {/* `defaultValue` on the <select>, not `selected` on an
+                <option> — React handles it at the select level, unlike plain
+                HTML. Its value must match one of the option values below. */}
             <select
               name="governorate"
               className={styles.select}
@@ -211,6 +245,19 @@ export function GymProfileForm({ gym, locale }: { gym: GymDetail; locale: Locale
 
       <div className={styles.card}>
         <p className={styles.section}>{t("manage.sectionFacilities")}</p>
+        {/* ── WORTH STUDYING: many checkboxes sharing ONE name ──
+            Every box here is `name="amenities"`. On submit, each TICKED box
+            contributes its `value` under that same key, so the action reads
+            them with `formData.getAll("amenities")` — plural — rather than
+            `.get`, which would return only the first.
+
+            This is plain HTML behaviour, not a React feature, and it is the
+            standard way to submit a multi-select. Unticked boxes send
+            nothing at all, so the result is exactly the list of chosen
+            amenities.
+
+            `defaultChecked={gym.amenities.includes(a)}` ticks the ones the
+            gym already has. `.includes()` tests array membership. */}
         <div className={styles.checks}>
           {AMENITIES.map((a) => (
             <label key={a} className={styles.check}>

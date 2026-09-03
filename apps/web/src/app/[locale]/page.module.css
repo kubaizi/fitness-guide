@@ -75,3 +75,8 @@
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--sp-4);
 }
+
+/* The advertising strip, between the hero and the sections as in the mockup. */
+.adStrip {
+  margin-block-end: var(--sp-7);
+}

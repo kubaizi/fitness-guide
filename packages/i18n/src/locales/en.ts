@@ -5,6 +5,31 @@ import type { Dictionary } from "../dictionary";
  * widening the types. Miss a key and the build fails — which is how you avoid
  * shipping a screen that is half-translated.
  */
+// ═══════════════════════════════════════════════════════════════════════════
+// The English half of the dictionary. Every key here must mirror ar.ts
+// exactly — same groups, same names, same nesting.
+//
+// ── `satisfies Dictionary` (at the very bottom of this file) ──
+//
+// `satisfies` is a TypeScript operator worth learning properly, because it
+// sits between the two things you already know:
+//
+//   const en: Dictionary = { ... }    ANNOTATION
+//       Checks the shape, but then FORGETS the specifics — from that point on
+//       TypeScript only knows `en` is "some Dictionary".
+//
+//   const en = { ... } as Dictionary  ASSERTION
+//       Checks almost nothing. `as` means "trust me", so a missing key can
+//       slip straight through.
+//
+//   const en = { ... } satisfies Dictionary   ← what this file uses
+//       Checks the shape strictly, AND keeps the precise inferred type. Best
+//       of both: a missing key is a compile error naming the key, while the
+//       object stays fully typed for anything that reads it.
+//
+// Rule of thumb: reach for `satisfies` whenever you want a value validated
+// against a contract without losing what you actually wrote.
+// ═══════════════════════════════════════════════════════════════════════════
 export const en = {
   common: {
     appName: "Fitness Guide",
@@ -34,6 +59,25 @@ export const en = {
       "One platform for gyms, trainers, nutrition and sports medicine. Starting with gyms in Kuwait.",
     nearbyGyms: "Nearby gyms",
     todaysOffers: "Today's offers",
+    searchPlaceholder: "Search for a gym or an area",
+    searchAction: "Search",
+  },
+  ads: {
+    // Ad slots stay empty until a real advertiser arrives. We never put a
+    // company's logo up without written permission from them.
+    label: "Ad",
+    empty: "Ad space available",
+  },
+  footer: {
+    tagline: "Your gateway to the fitness community",
+    links: "Links",
+    contact: "Contact us",
+    phone: "Phone",
+    email: "Email",
+    address: "Address",
+    addressValue: "Kuwait — Hawally — Salmiya",
+    pending: "To be confirmed",
+    demo: "Demo build — not a live service yet",
   },
   sections: {
     // Emad's ten sections, in the order his home page mockup shows them.

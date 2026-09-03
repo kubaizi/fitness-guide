@@ -9,6 +9,19 @@ import styles from "./admin.module.css";
 import table from "@/components/DataTable.module.css";
 
 /** A-01 — what the whole platform is doing, at a glance. */
+// ── The admin console: six pages, one skeleton ──
+//   1. validate the locale
+//   2. `await requireAdmin(locale)` — the gate
+//   3. load the data
+//   4. heading, AdminTabs, then this page's content
+//
+// The gym dashboard under /manage has the same shape with a different gate
+// (`requireGymAccess`). Deliberate: the two consoles should not feel like
+// different products.
+//
+// Note what `requireAdmin` does for a signed-in NON-admin: a 404, not a
+// "forbidden". Telling someone a page exists but is off-limits is itself
+// information — see lib/dal.ts.
 export default async function AdminOverviewPage({
   params,
 }: PageProps<"/[locale]/admin">) {
@@ -19,8 +32,14 @@ export default async function AdminOverviewPage({
   await requireAdmin(locale);
 
   const t = createTranslator(locale);
+  // Short name because it is referenced a dozen times just below. Acceptable
+  // for a value used densely within a few lines; a poor choice for anything
+  // wider-lived.
   const o = adminOverview();
 
+  // Tiles as data again, rendered by one loop. `sub` carries a secondary
+  // figure — "12 · 9 verified" — so each tile gives the total and the part
+  // that matters, without a second row of tiles.
   const counts = [
     {
       label: "admin.statGyms",
@@ -73,6 +92,11 @@ export default async function AdminOverviewPage({
         {money.map((s) => (
           <div key={s.label} className={table.stat}>
             <div className={table.statValue}>
+              {/* `fils(s.value)` re-brands a plain number as `Fils` so it can
+                  be passed to Price. The admin queries return raw numbers
+                  because they come straight from JSON; `fils()` validates as
+                  it converts, so a corrupt figure throws here rather than
+                  rendering as a wrong total. See packages/core/src/money.ts. */}
               <Price amount={fils(s.value)} locale={locale} size="md" />
             </div>
             <div className={table.statLabel}>{t(s.label)}</div>

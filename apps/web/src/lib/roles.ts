@@ -16,6 +16,14 @@ import { gymForStaff } from "./db";
  */
 export type Door = "member" | "partner";
 
+// ── Stacked `case` labels ──
+// Three cases share one body. This is FALL-THROUGH used deliberately: the
+// first two cases have no statements at all, so execution continues into the
+// next until it hits the `return`.
+//
+// It reads as "gym_owner OR gym_staff OR admin → partner", and is the one
+// legitimate use of switch fall-through. (Accidental fall-through, where a
+// case has code but no `break`, is the bug to watch for.)
 export function doorFor(role: string): Door {
   switch (role) {
     case "gym_owner":
@@ -23,6 +31,9 @@ export function doorFor(role: string): Door {
     case "admin":
       return "partner";
     default:
+      // Note the parameter is `string`, not a union of known roles — the
+      // value comes from JSON, so an unrecognised role is possible. Defaulting
+      // to the least-privileged door is the safe direction to fail.
       return "member";
   }
 }
@@ -34,7 +45,12 @@ export function doorFor(role: string): Door {
  * "My memberships" — a page that is empty for them — was the old behaviour and
  * read as a broken sign-in.
  */
+// Returns a URL string rather than performing the redirect itself. That keeps
+// this function PURE and testable: it makes the decision, and the caller (the
+// sign-in action) carries it out.
 export function landingFor(user: CurrentUser, locale: Locale): string {
+  // Every path is built with the locale prefix, because every route in this
+  // app lives under /[locale]/ — see apps/web/src/app/page.tsx.
   if (user.role === "admin") return `/${locale}/admin`;
 
   if (user.role === "gym_owner" || user.role === "gym_staff") {
@@ -44,5 +60,6 @@ export function landingFor(user: CurrentUser, locale: Locale): string {
     return own ? `/${locale}/manage/${own.slug}` : `/${locale}`;
   }
 
+  // Everyone else is a member.
   return `/${locale}/memberships`;
 }

@@ -6,6 +6,23 @@
  *
  *   npx vite-node scripts/preview.ts
  */
+// ═══════════════════════════════════════════════════════════════════════════
+// NOT PART OF THE WEB APP. This is a standalone Node script — no React, no
+// Next.js, no components. It builds an HTML string and writes it to a file.
+//
+// It predates the Next app and exists to prove @fg/core and @fg/i18n work
+// before any UI was built. Useful to read for two reasons:
+//
+//   1. It is the clearest demonstration of what those two packages actually
+//      do, with the arithmetic proofs rendered on the page.
+//   2. It shows what building a page WITHOUT React looks like — string
+//      concatenation, manual escaping, `document.getElementById` to update
+//      things. Compare `renderGyms` below with GymCard.tsx: same output, and
+//      the difference is the argument for React in one screen.
+//
+// `vite-node` runs a TypeScript file directly, without a separate compile
+// step. Plain `node` cannot execute .ts files.
+// ═══════════════════════════════════════════════════════════════════════════
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -102,6 +119,19 @@ const COMMISSION_BP = 1500; // 15%
 
 // ── rendering ───────────────────────────────────────────────────────────────
 
+// ── HTML ESCAPING, by hand ──
+// Turns `&`, `<` and `>` into their HTML entities, so text cannot be mistaken
+// for markup. Without it, a gym named `<script>alert(1)</script>` would
+// EXECUTE when this page was opened — the classic XSS hole.
+//
+// Note the order: `&` MUST be replaced first. Do `<` first and the `&` in the
+// resulting `&lt;` gets escaped again into `&amp;lt;`, which then renders as
+// the literal text "&lt;". A genuine bug people hit every time they write one
+// of these.
+//
+// React does all of this automatically for every value you interpolate, which
+// is why `dangerouslySetInnerHTML` has to be opted into so loudly. This
+// function is what you are giving up when you reach for that prop.
 const esc = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -112,6 +142,18 @@ const accessLabel: Record<Gym["access"], { ar: string; en: string }> = {
   separate_sections: { ar: "أقسام منفصلة", en: "Separate sections" },
 };
 
+// ── Compare this function directly with src/components/GymCard.tsx ──
+// Both produce a gym card. This one returns a STRING of HTML; GymCard returns
+// JSX. The differences worth noticing:
+//
+//   • every value needs `esc()` by hand — React escapes automatically
+//   • `.join("")` at the end to concatenate — React renders arrays natively
+//   • class names are raw strings that could typo silently — CSS modules
+//     make `styles.crd` a compile error
+//   • no type checking of the markup at all — a stray `<div>` compiles fine
+//
+// It works, and for a one-off script it is entirely reasonable. It stops
+// being reasonable at roughly the third screen.
 function renderGyms(locale: Locale): string {
   const t = createTranslator(locale);
   return GYMS.map((g) => {
@@ -161,6 +203,15 @@ function renderPlans(locale: Locale): string {
   }).join("");
 }
 
+// The most interesting function in the file: it runs the money arithmetic
+// live and prints the results, so the page is EVIDENCE rather than a claim.
+// The same properties are asserted in packages/core/src/money.test.ts — this
+// is the human-readable version of that test file.
+//
+// `Array<[string, string]>` is an array of TUPLES: fixed-length arrays with a
+// type per position. Here, exactly two strings — a label and a value.
+// `Array<T>` and `T[]` mean the same thing; the longer form reads better when
+// T is itself bracketed.
 function renderProofs(): string {
   const rows: Array<[string, string]> = [];
 
@@ -186,6 +237,14 @@ function renderProofs(): string {
   rows.push(["'12.5' parsed as fils", String(parseKwd("12.5"))]);
   rows.push([
     "splitCommission(19.900, 15%)",
+    // ── An IIFE: Immediately Invoked Function Expression ──
+    //   (() => { ...; return x; })()
+    // Defines a function and calls it on the spot. The trailing `()` is the
+    // call. Used here because this entry needs a local variable, and an array
+    // element can only hold an expression, not statements.
+    //
+    // Rarely needed in modern JavaScript — a named const above would be
+    // clearer. Worth recognising, since older code is full of them.
     (() => {
       const s = splitCommission(parseKwd("19.900"), COMMISSION_BP);
       return `${s.platform} + ${s.gym} = ${s.platform + s.gym} fils`;
@@ -368,6 +427,15 @@ apply("ar");
 </body>
 </html>`;
 
+// The script's whole output: one self-contained HTML file, written next to
+// wherever you ran it from. Open preview.html in a browser to see the result.
+//
+// `resolve` builds an absolute path — never concatenate path strings by hand,
+// since the separator differs between Windows and everything else.
+//
+// `writeFileSync` is the BLOCKING version of the write. Correct in a
+// throwaway script, where there is nothing else to get on with; in the web
+// app you would use the async `writeFile`, as lib/db.ts does.
 const out = resolve(process.cwd(), "preview.html");
 writeFileSync(out, html, "utf8");
 console.log("Preview written to " + out);

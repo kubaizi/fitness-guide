@@ -89,7 +89,7 @@ JavaScript has no `decimal`. Every number is a float, so `0.1 + 0.2` is not
 import { parseKwd, splitCommission, formatKwd } from "@fg/core";
 
 const price = parseKwd("12.500"); // 12500 — never a float
-const { platform, gym } = splitCommission(price, 1500); // 15% in basis points
+const { platform, gym } = splitCommission(price, 1000); // 10% in basis points
 formatKwd(gym, "ar"); // "‏10.625 د.ك."
 ```
 

@@ -10,6 +10,9 @@ import styles from "../admin.module.css";
 import table from "@/components/DataTable.module.css";
 
 /** A-04 — the commission ledger: what came in, and who kept what. */
+// Same admin skeleton as ../page.tsx; same table markup as
+// ../../manage/[slug]/members/page.tsx. The interesting part here is the
+// money handling below.
 export default async function AdminPaymentsPage({
   params,
 }: PageProps<"/[locale]/admin/payments">) {
@@ -24,7 +27,14 @@ export default async function AdminPaymentsPage({
 
   // Totals count only what was actually kept. A refunded payment is not
   // revenue that shrank, it is revenue that never happened.
+  //
+  // Note this filters the ROWS but the table below renders all of them —
+  // refunds stay visible, they just do not count toward the totals. Hiding
+  // them would make the ledger disagree with the payment provider's records.
   const settled = rows.filter((p) => p.status === "paid");
+  // Summing raw fils integers, so the totals are exact — the whole reason
+  // money is stored this way. Summing formatted strings, or floats, would
+  // accumulate the error described at the top of packages/core/src/money.ts.
   const gross = settled.reduce((sum, p) => sum + p.amount, 0);
   const fee = settled.reduce((sum, p) => sum + p.platformFee, 0);
 
@@ -76,6 +86,11 @@ export default async function AdminPaymentsPage({
                   <Price amount={fils(p.gymAmount)} locale={locale} size="sm" />
                 </td>
                 {/* Basis points back to a percentage: 1500 → 15%. */}
+                {/* The commission RATE is stored per payment rather than
+                    looked up from a global setting. Deliberate: if the rate
+                    changes next year, historical rows must still show the
+                    rate that was actually charged. Same reasoning as storing
+                    `pricePaid` on a membership. */}
                 <td className={table.num}>
                   {formatNumber(p.commissionBps / 100, locale)}%
                 </td>

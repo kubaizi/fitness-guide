@@ -8,6 +8,7 @@ import { ManageTabs } from "@/components/ManageTabs";
 import styles from "@/components/ManageForm.module.css";
 
 /** G-10 — membership plan editor. */
+// Same skeleton as ../page.tsx — see that file for the walkthrough.
 export default async function ManagePlansPage({
   params,
 }: PageProps<"/[locale]/manage/[slug]/plans">) {
@@ -23,6 +24,10 @@ export default async function ManagePlansPage({
   const t = createTranslator(locale);
   // Inactive plans included on purpose — the editor must be able to bring
   // one back, which a members-only view would hide.
+  //
+  // `allPlansForGym` rather than `plansForGym`. Two functions instead of one
+  // boolean flag, so the call site states its intent by name and cannot pass
+  // the wrong argument — see the note in lib/db.ts.
   const plans = allPlansForGym(gym.id);
 
   return (
@@ -41,11 +46,22 @@ export default async function ManagePlansPage({
 
       <p className={styles.notice}>{t("manage.demoWarning")}</p>
 
+      {/* ── One <form> PER PLAN, not one form for the page ──
+          Each PlanEditor is an independent form with its own submit button
+          and its own error state, so a bad price on one plan cannot block
+          saving a correction to another. That design decision is why this
+          maps over the plans rather than wrapping them all in a single form.
+
+          Each also gets its own useActionState, since state belongs to a
+          component instance — three PlanEditors mean three separate states. */}
       {plans.map((plan) => (
         <PlanEditor
           key={plan.id}
           plan={plan}
           slug={gym.slug}
+          // Passed separately because the domain `MembershipPlan` type has no
+          // `active` field — it is a storage concern, not a domain one, so it
+          // is read from the raw record instead.
           active={isPlanActive(plan.id)}
           locale={locale}
         />

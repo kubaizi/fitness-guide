@@ -1,4 +1,6 @@
 .card {
+  /* Positioning context for the price overlay on the photo. */
+  position: relative;
   display: flex;
   flex-direction: column;
   background: var(--surface);
@@ -66,4 +68,23 @@
 .fromLabel {
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+/*
+ * The price, sitting on the photo — Emad's answer #2 on the gyms sheet.
+ * Its own dark plate rather than the card's background, because a photo
+ * underneath can be any colour and text alone would sometimes vanish.
+ */
+.priceOnPhoto {
+  position: absolute;
+  inset-block-start: var(--sp-3);
+  inset-inline-start: var(--sp-3);
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--radius);
+  background: rgba(10, 11, 13, 0.82);
+  border: 1px solid var(--gold-dim);
+  backdrop-filter: blur(4px);
 }

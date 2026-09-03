@@ -1,0 +1,47 @@
+.form {
+  display: flex;
+  gap: var(--sp-2);
+  max-width: 620px;
+  margin-block-start: var(--sp-5);
+}
+
+.input {
+  flex: 1;
+  /* Grid and flex children refuse to shrink past their content by default,
+     which is what makes a search field push a page sideways on a phone. */
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.input::placeholder {
+  color: var(--muted);
+}
+
+.input:focus-visible,
+.button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.button {
+  flex: none;
+  padding-block: var(--sp-3);
+  padding-inline: var(--sp-5);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--gold-wash);
+  color: var(--gold-bright);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: var(--gold-dim);
+  color: var(--bg);
+}

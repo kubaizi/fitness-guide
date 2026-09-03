@@ -2,6 +2,35 @@
  * Arabic is the source of truth. Add keys here first — TypeScript will refuse
  * to compile until en.ts has every one of them too.
  */
+// ═══════════════════════════════════════════════════════════════════════════
+// HOW THIS FILE IS USED
+//
+// It is a plain nested object of text. Nothing clever happens in here — the
+// machinery lives in ../translate.ts and ../dictionary.ts, which read this
+// file's TYPE to build their guarantees.
+//
+// The nesting is what creates the dotted keys you call `t()` with:
+//
+//   ar.common.search   →  t("common.search")
+//   ar.nav.home        →  t("nav.home")
+//
+// ── Adding a new string ──
+// 1. Add it here, in the group it belongs to.
+// 2. The build immediately breaks, because en.ts no longer matches.
+// 3. Add the English. The build passes.
+//
+// That failure in step 2 is the entire point: a half-translated screen cannot
+// reach production, because it cannot compile.
+//
+// ── Why `as const` at the very bottom of the file ──
+// It makes TypeScript infer each value as its exact literal ("بحث") rather
+// than the general type `string`. `NestedKey` in ../translate.ts then walks
+// that precise shape to build the union of every valid key path — which is
+// what gives you autocomplete on `t()` and a compile error on a typo.
+//
+// Remove `as const` and the type collapses to plain `string`, the key union
+// falls apart, and `t("anything.at.all")` starts compiling. So leave it there.
+// ═══════════════════════════════════════════════════════════════════════════
 export const ar = {
   common: {
     appName: "دليل اللياقة",
@@ -35,6 +64,25 @@ export const ar = {
       "منصة واحدة تجمع الأندية والمدربين والتغذية والطب الرياضي. نبدأ بالأندية في الكويت.",
     nearbyGyms: "أندية قريبة",
     todaysOffers: "عروض اليوم",
+    searchPlaceholder: "ابحث عن نادٍ أو منطقة",
+    searchAction: "بحث",
+  },
+  ads: {
+    // مساحات الإعلان فارغة إلى أن يأتي معلن حقيقي. لا نضع شعار أي شركة
+    // بدون إذن مكتوب منها.
+    label: "إعلان",
+    empty: "مساحة إعلانية متاحة",
+  },
+  footer: {
+    tagline: "بوابتك إلى مجتمع اللياقة",
+    links: "روابط",
+    contact: "تواصل معنا",
+    phone: "الهاتف",
+    email: "البريد الإلكتروني",
+    address: "العنوان",
+    addressValue: "الكويت — حولي — السالمية",
+    pending: "يُحدَّد لاحقاً",
+    demo: "نسخة تجريبية — ليست خدمة فعلية بعد",
   },
   sections: {
     // الأقسام العشرة من تصميم عماد، بترتيب صفحته الرئيسية نفسه.

@@ -18,6 +18,14 @@ const ROLE_KEY: Record<string, TranslationKey> = {
 };
 
 /** Admin: every user account. */
+// ── Worth noticing what is NOT on this page ──
+// No password column, and no way to get one. The rows come from `adminUsers`,
+// which maps every record through `publicUser` — see lib/db.ts, where the
+// hash-bearing `StoredUser` type is deliberately not exported.
+//
+// So even an admin console cannot display a password hash, because no type
+// carrying one can reach a page. That is the value of enforcing a rule in the
+// type system rather than by remembering to be careful.
 export default async function AdminUsersPage({
   params,
 }: PageProps<"/[locale]/admin/users">) {
@@ -61,6 +69,9 @@ export default async function AdminUsersPage({
                     {user.username}
                   </div>
                 </td>
+                {/* The admin account genuinely has no phone — it signs in by
+                    username only. So this says "no phone" rather than leaving
+                    the cell blank, which would read as missing data. */}
                 <td>
                   {user.phone ? (
                     <span className={`${table.mono} ${table.ltr}`}>{user.phone}</span>

@@ -229,8 +229,9 @@ checkIns.sort((a, b) => a.scannedAt.localeCompare(b.scannedAt));
 // admin's revenue and commission figures reconcile against the roster rather
 // than reporting on the two hand-written rows that used to be here.
 
-/** Platform default where a gym has no negotiated rate. 15%, in basis points. */
-const DEFAULT_COMMISSION_BPS = 1500;
+/** Platform default where a gym has no negotiated rate. Emad set this at
+ *  10%, expressed in basis points. See docs/product-decisions.md. */
+const DEFAULT_COMMISSION_BPS = 1000;
 
 const gyms = JSON.parse(readFileSync("db/gyms.json", "utf8"));
 const payments = [];

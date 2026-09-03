@@ -1,0 +1,103 @@
+.footer {
+  border-block-start: 1px solid var(--line);
+  background: var(--surface);
+  margin-block-start: var(--sp-8);
+}
+
+.inner {
+  max-width: var(--page);
+  margin-inline: auto;
+  padding: var(--sp-7) var(--sp-5) var(--sp-5);
+  display: grid;
+  gap: var(--sp-6);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  .inner {
+    grid-template-columns: 1.4fr 1fr 1.2fr;
+    gap: var(--sp-5);
+  }
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.logo {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--gold);
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.word {
+  font-weight: 650;
+  font-size: var(--step-1);
+}
+
+.tagline {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-block-start: var(--sp-3);
+  max-width: 34ch;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.colTitle {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  margin-block-end: var(--sp-1);
+}
+
+.link {
+  color: var(--ink-2);
+  font-size: 0.92rem;
+}
+
+.link:hover {
+  color: var(--gold);
+}
+
+.row {
+  display: flex;
+  gap: var(--sp-2);
+  font-size: 0.92rem;
+  color: var(--ink-2);
+}
+
+.rowLabel {
+  color: var(--muted);
+  flex: none;
+}
+
+/* Not yet supplied. Visually distinct so nobody mistakes it for a real
+   number and tries to call it. */
+.pending {
+  color: var(--warn);
+  font-style: italic;
+}
+
+.demo {
+  max-width: var(--page);
+  margin-inline: auto;
+  padding: var(--sp-4) var(--sp-5) var(--sp-6);
+  border-block-start: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
