@@ -277,11 +277,11 @@ export function GymProfileForm({ gym, locale }: { gym: GymDetail; locale: Locale
         <button type="submit" className={styles.submit} disabled={pending}>
           {pending ? t("common.loading") : t("manage.save")}
         </button>
-        {state.saved && (
-          <span className={state.storage === "file" ? styles.ok : styles.warn}>
-            {state.storage === "file" ? t("manage.saved") : t("manage.savedMemory")}
-          </span>
-        )}
+        {/* One message now, not two. This used to have to say whether the
+            change reached disk or only the server's memory, because the data
+            lived in JSON files and a serverless host has a read-only
+            filesystem. With a real database behind it, a save is a save. */}
+        {state.saved && <span className={styles.ok}>{t("manage.saved")}</span>}
       </div>
     </form>
   );

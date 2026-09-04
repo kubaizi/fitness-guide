@@ -31,7 +31,7 @@ export default async function AdminMembershipsPage({
   await requireAdmin(locale);
 
   const t = createTranslator(locale);
-  const rows = adminMemberships();
+  const rows = await adminMemberships();
 
   return (
     <main className={styles.main}>

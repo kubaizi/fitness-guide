@@ -20,11 +20,13 @@ import { SESSION_TTL_MS } from "@fg/core";
  *
  * TRADEOFF, stated plainly: a cookie session cannot be revoked server-side.
  * Signing out clears the cookie on that browser, but a copy taken beforehand
- * stays valid until it expires. With a real database this goes back to a
- * Session row that can be deleted — see the `Session` model kept in
- * docs/future-database-schema.prisma for when that day comes.
+ * stays valid until it expires. The fix, when it matters, is a Session table:
+ * one row per sign-in, checked on each request and deleted on sign-out. There
+ * is now a database to put it in — it is not built because nothing here is
+ * worth stealing yet.
  *
- * Acceptable here because the demo holds no real customer data.
+ * Acceptable while the demo holds no real customer data. Revisit before it
+ * does.
  */
 
 // ═══════════════════════════════════════════════════════════════════════════

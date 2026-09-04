@@ -34,7 +34,7 @@ export default async function ManageGymPage({
   // touching data, not after.
   await requireGymAccess(slug, locale);
 
-  const gym = findGymBySlug(slug);
+  const gym = await findGymBySlug(slug);
   if (!gym) notFound();
 
   const t = createTranslator(locale);

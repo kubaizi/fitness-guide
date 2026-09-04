@@ -34,7 +34,7 @@ export default async function AdminCheckInsPage({
   await requireAdmin(locale);
 
   const t = createTranslator(locale);
-  const rows = adminCheckIns(LIMIT);
+  const rows = await adminCheckIns(LIMIT);
 
   return (
     <main className={styles.main}>

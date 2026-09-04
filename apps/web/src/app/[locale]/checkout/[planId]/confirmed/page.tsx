@@ -21,7 +21,7 @@ export default async function ConfirmedPage({
   if (!isLocale(raw)) notFound();
   const locale = raw;
 
-  const found = findPlanWithGym(planId);
+  const found = await findPlanWithGym(planId);
   if (!found) notFound();
   const { plan, gym } = found;
 
@@ -34,7 +34,7 @@ export default async function ConfirmedPage({
   // A scaffold, honestly labelled. Once payment creates a real membership,
   // this becomes a lookup of the membership that was just created — and the
   // `{membership && ...}` guards below already handle its absence.
-  const membership = findMembershipForGym(gym.id);
+  const membership = await findMembershipForGym(gym.id);
 
   return (
     <main className={styles.main}>

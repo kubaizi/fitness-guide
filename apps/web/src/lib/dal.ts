@@ -131,7 +131,7 @@ export async function requireGymAccess(
     // WHICH gym is being requested, never whether it is allowed. Editing the
     // URL to another gym's slug fails this comparison and falls through to
     // notFound() below.
-    const own = gymForStaff(user.id);
+    const own = await gymForStaff(user.id);
     if (own && own.slug === slug) return { user, isAdmin: false };
   }
 

@@ -49,7 +49,12 @@ export function navItemsFor(_user: CurrentUser | null, locale: Locale): NavItem[
  * name. Sign-out is not here: it changes state, so it has to be a form
  * posting to a Server Action rather than a link.
  */
-export function accountItemsFor(user: CurrentUser, locale: Locale): NavItem[] {
+// Async because a gym owner needs the slug of the gym they run, and that is
+// a database lookup. Every caller is a Server Component, so awaiting is free.
+export async function accountItemsFor(
+  user: CurrentUser,
+  locale: Locale,
+): Promise<NavItem[]> {
   const t = createTranslator(locale);
   const item = (path: string, key: TranslationKey): NavItem => ({
     href: `/${locale}/${path}`,
@@ -66,7 +71,7 @@ export function accountItemsFor(user: CurrentUser, locale: Locale): NavItem[] {
   }
 
   if (user.role === "gym_owner" || user.role === "gym_staff") {
-    const own = gymForStaff(user.id);
+    const own = await gymForStaff(user.id);
     if (own) {
       items.push({ href: `/${locale}/manage/${own.slug}`, label: t("nav.myGym") });
     }

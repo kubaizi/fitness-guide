@@ -38,7 +38,7 @@ export default async function AdminGymsPage({
   await requireAdmin(locale);
 
   const t = createTranslator(locale);
-  const rows = adminGyms();
+  const rows = await adminGyms();
 
   return (
     <main className={styles.main}>

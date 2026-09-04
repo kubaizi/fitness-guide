@@ -20,8 +20,6 @@ import { updateGymProfile, updatePlan } from "@/lib/db";
 export interface EditState {
   readonly error?: string;
   readonly saved?: boolean;
-  /** Whether the change reached disk or only this server's memory. */
-  readonly storage?: "file" | "memory";
 }
 
 // A tiny helper to cut the repetition of reading a form field. Called about
@@ -82,7 +80,7 @@ export async function saveGymProfile(
     amenities: formData.getAll("amenities").map(String),
   });
 
-  if (result === null) {
+  if (!result) {
     return { error: locale === "ar" ? "لم يتم العثور على النادي" : "Gym not found" };
   }
 
@@ -100,10 +98,7 @@ export async function saveGymProfile(
   revalidatePath(`/${locale}`);
   revalidatePath(`/${locale}/gyms`);
 
-  // `storage` is passed back so the editor can tell the user honestly whether
-  // the change reached disk or lives only in this server's memory — see the
-  // note about serverless filesystems in lib/db.ts.
-  return { saved: true, storage: result };
+  return { saved: true };
 }
 
 export async function savePlan(_prev: EditState, formData: FormData): Promise<EditState> {
@@ -169,12 +164,12 @@ export async function savePlan(_prev: EditState, formData: FormData): Promise<Ed
     active: formData.get("active") !== null,
   });
 
-  if (result === null) {
+  if (!result) {
     return { error: locale === "ar" ? "لم يتم العثور على الباقة" : "Plan not found" };
   }
 
   revalidatePath(`/${locale}/gyms/${slug}`);
   revalidatePath(`/${locale}`);
 
-  return { saved: true, storage: result };
+  return { saved: true };
 }

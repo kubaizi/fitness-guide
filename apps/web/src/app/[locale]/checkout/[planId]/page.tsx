@@ -21,7 +21,7 @@ export default async function CheckoutPage({
   // One call returning both the plan and its gym — see `findPlanWithGym` in
   // lib/db.ts. Two separate lookups would need two null checks and could, in
   // principle, disagree with each other.
-  const found = findPlanWithGym(planId);
+  const found = await findPlanWithGym(planId);
   if (!found) notFound();
   // Destructured only AFTER the null check, which is what makes both names
   // non-null for the rest of the function.

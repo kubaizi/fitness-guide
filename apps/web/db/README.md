@@ -1,9 +1,11 @@
-# The data store
+# The seed data
 
-These JSON files **are** the database for now. There is no database server,
-no connection string, and no environment variable to configure — the files are
-imported directly by `apps/web/src/lib/db.ts`, so they are bundled at build
-time and work anywhere, including a Vercel deploy with nothing set up.
+These JSON files used to **be** the database. They are now the **seed** for it.
+
+The real data lives in Postgres, hosted on [Neon](https://neon.tech). These
+files are the readable source of the demo content — you can open `gyms.json`
+and see the four gyms — and `apps/web/prisma/seed.mjs` is the one script that
+turns them into rows.
 
 ## Files
 
@@ -16,10 +18,32 @@ time and work anywhere, including a Vercel deploy with nothing set up.
 | `payments.json`    | Payment records with the commission split   |
 | `checkins.json`    | Entry-code scans, linked by `membershipId`  |
 
+## Getting a database of your own
+
+You need a `DATABASE_URL` in `apps/web/.env` — see `.env.example`. Then, from
+`apps/web`:
+
+```bash
+npm run db:migrate
+```
+
+That creates the tables. Then load the demo data:
+
+```bash
+npm run db:seed
+```
+
+`db:seed` clears the tables first, so it is safe to run again and again: the
+database always ends up matching these files exactly rather than growing a
+second copy of everything. Run it whenever you edit one of them.
+
+`npm run db:studio` opens Prisma Studio, a browser window for looking at and
+editing the rows directly. Useful when you want to see what a page is actually
+reading.
+
 ## Editing them
 
-Change a value, save, refresh the page. That is the whole workflow — no
-migration, no seed command, no server to restart.
+Change a value, save, run `npm run db:seed`, refresh the page.
 
 Two rules worth keeping:
 
@@ -27,9 +51,9 @@ Two rules worth keeping:
    `19.9`. Kuwait's dinar has three decimal places, and every price in the app
    goes through `@fg/core`'s money module, which will throw on a fraction.
 2. **Ids must match across files.** A plan's `gymId` has to be a real gym `id`,
-   and a membership's `planId` a real plan `id`. Nothing enforces this the way
-   a database's foreign keys would, so a typo produces a missing row rather
-   than an error.
+   and a membership's `planId` a real plan `id`. This one now bites during the
+   seed rather than silently later: Postgres has foreign keys, so a typo makes
+   `db:seed` fail with a clear message instead of producing a missing row.
 
 ## Demo accounts
 
@@ -44,12 +68,14 @@ Two rules worth keeping:
 The ten seeded members exist to make the gym dashboard worth looking at — a
 roster of two proves nothing about sorting, states, or attendance.
 
-Sign in with **either** the username or the phone number. The phone can be
-typed however you like — `50946363`, `+965 5094 6363` — it is normalised
-before matching. The admin has no phone and signs in by username only.
+Sign in with **either** the username or the phone number. The username is
+matched without regard to case, so `EMAD` and `emad` are the same account. The
+phone can be typed however you like — `50946363`, `+965 5094 6363` — it is
+normalised before matching. The admin has no phone and signs in by username
+only.
 
 Passwords are stored as **scrypt hashes with a per-user salt**, never in plain
-text. That is why all three share the password `123` yet have three completely
+text. That is why all of them share the password `123` yet have completely
 different hashes. `123` is obviously not a real password — the point is that
 the storage is the correct shape, so a real one dropped in later is actually
 protected.
@@ -63,37 +89,36 @@ node -e "const{hashPassword}=require('@fg/core');console.log(hashPassword('new-p
 
 ## What writes, and what does not
 
-The **gym dashboard writes**: saving a profile or a plan rewrites `gyms.json`
-or `plans.json` through `persist()` in `src/lib/db.ts`, and the public pages
-refresh via `revalidatePath`. On a serverless host the filesystem is read-only,
-the write fails, and the edit lives only in that instance's memory — the editor
-says which of the two happened rather than pretending it stuck.
+The **gym dashboard writes**. Saving a profile or a plan updates the row in
+Postgres, and the public pages refresh via `revalidatePath`. That write is
+permanent, and it is not undone by a restart — which is new. Before the
+database it edited a JSON file, which failed silently on Vercel because a
+serverless filesystem is read-only, and the editor had to warn about it.
 
-Everything else is read-only: signing in does not create a user, and "Pay" does
-not create a membership. Those need a real database.
+Note the consequence: **`npm run db:seed` overwrites those edits**, because it
+clears the tables first. That is the intended behaviour — the seed is how you
+get back to a known state.
 
-Prettier is configured to ignore these files (see `.prettierignore`), because
-`persist()` writes them with `JSON.stringify(…, 2)` and Prettier collapses
-short arrays. With both formatting them, one gym save rewrote every record.
+Everything else is still read-only: signing in does not create a user, and
+"Pay" does not create a membership. Those are the next two things to build.
 
 ## The seeded demo data
 
 `users.json`, `memberships.json`, `checkins.json` and `payments.json` were
-generated by a script anchored to **2026-08-23**, with a fixed PRNG seed so it is
-reproducible. Check-in times are Kuwait-local 6-8am and 5-8pm, inside each
-gym's opening hours, and a day pass gets exactly one scan. Every membership
-that was paid for has a matching payment row, split by `splitCommission` at
-15%, so the admin console's revenue figures reconcile exactly against the
-roster rather than against two hand-written rows.
+generated by `scripts/seed-demo-data.mjs`, anchored to **2026-08-23**, with a
+fixed PRNG seed so it is reproducible. Check-in times are Kuwait-local 6–8am
+and 5–8pm, inside each gym's opening hours, and a day pass gets exactly one
+scan. Every membership that was paid for has a matching payment row, split by
+`splitCommission` at **10%**, so the admin console's revenue figures reconcile
+exactly against the roster rather than against two hand-written rows.
 
 Because the anchor date is fixed, the "Today" and "Last 7 days" tiles on the
-check-in log will read zero once real time moves past the data. That is
-correct behaviour on stale data, not a bug — the alternative is a window that
-slides to make old data look current.
+check-in log will read zero once real time moves past the data. That is correct
+behaviour on stale data, not a bug — the alternative is a window that slides to
+make old data look current.
 
-## When a real database arrives
+## Where the schema lives
 
-`docs/future-database-schema.prisma` holds the full schema, already designed
-and previously migrated against PostgreSQL. Only `src/lib/db.ts` has to change:
-every function there already returns the domain types from `@fg/core`, so no
-screen knows where the data came from.
+`apps/web/prisma/schema.prisma`. The connection URL is deliberately **not** in
+it: Prisma 7 reads that from `apps/web/prisma.config.ts`, which reads it from
+`.env`, so no password is ever committed.

@@ -7,7 +7,7 @@ is not somewhere a decision survives.
 Anything not listed here is still open. If you find yourself guessing, it
 belongs in the "Still open" section at the bottom rather than in the code.
 
-Last updated: 30 August 2026.
+Last updated: 4 September 2026.
 
 ---
 
@@ -172,13 +172,19 @@ Three parts: personal information, a medical section, and a profile picture.
   the member if they want to. Its purpose is a file the member can send to a
   doctor or trainer registered on the platform.
 
-Proposed handling, not yet explicitly confirmed — treat as the default and
-raise it again before this is built:
+**Confirmed by Emad, September 2026.** These four rules are settled and must
+hold in any code that touches the medical section:
 
-- The member can delete it at any time; deleting the account erases it
-- Nobody at Fitness Guide can read it, including admins
-- It is shared only when the member sends it, and sharing can be withdrawn
-- It is kept only while the account exists
+1. The member can delete it at any time, and deleting the account erases it.
+2. **Nobody at Fitness Guide can read it — including admins.** The admin
+   console must never query it, and no support tool may expose it.
+3. It is shared only when the member sends it to a named doctor or trainer,
+   and that sharing can be withdrawn afterwards.
+4. It is kept only while the account exists.
+
+Health data carries obligations that a phone number does not. Anyone building
+this section reads these four rules first, and if a feature request conflicts
+with one of them, the rule wins until Emad says otherwise in writing.
 
 ---
 
@@ -219,8 +225,6 @@ Phone and email support is a core part of the service, not an afterthought.
 
 - **The price of a home page advertisement**, per day / three days / week. Not
   blocking: no advertising in the current phase.
-- **Whether the medical-file defaults above are accepted.** Not blocking: the
-  medical section is not being built yet.
 - **A written content policy** for what any vendor may upload, and who reviews
   it. Needed before any upload feature ships.
 - The four business blockers from July are unchanged: no licensed entity, so no

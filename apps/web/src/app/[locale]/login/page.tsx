@@ -31,7 +31,7 @@ export default async function LoginPage({ params }: PageProps<"/[locale]/login">
   // /login sees a form asking them to sign in again, which reads as a broken
   // session. `landingFor` decides the destination by role — see lib/roles.ts.
   const user = await getCurrentUser();
-  if (user) redirect(landingFor(user, locale));
+  if (user) redirect(await landingFor(user, locale));
 
   return (
     <main className={styles.main}>

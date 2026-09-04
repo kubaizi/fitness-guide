@@ -45,16 +45,17 @@ export function doorFor(role: string): Door {
  * "My memberships" — a page that is empty for them — was the old behaviour and
  * read as a broken sign-in.
  */
-// Returns a URL string rather than performing the redirect itself. That keeps
-// this function PURE and testable: it makes the decision, and the caller (the
-// sign-in action) carries it out.
-export function landingFor(user: CurrentUser, locale: Locale): string {
+// Returns a URL string rather than performing the redirect itself: it makes
+// the decision, and the caller (the sign-in action) carries it out. That is
+// still worth doing, though the function is no longer pure — finding the gym
+// an owner runs is now a database read, which is why it is async.
+export async function landingFor(user: CurrentUser, locale: Locale): Promise<string> {
   // Every path is built with the locale prefix, because every route in this
   // app lives under /[locale]/ — see apps/web/src/app/page.tsx.
   if (user.role === "admin") return `/${locale}/admin`;
 
   if (user.role === "gym_owner" || user.role === "gym_staff") {
-    const own = gymForStaff(user.id);
+    const own = await gymForStaff(user.id);
     // A staff account with no gym attached has nothing to manage, so the
     // public site is the only honest destination.
     return own ? `/${locale}/manage/${own.slug}` : `/${locale}`;

@@ -42,7 +42,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const t = createTranslator(locale);
   // A direct, synchronous data read — no `await`, no API route, no fetch.
   // This runs on the server, so it can simply read the data. See src/lib/db.ts.
-  const gyms = getGyms();
+  const gyms = await getGyms();
 
   return (
     // ── `<>...</>` is a FRAGMENT ──

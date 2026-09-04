@@ -1,0 +1,321 @@
+// The real database, on Neon Postgres.
+//
+// This grew out of docs/future-database-schema.prisma, which was a sketch
+// written before there was a database. The differences from that sketch are
+// deliberate and worth knowing:
+//
+//   - `Session` and `OtpCode` are gone. A session is a signed cookie (see
+//     src/lib/session.ts), so there is nothing to store, and the one-time-code
+//     login was dropped in favour of a username and password.
+//   - `GymPhoto` is gone. A gym's photos are a plain string array, which is
+//     what the pages actually read. When gyms start uploading their own photos
+//     and an admin has to approve each one, that array becomes a table again:
+//     a photo will then need a status and a reviewer, which an array cannot
+//     hold.
+//   - `User` gained username, passwordHash and passwordSalt, because that is
+//     how people sign in today.
+//
+// Money is always an Int of fils. Never a Float: 0.1 + 0.2 is not 0.3 in
+// binary floating point, and that is not a rounding error you want in a price.
+// See packages/core/src/money.ts.
+//
+// The connection URL is NOT in this file. Prisma 7 takes it from
+// prisma.config.ts, which reads it from .env. Nothing secret is committed.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ──────────────────────────────────────────────────────────────────── enums
+
+// Kuwait's six governorates. An enum rather than free text, so a typo cannot
+// create a seventh one that quietly matches nothing.
+enum Governorate {
+  capital
+  hawalli
+  farwaniya
+  ahmadi
+  jahra
+  mubarak_al_kabeer
+}
+
+// Who a gym lets in. `separate_sections` is one building with a men's floor
+// and a women's floor; it shows under both Men and Women, and never under
+// Mixed. The rule itself lives in packages/core/src/domain/gym.ts.
+enum GymAccess {
+  men
+  women
+  mixed
+  separate_sections
+}
+
+enum VerificationState {
+  unverified
+  pending
+  verified
+  rejected
+}
+
+enum PlanDuration {
+  day_pass
+  monthly
+  quarterly
+  half_yearly
+  yearly
+}
+
+enum MembershipState {
+  pending_payment
+  active
+  frozen
+  expired
+  cancelled
+}
+
+enum UserRole {
+  member
+  gym_staff
+  gym_owner
+  admin
+}
+
+// ─────────────────────────────────────────────────────────────────── models
+
+model User {
+  id String @id @default(cuid())
+
+  // How people sign in. Unique, and written lowercase by the code that saves
+  // it — Postgres compares text case-sensitively, so "Emad" and "emad" would
+  // otherwise be two different accounts.
+  username     String @unique
+  // scrypt. The salt is per user and not secret; the hash is. Neither one ever
+  // goes to the browser.
+  passwordHash String
+  passwordSalt String
+
+  // Phone is the main identity in this market, not email. Optional because an
+  // internal account (the admin) may not have one. Postgres allows many NULLs
+  // in a unique column, so several users without a phone is fine.
+  phone String? @unique
+  email String? @unique
+  name  String
+  // Optional: it is asked for in the profile, and the profile is optional. It
+  // does not filter what a member can see — a women's gym is visible to
+  // everyone (docs/product-decisions.md).
+  gender      String?
+  dateOfBirth DateTime? @db.Date
+  role        UserRole  @default(member)
+  locale      String    @default("ar")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  reviews     Review[]
+  checkIns    CheckIn[]
+  // A gym owner or staff member is linked to the gym they work at.
+  staffAtGym   Gym?    @relation("GymStaff", fields: [staffAtGymId], references: [id])
+  staffAtGymId String?
+
+  @@index([staffAtGymId])
+}
+
+model Gym {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  // Bilingual content is a pair of columns rather than a JSON blob, so the
+  // database can index and search each language on its own.
+  nameAr        String
+  nameEn        String
+  descriptionAr String
+  descriptionEn String
+  areaAr        String
+  areaEn        String
+  addressAr     String
+  addressEn     String
+  hoursAr       String
+  hoursEn       String
+
+  governorate Governorate
+  access      GymAccess
+
+  verification VerificationState @default(unverified)
+  verifiedAt   DateTime?
+  // Filled in only when verification is `rejected` — the gym is shown this.
+  rejectionReason String?
+  submittedAt     DateTime?
+
+  // Copied from Review on purpose: every gym card in a list needs these, and
+  // working out an average per card would be one extra query per card.
+  // Recalculated whenever a review is written.
+  rating      Float?
+  reviewCount Int    @default(0)
+
+  latitude  Float
+  longitude Float
+
+  // Amenity keys, not display text — "sauna", "parking". The words come from
+  // packages/i18n, so they are translated rather than stored twice.
+  amenities String[]
+  // Image paths. See the note at the top about why this is not a table yet.
+  photos    String[]
+
+  // Whether the doors are open right now. A cached answer, not the truth: the
+  // truth is the opening hours, which are free text today because a gym in
+  // Kuwait describes them in its own words.
+  openNow Boolean @default(true)
+
+  // Per-gym override of the platform commission, in basis points
+  // (1000 = 10%). Null means "use the platform default", so a launch partner
+  // can get a lower rate without hardcoding it per gym.
+  commissionBps Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plans       MembershipPlan[]
+  memberships Membership[]
+  reviews     Review[]
+  checkIns    CheckIn[]
+  staff       User[]           @relation("GymStaff")
+
+  // Listing queries filter on these constantly.
+  @@index([governorate, access])
+  @@index([verification])
+}
+
+model MembershipPlan {
+  id    String @id @default(cuid())
+  gym   Gym    @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  gymId String
+
+  nameAr   String
+  nameEn   String
+  duration PlanDuration
+
+  /// Fils. What the gym charges normally.
+  listPrice  Int
+  /// Fils. The app-only price. Null when no offer is running.
+  offerPrice Int?
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+
+  @@index([gymId, active])
+}
+
+model Membership {
+  id     String         @id @default(cuid())
+  user   User           @relation(fields: [userId], references: [id])
+  userId String
+  gym    Gym            @relation(fields: [gymId], references: [id])
+  gymId  String
+  plan   MembershipPlan @relation(fields: [planId], references: [id])
+  planId String
+
+  state MembershipState @default(pending_payment)
+
+  // Nullable because which dates exist depends on the state — an unpaid
+  // membership has no start date, a cancelled one has no end date.
+  startsOn    DateTime?
+  endsOn      DateTime?
+  frozenAt    DateTime?
+  resumesOn   DateTime?
+  cancelledAt DateTime?
+  endedOn     DateTime?
+
+  /// Fils. What the member actually paid, saved at purchase time so a later
+  /// price change never rewrites history.
+  pricePaid    Int
+  /// Fils. Refunded amount, when cancelled.
+  refundAmount Int?
+
+  // The rotating value behind the QR code. Never the membership id, so a
+  // leaked screenshot cannot be reused forever.
+  checkInToken String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payment  Payment?
+  checkIns CheckIn[]
+  review   Review?
+
+  @@index([userId, state])
+  @@index([gymId, state])
+}
+
+model Payment {
+  id           String     @id @default(cuid())
+  membership   Membership @relation(fields: [membershipId], references: [id])
+  membershipId String     @unique
+
+  /// Fils. The full amount charged to the customer.
+  amount        Int
+  /// Fils. The platform's commission on this payment.
+  platformFee   Int
+  /// Fils. What the gym is owed. platformFee + gymAmount must equal amount.
+  gymAmount     Int
+  /// Basis points actually applied, saved so a later rate change does not
+  /// alter what a gym was owed in the past.
+  commissionBps Int
+
+  // "myfatoorah" | "tap" — text, so swapping gateway needs no migration.
+  provider    String
+  providerRef String? @unique
+  // "knet" | "card"
+  method      String?
+  status      String  @default("pending")
+
+  paidAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([status])
+}
+
+model CheckIn {
+  id           String     @id @default(cuid())
+  membership   Membership @relation(fields: [membershipId], references: [id])
+  membershipId String
+  user         User       @relation(fields: [userId], references: [id])
+  userId       String
+  gym          Gym        @relation(fields: [gymId], references: [id])
+  gymId        String
+
+  scannedAt DateTime @default(now())
+
+  // Attendance history and streaks are built from this table — it is the
+  // daily-engagement signal, so it gets queried a lot.
+  @@index([userId, scannedAt])
+  @@index([gymId, scannedAt])
+}
+
+model Review {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  gym    Gym    @relation(fields: [gymId], references: [id])
+  gymId  String
+  // One review per membership: you review the gym you actually paid to use,
+  // and only once.
+  membership   Membership @relation(fields: [membershipId], references: [id])
+  membershipId String     @unique
+
+  rating Int
+  body   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([gymId, createdAt])
+}

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createTranslator, isLocale } from "@fg/i18n";
 import { requireGymAccess } from "@/lib/dal";
-import { allPlansForGym, findGymBySlug, isPlanActive } from "@/lib/db";
+import { activePlanIdsForGym, allPlansForGym, findGymBySlug } from "@/lib/db";
 import { PlanEditor } from "@/components/PlanEditor";
 import { ManageTabs } from "@/components/ManageTabs";
 import styles from "@/components/ManageForm.module.css";
@@ -18,7 +18,7 @@ export default async function ManagePlansPage({
 
   await requireGymAccess(slug, locale);
 
-  const gym = findGymBySlug(slug);
+  const gym = await findGymBySlug(slug);
   if (!gym) notFound();
 
   const t = createTranslator(locale);
@@ -28,7 +28,10 @@ export default async function ManagePlansPage({
   // `allPlansForGym` rather than `plansForGym`. Two functions instead of one
   // boolean flag, so the call site states its intent by name and cannot pass
   // the wrong argument — see the note in lib/db.ts.
-  const plans = allPlansForGym(gym.id);
+  const plans = await allPlansForGym(gym.id);
+  // Which of those plans are on sale, fetched once as a Set. See
+  // `activePlanIdsForGym` in lib/db.ts for why this is not asked per plan.
+  const activeIds = await activePlanIdsForGym(gym.id);
 
   return (
     <main className={styles.main}>
@@ -62,7 +65,7 @@ export default async function ManagePlansPage({
           // Passed separately because the domain `MembershipPlan` type has no
           // `active` field — it is a storage concern, not a domain one, so it
           // is read from the raw record instead.
-          active={isPlanActive(plan.id)}
+          active={activeIds.has(plan.id)}
           locale={locale}
         />
       ))}

@@ -32,7 +32,7 @@ export default async function MembershipsPage({
   // Scoped by `user.id`, so this can only ever return the signed-in member's
   // own memberships. Authorisation enforced by the query's shape rather than
   // by a filter someone could omit.
-  const items = membershipsWithDetailsForUser(user.id);
+  const items = await membershipsWithDetailsForUser(user.id);
 
   return (
     <main className={styles.main}>

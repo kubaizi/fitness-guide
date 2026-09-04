@@ -45,7 +45,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string; id: string }>;
 }): Promise<Metadata> {
   const { locale: raw, id } = await params;
-  const gym = findGymBySlug(id);
+  const gym = await findGymBySlug(id);
   // Returning `{}` falls back to the layout's metadata. Metadata generation
   // must not throw — the page's own `notFound()` below handles the 404.
   if (!isLocale(raw) || !gym) return {};
@@ -64,12 +64,12 @@ export default async function GymProfilePage({
   if (!isLocale(raw)) notFound();
   const locale = raw;
 
-  const gym = findGymBySlug(id);
+  const gym = await findGymBySlug(id);
   // A second 404, for a slug that does not exist. `id` came from the URL, so
   // it can be anything at all — every dynamic segment needs a check like this.
   if (!gym) notFound();
 
-  const plans = plansForGym(gym.id);
+  const plans = await plansForGym(gym.id);
   const t = createTranslator(locale);
   const verified = gym.verification.state === "verified";
 

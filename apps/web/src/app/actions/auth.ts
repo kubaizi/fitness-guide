@@ -100,7 +100,8 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
   // So "51338855" is found even though the stored value is "+96551338855".
   const asPhone = normalizeKuwaitPhone(identifier);
   const user =
-    findUserForLogin(identifier) ?? (asPhone ? findUserForLogin(asPhone) : null);
+    (await findUserForLogin(identifier)) ??
+    (asPhone ? await findUserForLogin(asPhone) : null);
 
   if (!user) return { error: failed };
 
@@ -136,11 +137,11 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
   // findUserById returns the public shape landingFor expects — no hash in it.
   // A small deliberate step: `user` at this point is the StoredUser including
   // the password hash, and it must not be passed around casually.
-  const signedIn = findUserById(user.id);
+  const signedIn = await findUserById(user.id);
   // `redirect` throws, so nothing after this line runs — which is why this
   // function has no final `return` despite promising an AuthState. A
   // successful sign-in leaves via the redirect, never via a return value.
-  redirect(signedIn ? landingFor(signedIn, locale) : `/${locale}`);
+  redirect(signedIn ? await landingFor(signedIn, locale) : `/${locale}`);
 }
 
 // A simpler action: one argument, not the `(prev, formData)` pair, because it

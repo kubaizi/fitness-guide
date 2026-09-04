@@ -169,16 +169,11 @@ export function PlanEditor({
         <button type="submit" className={styles.submit} disabled={pending}>
           {pending ? t("common.loading") : t("manage.save")}
         </button>
-        {/* The honest save confirmation. `storage` comes back from the action
+        {/* A plain "Saved". This used to be two messages, green or amber,
             saying whether the write reached disk or only this server's
-            memory — green for one, amber for the other. Most apps would just
-            say "Saved"; this one distinguishes them, because on Vercel the
-            filesystem is read-only. See `persist` in lib/db.ts. */}
-        {state.saved && (
-          <span className={state.storage === "file" ? styles.ok : styles.warn}>
-            {state.storage === "file" ? t("manage.saved") : t("manage.savedMemory")}
-          </span>
-        )}
+            memory — the data lived in JSON files, and on Vercel the filesystem
+            is read-only. A real database makes the distinction meaningless. */}
+        {state.saved && <span className={styles.ok}>{t("manage.saved")}</span>}
       </div>
     </form>
   );

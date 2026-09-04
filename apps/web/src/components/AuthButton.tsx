@@ -80,7 +80,7 @@ export async function AuthButton({
     <AccountMenu
       locale={locale}
       name={user.name}
-      items={accountItemsFor(user, locale)}
+      items={await accountItemsFor(user, locale)}
       signOut={signOutForm}
       variant={inDrawer ? "drawer" : "header"}
     />

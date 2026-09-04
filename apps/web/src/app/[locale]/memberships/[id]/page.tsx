@@ -46,11 +46,11 @@ export default async function MembershipCardPage({
   // this would be an INSECURE DIRECT OBJECT REFERENCE: anyone could read any
   // member's entry token by editing the URL. Making userId a required
   // argument means the check cannot be left out.
-  const membership = findMembershipForUser(id, user.id);
+  const membership = await findMembershipForUser(id, user.id);
   if (!membership) notFound();
 
-  const gym = findGymById(membership.gymId);
-  const plan = findPlan(membership.planId);
+  const gym = await findGymById(membership.gymId);
+  const plan = await findPlan(membership.planId);
   // Both checked in one condition — either being missing means the same
   // thing: dangling data, so there is no card to show.
   if (!gym || !plan) notFound();

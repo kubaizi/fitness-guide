@@ -15,9 +15,18 @@ npm install
 npm run dev
 ```
 
-That is the whole setup. **There is no database to install or start** — the
-app reads JSON files from `apps/web/db/`, so it runs anywhere with nothing
-configured.
+You also need `apps/web/.env`. Copy `apps/web/.env.example` and fill in the
+two variables it describes: a `SESSION_SECRET` you generate yourself, and a
+`DATABASE_URL` for a Postgres database. Ours is on [Neon](https://neon.tech),
+which has a free plan and needs no card — **there is no database server to
+install or start.**
+
+Then create the tables and load the demo data, from `apps/web`:
+
+```bash
+npm run db:migrate
+npm run db:seed
+```
 
 `npm test` gives you 47 passing tests if you want to check the toolchain.
 
@@ -62,9 +71,10 @@ Press **F5** on any `.test.ts` to debug it with breakpoints.
 fitness-guide/
 ├── apps/
 │   ├── web/            Next.js — public site, gym dashboard, admin console
-│   │   └── db/         JSON data files — the "database" for now
+│   │   ├── db/         JSON seed data, loaded into Postgres by prisma/seed.mjs
+│   │   └── prisma/     schema.prisma, migrations, seed
 │   └── mobile/         Expo — the customer app (not generated yet)
-├── docs/               future-database-schema.prisma, for when a DB returns
+├── docs/               product-decisions.md — what Emad has actually decided
 └── packages/
     ├── core/           Money, domain types, passwords — no UI, no framework
     └── i18n/           Locales, translation, direction, formatting
@@ -191,7 +201,7 @@ visible rather than mysterious. Sessions last 30 days — if the navigation show
 more than you expect, you are probably still signed in from earlier.
 
 Either the username or the phone number works. Passwords are scrypt-hashed
-with a per-user salt in `apps/web/db/users.json` — `123` is a demo password,
+with a per-user salt — `123` is a demo password,
 but the storage is the real shape.
 
 There is no sign-up — the accounts above are the whole user list.
@@ -201,31 +211,33 @@ visitor is not entitled to never reaches the browser at all.
 
 ## Data
 
-`apps/web/db/*.json` holds every gym, plan, user and membership. Edit a file,
-refresh the page — no migration, no seed, no server. See
-[apps/web/db/README.md](apps/web/db/README.md) for the two rules that matter
-(money is integer fils; ids must match across files).
+The data lives in Postgres. `apps/web/db/*.json` is the **seed** for it —
+readable files holding every demo gym, plan, user and membership, loaded into
+the tables by `npm run db:seed`. Edit a file, re-run the seed, refresh the
+page. See [apps/web/db/README.md](apps/web/db/README.md) for the two rules that
+matter (money is integer fils; ids must match across files).
 
-The **gym dashboard writes back**: saving a profile or a plan rewrites the JSON
-on disk, and the public pages update immediately via `revalidatePath`. Where
-the filesystem is read-only — Vercel, for one — the same save falls back to an
-in-memory edit and the screen says so plainly rather than pretending it stuck.
+The **gym dashboard writes back**: saving a profile or a plan updates the row,
+and the public pages update immediately via `revalidatePath`. That write is
+permanent — though `npm run db:seed` clears the tables, so it will undo those
+edits and put the demo data back.
 
 Everything else is still read-only: signing in does not create an account, and
-"Pay" does not create a membership. Both need a real database.
+"Pay" does not create a membership. Those are the next two things to build.
 
-Prettier deliberately ignores `apps/web/db/*.json` (see `.prettierignore`).
-The app writes them with `JSON.stringify(…, 2)`; if Prettier reformatted them
-too, every save would rewrite unrelated records and bury the real change.
+Prettier deliberately ignores `apps/web/db/*.json` (see `.prettierignore`),
+because it collapses short arrays and the seed generator writes them with
+`JSON.stringify(…, 2)`. With both formatting them, one regeneration rewrote
+every record.
 
 [docs/product-decisions.md](docs/product-decisions.md) records what Emad has
 actually decided — the ten sections, how branches work, ordering rules, the
 10% commission, and what is still open. Check it before guessing at product
 behaviour; three rounds of questions went into it.
 
-`docs/future-database-schema.prisma` is the full PostgreSQL schema, already
-designed and previously migrated. When a backend is chosen — Azure, AWS, or
-Postgres again — only `apps/web/src/lib/db.ts` changes.
+`apps/web/prisma/schema.prisma` is the database. It runs on Neon, a free
+hosted Postgres. `apps/web/src/lib/db.ts` holds every query the app makes, so
+that is the only file that knows a database exists at all.
 
 ## Still blocked on decisions, not code
 

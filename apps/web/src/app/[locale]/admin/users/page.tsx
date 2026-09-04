@@ -37,7 +37,7 @@ export default async function AdminUsersPage({
   await requireAdmin(locale);
 
   const t = createTranslator(locale);
-  const rows = adminUsers();
+  const rows = await adminUsers();
 
   return (
     <main className={styles.main}>

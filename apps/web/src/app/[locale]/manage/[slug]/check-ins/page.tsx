@@ -31,12 +31,12 @@ export default async function ManageCheckInsPage({
 
   await requireGymAccess(slug, locale);
 
-  const gym = findGymBySlug(slug);
+  const gym = await findGymBySlug(slug);
   if (!gym) notFound();
 
   const t = createTranslator(locale);
-  const rows = checkInsForGym(gym.id, LIMIT);
-  const summary = checkInSummaryForGym(gym.id);
+  const rows = await checkInsForGym(gym.id, LIMIT);
+  const summary = await checkInSummaryForGym(gym.id);
 
   // Four summary tiles described as DATA, then rendered by one small loop
   // below — rather than four near-identical blocks of markup that could drift

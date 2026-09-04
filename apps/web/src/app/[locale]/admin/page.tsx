@@ -35,7 +35,7 @@ export default async function AdminOverviewPage({
   // Short name because it is referenced a dozen times just below. Acceptable
   // for a value used densely within a few lines; a poor choice for anything
   // wider-lived.
-  const o = adminOverview();
+  const o = await adminOverview();
 
   // Tiles as data again, rendered by one loop. `sub` carries a secondary
   // figure — "12 · 9 verified" — so each tile gives the total and the part

@@ -23,7 +23,7 @@ export default async function AdminPaymentsPage({
   await requireAdmin(locale);
 
   const t = createTranslator(locale);
-  const rows = adminPayments();
+  const rows = await adminPayments();
 
   // Totals count only what was actually kept. A refunded payment is not
   // revenue that shrank, it is revenue that never happened.

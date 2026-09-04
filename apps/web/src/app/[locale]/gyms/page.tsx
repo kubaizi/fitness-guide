@@ -28,7 +28,7 @@ export default async function GymsPage({
   const initialAccess: AccessFilter | "all" =
     access === "men" || access === "women" || access === "mixed" ? access : "all";
 
-  const gyms = getGyms();
+  const gyms = await getGyms();
 
   // Counted from the same list the browser filters, so a tile can never
   // promise gyms that are not there.

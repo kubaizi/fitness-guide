@@ -428,12 +428,11 @@ export const en = {
     activePlan: "Visible to members",
     save: "Save",
     saved: "Saved",
-    savedMemory: "Saved for now — this will not survive a server restart",
     editProfile: "Edit profile",
     editPlans: "Edit memberships",
     viewPublic: "View public page",
     demoWarning:
-      "Demo build: changes are written to local files and may not persist when hosted.",
+      "Demo build: the gyms and members here are sample data, and no payment is real.",
 
     // Members
     membersTitle: "Members",

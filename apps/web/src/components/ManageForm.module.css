@@ -204,11 +204,6 @@
   font-size: 0.9rem;
 }
 
-.warn {
-  color: var(--warn);
-  font-size: 0.85rem;
-}
-
 .error {
   background: var(--crit-wash, #26140f);
   color: var(--crit, #e07a63);

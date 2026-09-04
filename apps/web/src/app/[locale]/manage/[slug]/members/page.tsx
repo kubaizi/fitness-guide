@@ -39,14 +39,14 @@ export default async function ManageMembersPage({
 
   await requireGymAccess(slug, locale);
 
-  const gym = findGymBySlug(slug);
+  const gym = await findGymBySlug(slug);
   if (!gym) notFound();
 
   const t = createTranslator(locale);
   // Already sorted by the data layer — active first, then soonest to expire.
   // That ordering is a product decision, so it lives in lib/db.ts with the
   // query rather than being re-sorted here in the view.
-  const rows = membersForGym(gym.id);
+  const rows = await membersForGym(gym.id);
   // `.filter(...).length` — the idiomatic "count where" in JavaScript.
   const activeCount = rows.filter((r) => r.membership.status.state === "active").length;
 

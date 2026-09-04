@@ -32,7 +32,7 @@ export default async function PartnerLoginPage({
   // here to their own memberships page rather than refusing them — being at
   // the wrong door is a wrong turn, not an error.
   const user = await getCurrentUser();
-  if (user) redirect(landingFor(user, locale));
+  if (user) redirect(await landingFor(user, locale));
 
   return (
     <main className={styles.main}>
