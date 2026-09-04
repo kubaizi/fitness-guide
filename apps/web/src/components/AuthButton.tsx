@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { Locale } from "@fg/i18n";
 import { createTranslator } from "@fg/i18n";
 import { getCurrentUser } from "@/lib/dal";
+import { accountItemsFor } from "@/lib/nav";
+import { AccountMenu } from "./AccountMenu";
 import { signOut } from "@/app/actions/auth";
 import styles from "./AuthButton.module.css";
 
@@ -58,31 +60,29 @@ export async function AuthButton({
     );
   }
 
-  return (
-    // ── `action={signOut}` ──
-    // A Server Action passed straight to a form's `action`. No onSubmit, no
-    // fetch, no API route: Next wires up the POST and runs `signOut` on the
-    // server. See src/app/actions/auth.ts.
-    //
-    // Because this is real HTML form submission, it works even if JavaScript
-    // has not loaded yet — the progressive-enhancement payoff of the whole
-    // Server Actions design.
-    <form
-      action={signOut}
-      className={`${styles.form} ${inDrawer ? styles.formDrawer : ""}`}
-    >
-      {/* A hidden input is how you pass extra data to a Server Action. The
-          action reads it back with `formData.get("locale")`. There is no
-          other way to hand an argument to a form action — the function
-          receives only FormData. */}
+  // Signed in: the name and avatar open the member's own menu. Everything
+  // personal hangs off it — profile, memberships, their gym, the console —
+  // rather than crowding the public navigation.
+  //
+  // The sign-out form is built HERE, on the server, and passed to the menu as
+  // a slot: it posts a Server Action, which a client component cannot import,
+  // and it must stay a form rather than a link because it changes state.
+  const signOutForm = (
+    <form action={signOut} className={styles.form}>
       <input type="hidden" name="locale" value={locale} />
-      {/* The NAME, not the phone. The phone was hidden below 900px and blank
-          for admin, so the header gave no clue you were signed in at all —
-          which made a stale session look like a bug in the navigation. */}
-      <span className={styles.who}>{user.name}</span>
       <button type="submit" className={styles.signOut}>
         {t("auth.signOut")}
       </button>
     </form>
+  );
+
+  return (
+    <AccountMenu
+      locale={locale}
+      name={user.name}
+      items={accountItemsFor(user, locale)}
+      signOut={signOutForm}
+      variant={inDrawer ? "drawer" : "header"}
+    />
   );
 }

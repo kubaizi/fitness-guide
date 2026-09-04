@@ -156,6 +156,13 @@ depends on KNET, which depends on the licensed entity.
 
 ## The member's account
 
+Reached from the member's own name and avatar in the header, which opens a menu
+holding everything personal: profile, memberships, the gym they run, the admin
+console. None of those sit in the top navigation — that row is for the
+marketplace's sections, and it has ten of them coming.
+
+The profile page itself is at `/{locale}/account`.
+
 Three parts: personal information, a medical section, and a profile picture.
 **Everything is optional except the personal information.**
 

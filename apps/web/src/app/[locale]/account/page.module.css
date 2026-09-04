@@ -1,0 +1,128 @@
+.main {
+  max-width: 720px;
+  margin-inline: auto;
+  padding: var(--sp-7) var(--sp-5) var(--sp-8);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-block-end: var(--sp-6);
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--gold-wash);
+  border: 1px solid var(--gold-dim);
+  color: var(--gold-bright);
+  font-weight: 700;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.title {
+  font-size: clamp(1.6rem, 4vw, var(--step-4));
+  font-weight: 700;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-block-start: var(--sp-1);
+  font-size: 0.92rem;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: var(--sp-5);
+  margin-block-end: var(--sp-4);
+}
+
+.cardSoon {
+  border-style: dashed;
+  background: transparent;
+}
+
+.cardTitle {
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.soonHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.soon {
+  flex: none;
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 2px var(--sp-2);
+  white-space: nowrap;
+}
+
+.note {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-block-start: var(--sp-2);
+}
+
+.rows {
+  display: grid;
+  gap: var(--sp-3);
+  margin-block-start: var(--sp-4);
+}
+
+.row {
+  display: flex;
+  gap: var(--sp-4);
+  align-items: baseline;
+  padding-block-end: var(--sp-3);
+  border-block-end: 1px solid var(--line);
+}
+
+.row:last-child {
+  border-block-end: none;
+  padding-block-end: 0;
+}
+
+.label {
+  flex: none;
+  width: 9rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.value {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.cta {
+  display: inline-block;
+  padding-block: var(--sp-3);
+  padding-inline: var(--sp-5);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--gold-wash);
+  color: var(--gold-bright);
+  font-weight: 600;
+  margin-block-end: var(--sp-5);
+}
+
+.cta:hover {
+  background: var(--gold-dim);
+  color: var(--bg);
+}

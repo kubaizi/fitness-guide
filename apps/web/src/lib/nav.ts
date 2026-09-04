@@ -25,53 +25,53 @@ export interface NavItem {
 // Returns `NavItem[]`, a mutable array, because it is built up with `.push`
 // below. Everywhere else this codebase prefers `readonly`; here the array is
 // freshly created and never escapes before it is finished.
-export function navItemsFor(user: CurrentUser | null, locale: Locale): NavItem[] {
+/**
+ * The PUBLIC navigation: the marketplace's own sections.
+ *
+ * Personal links — profile, memberships, the gym you run, the admin console —
+ * deliberately do NOT live here. They belong under the signed-in member's own
+ * name, which is where people look for them, and it keeps this row free for
+ * the sections as more of the ten are built.
+ */
+export function navItemsFor(_user: CurrentUser | null, locale: Locale): NavItem[] {
   const t = createTranslator(locale);
 
-  // A local helper defined inside the function so it can close over `locale`
-  // and `t`. It removes the repetition of building an href and a label for
-  // every single item.
-  //
-  // Typing `key` as `TranslationKey` means a typo in a nav label is a compile
-  // error — see packages/i18n/src/translate.ts for how that type is derived.
   const item = (path: string, key: TranslationKey): NavItem => ({
-    // The empty path is the home page, which is `/ar` rather than `/ar/`.
     href: path === "" ? `/${locale}` : `/${locale}/${path}`,
     label: t(key),
   });
 
-  // Everyone sees these two, signed in or not.
-  const items = [item("", "nav.home"), item("gyms", "nav.explore")];
+  return [item("", "nav.home"), item("gyms", "nav.explore")];
+}
 
-  // Signed out: no "Memberships". Showing it would promise a page that
-  // immediately bounces to login, which reads as broken rather than gated.
-  //
-  // An EARLY RETURN. The rest of the function can then assume `user` is not
-  // null — TypeScript narrows it automatically from this point down.
-  if (!user) return items;
+/**
+ * Everything that belongs to the signed-in person, for the menu under their
+ * name. Sign-out is not here: it changes state, so it has to be a form
+ * posting to a Server Action rather than a link.
+ */
+export function accountItemsFor(user: CurrentUser, locale: Locale): NavItem[] {
+  const t = createTranslator(locale);
+  const item = (path: string, key: TranslationKey): NavItem => ({
+    href: `/${locale}/${path}`,
+    label: t(key),
+  });
+
+  const items = [item("account", "nav.profile")];
 
   if (user.role === "admin") {
-    // One link, not one per section. The console has six sections and the
-    // header cannot carry six more items — it is already tight in Arabic —
-    // so /admin navigates itself with its own tab strip.
-    //
-    // `.push` MUTATES `items`, adding to the end. Safe here because the array
-    // was created in this function and nobody else has a reference to it.
+    // An admin holds no memberships of their own, so the console takes that
+    // slot rather than sitting beside an always-empty page.
     items.push(item("admin", "nav.admin"));
     return items;
   }
 
-  // A gym owner or staff member gets a direct link to the gym they run.
   if (user.role === "gym_owner" || user.role === "gym_staff") {
     const own = gymForStaff(user.id);
     if (own) {
-      // Built literally rather than via `item()`, because the href contains a
-      // dynamic slug rather than a fixed path segment.
       items.push({ href: `/${locale}/manage/${own.slug}`, label: t("nav.myGym") });
     }
   }
 
-  // Members — and gym staff, who may also hold a membership of their own.
   items.push(item("memberships", "nav.memberships"));
   return items;
 }
