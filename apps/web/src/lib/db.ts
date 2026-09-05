@@ -1,6 +1,6 @@
 import "server-only";
 
-import { fils } from "@fg/core";
+import { fils, hashPassword } from "@fg/core";
 import type { Gym, Membership, MembershipPlan } from "@fg/core";
 import type { Prisma } from "@prisma/client";
 
@@ -418,6 +418,109 @@ export async function findUserForLogin(identifier: string): Promise<StoredUser |
   return prisma.user.findFirst({ where: { phone: needle } });
 }
 
+/** What a sign-up needs. Already validated and normalised by the caller. */
+export interface NewUser {
+  readonly name: string;
+  /** Lowercase. Uniqueness is enforced by the database, not by this code. */
+  readonly username: string;
+  /** Normalised to +965XXXXXXXX. */
+  readonly phone: string;
+  /** Plain text, hashed below and never stored as given. */
+  readonly password: string;
+  readonly locale: string;
+}
+
+/**
+ * The two ways a sign-up can end.
+ *
+ * A discriminated union rather than "returns the user, or null on failure":
+ * null would say something went wrong without saying what, and the form has to
+ * tell the person which field to fix.
+ */
+export type SignUpOutcome =
+  | { readonly created: true; readonly user: DemoUser }
+  | { readonly created: false; readonly taken: "username" | "phone" };
+
+/**
+ * Creates a member account.
+ *
+ * ## The role is hardcoded
+ *
+ * `role: "member"`, always. It is not read from the input, and there is no
+ * argument to override it. Sign-up is a public endpoint — anyone can post to
+ * it — so if the role came from the form, anyone could ask to be an admin.
+ * Gym owners and admins are made by hand, deliberately.
+ *
+ * ## Why the unique check is a `catch` and not an `if`
+ *
+ * The obvious version reads: look for the username, and create the account if
+ * nobody has it. That has a gap. Between the look and the create, another
+ * request can take the same name — it is a RACE CONDITION, and on a busy
+ * signup form it is not rare.
+ *
+ * So the check lives in the database instead. `username` and `phone` are
+ * `@unique` in schema.prisma, which makes Postgres refuse the second write no
+ * matter how close together the two arrive. Prisma reports that refusal as
+ * error `P2002`, which is what the catch below turns into a message.
+ *
+ * The rule is worth keeping: when correctness depends on "nobody else did this
+ * in between", let the database decide, not your code.
+ */
+export async function createUser(input: NewUser): Promise<SignUpOutcome> {
+  // scrypt, with a fresh random salt per account. See packages/core/password.ts
+  // for why the salt is stored alongside the hash and is not itself a secret.
+  const { salt, hash } = hashPassword(input.password);
+
+  try {
+    const user = await prisma.user.create({
+      data: {
+        name: input.name,
+        username: input.username,
+        phone: input.phone,
+        passwordSalt: salt,
+        passwordHash: hash,
+        role: "member",
+        locale: input.locale,
+      },
+      select: publicColumns,
+    });
+    return { created: true, user: publicUser(user) };
+  } catch (error) {
+    // P2002 is Prisma's code for "a unique constraint was violated". Anything
+    // else — a dropped connection, a bad column — is a real fault and is
+    // rethrown, because swallowing it would show the person a "username taken"
+    // message for a problem that has nothing to do with their username.
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
+      // ── Working out WHICH field clashed ──
+      //
+      // Postgres names a unique constraint after its table and column, so a
+      // duplicate phone number fails on `User_phone_key` and a duplicate
+      // username on `User_username_key`. That name is the answer; the problem
+      // is only where Prisma puts it.
+      //
+      // It moved. Older Prisma exposed the column in `meta.target`. Prisma 7
+      // with a driver adapter has no `target` at all — the name is buried at
+      // `meta.driverAdapterError.cause.constraint.index`, and it is also in
+      // the message. Rather than reaching down a path that shifted once and
+      // may shift again, this searches the whole thing as text.
+      //
+      // Crude, and deliberately so: the two constraint names differ in exactly
+      // the word being looked for, and a wrong guess costs a slightly wrong
+      // message rather than a wrong account.
+      const detail = `${JSON.stringify((error as { meta?: unknown }).meta ?? "")} ${
+        error instanceof Error ? error.message : ""
+      }`;
+      return { created: false, taken: detail.includes("phone") ? "phone" : "username" };
+    }
+    throw error;
+  }
+}
+
 // ──────────────────────────────────────────────────────────────── memberships
 
 // A VIEW MODEL: a membership plus the two names needed to display it. The
@@ -766,44 +869,46 @@ export async function membersForGym(gymId: string): Promise<readonly GymMemberRo
     cancelled: 4,
   };
 
-  return rows
-    .map((m) => ({
-      membership: toMembership(m),
-      member: publicUser(m.user),
-      planName: { ar: m.plan.nameAr, en: m.plan.nameEn },
-      checkInCount: m._count.checkIns,
-      // `[0]?.scannedAt` — optional chaining then a fallback. Reads as "the
-      // scannedAt if there is a scan at all, otherwise null".
-      lastCheckIn: m.checkIns[0]?.scannedAt.toISOString() ?? null,
-    }))
-    // ── A multi-level sort ──
-    // A comparator returns a negative number if `a` comes first, positive if
-    // `b` does, and zero if they tie. To sort by several keys you check them in
-    // order and only fall through to the next when the previous ties.
-    .sort((a, b) => {
-      // Level 1: by state, using the rank table. `?? 9` parks any unknown state
-      // at the bottom instead of producing NaN, which would make the whole sort
-      // behave unpredictably.
-      const byState =
-        (rank[a.membership.status.state] ?? 9) - (rank[b.membership.status.state] ?? 9);
-      if (byState !== 0) return byState;
+  return (
+    rows
+      .map((m) => ({
+        membership: toMembership(m),
+        member: publicUser(m.user),
+        planName: { ar: m.plan.nameAr, en: m.plan.nameEn },
+        checkInCount: m._count.checkIns,
+        // `[0]?.scannedAt` — optional chaining then a fallback. Reads as "the
+        // scannedAt if there is a scan at all, otherwise null".
+        lastCheckIn: m.checkIns[0]?.scannedAt.toISOString() ?? null,
+      }))
+      // ── A multi-level sort ──
+      // A comparator returns a negative number if `a` comes first, positive if
+      // `b` does, and zero if they tie. To sort by several keys you check them in
+      // order and only fall through to the next when the previous ties.
+      .sort((a, b) => {
+        // Level 1: by state, using the rank table. `?? 9` parks any unknown state
+        // at the bottom instead of producing NaN, which would make the whole sort
+        // behave unpredictably.
+        const byState =
+          (rank[a.membership.status.state] ?? 9) - (rank[b.membership.status.state] ?? 9);
+        if (byState !== 0) return byState;
 
-      // Within active, soonest expiry first — that is the renewal queue.
-      //
-      // The `.state === "active"` checks are narrowing, not defensive padding:
-      // `endsOn` only exists on the active branch of the union, so the compiler
-      // will not let it be read without them.
-      const endA =
-        a.membership.status.state === "active" ? a.membership.status.endsOn : "";
-      const endB =
-        b.membership.status.state === "active" ? b.membership.status.endsOn : "";
-      if (endA && endB) return endA.localeCompare(endB);
+        // Within active, soonest expiry first — that is the renewal queue.
+        //
+        // The `.state === "active"` checks are narrowing, not defensive padding:
+        // `endsOn` only exists on the active branch of the union, so the compiler
+        // will not let it be read without them.
+        const endA =
+          a.membership.status.state === "active" ? a.membership.status.endsOn : "";
+        const endB =
+          b.membership.status.state === "active" ? b.membership.status.endsOn : "";
+        if (endA && endB) return endA.localeCompare(endB);
 
-      // Level 3, the tie-breaker: alphabetical by name. The "ar" argument sorts
-      // using Arabic alphabetical rules rather than raw character codes, which
-      // is what puts Arabic names in the order a reader expects.
-      return a.member.name.localeCompare(b.member.name, "ar");
-    });
+        // Level 3, the tie-breaker: alphabetical by name. The "ar" argument sorts
+        // using Arabic alphabetical rules rather than raw character codes, which
+        // is what puts Arabic names in the order a reader expects.
+        return a.member.name.localeCompare(b.member.name, "ar");
+      })
+  );
 }
 
 // ────────────────────────────────────────────────── gym dashboard: check-ins

@@ -28,7 +28,7 @@
 import { redirect } from "next/navigation";
 import { normalizeKuwaitPhone, verifyPassword } from "@fg/core";
 import { DEFAULT_LOCALE, createTranslator, isLocale } from "@fg/i18n";
-import { findUserForLogin, findUserById } from "@/lib/db";
+import { createUser, findUserForLogin, findUserById } from "@/lib/db";
 import { createSession, destroySession } from "@/lib/session";
 import { doorFor, landingFor, type Door } from "@/lib/roles";
 
@@ -142,6 +142,119 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
   // function has no final `return` despite promising an AuthState. A
   // successful sign-in leaves via the redirect, never via a return value.
   redirect(signedIn ? await landingFor(signedIn, locale) : `/${locale}`);
+}
+
+/**
+ * What the sign-up form gets back.
+ *
+ * `field` names which input to point at, so the message lands next to the box
+ * that needs fixing rather than floating at the top of a five-field form.
+ */
+export interface SignUpState {
+  readonly error?: string;
+  readonly field?: "name" | "username" | "phone" | "password" | "confirm";
+  /**
+   * Everything except the passwords, echoed back so a rejected form does not
+   * come back blank. Losing four correct fields because the fifth was wrong is
+   * the fastest way to make someone give up on signing up.
+   */
+  readonly values?: {
+    readonly name: string;
+    readonly username: string;
+    readonly phone: string;
+  };
+}
+
+/** How a username has to look: 3–20 of a–z, 0–9 or underscore. */
+// Deliberately narrow. A username appears in URLs and gets typed at a sign-in
+// box, so letting in spaces, capitals or Arabic script buys nothing and costs
+// a class of "I cannot log in" reports. Names in Arabic belong in `name`,
+// which has no such rule.
+const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
+
+/** Shortest password accepted. Long enough to matter, short enough to type. */
+const MIN_PASSWORD_LENGTH = 8;
+
+/**
+ * Creates a member account, signs them in, and sends them to their
+ * memberships.
+ *
+ * Members only. There is no field for a role and the database write hardcodes
+ * `member` — see `createUser` in lib/db.ts. Gym accounts are made by hand,
+ * because a gym has to be verified before it can sell anything.
+ *
+ * ── Not yet here, and worth knowing ──
+ * There is no rate limit, so nothing stops a script creating a thousand
+ * accounts. That needs doing before real advertising points at the site. There
+ * is also no way to reset a forgotten password, which is why the form asks for
+ * the password twice.
+ */
+export async function signUp(
+  _prev: SignUpState,
+  formData: FormData,
+): Promise<SignUpState> {
+  const rawLocale = String(formData.get("locale") ?? "");
+  const locale = isLocale(rawLocale) ? rawLocale : DEFAULT_LOCALE;
+  const t = createTranslator(locale);
+
+  const name = String(formData.get("name") ?? "").trim();
+  // Lowercased on the way in, so the stored value matches what the sign-in
+  // lookup expects and "Emad" cannot become a second account beside "emad".
+  const username = String(formData.get("username") ?? "")
+    .trim()
+    .toLowerCase();
+  const phoneInput = String(formData.get("phone") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirm") ?? "");
+
+  // Handed back with every rejection below.
+  const values = { name, username, phone: phoneInput };
+
+  // ── Validation, in the order the fields appear on screen ──
+  // Guard clauses again, one per rule. The alternative — collecting every
+  // error and returning them together — is better for long forms, but it needs
+  // an error per field in the state and a lot more markup. Five fields do not
+  // earn that yet.
+  if (name.length < 2 || name.length > 60) {
+    return { error: t("signup.nameInvalid"), field: "name", values };
+  }
+
+  if (!USERNAME_PATTERN.test(username)) {
+    return { error: t("signup.usernameInvalid"), field: "username", values };
+  }
+
+  // Turns "51338855", "+965 5133 8855" and "965-51338855" into one stored
+  // form. Returns null when it cannot — see packages/core/src/phone.ts.
+  const phone = normalizeKuwaitPhone(phoneInput);
+  if (!phone) {
+    return { error: t("signup.phoneInvalid"), field: "phone", values };
+  }
+
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return { error: t("signup.passwordShort"), field: "password", values };
+  }
+
+  if (password !== confirm) {
+    return { error: t("signup.passwordMismatch"), field: "confirm", values };
+  }
+
+  const outcome = await createUser({ name, username, phone, password, locale });
+
+  if (!outcome.created) {
+    // Note this DOES tell the visitor that a username or phone is already in
+    // use, which is exactly what the sign-in form refuses to do. The two are
+    // different situations: a sign-up form cannot function without saying "that
+    // one is taken", and the same fact is discoverable by anyone who tries to
+    // register the name anyway. Sign-in stays vague because there it would be
+    // pure leakage with no benefit to the person typing.
+    return outcome.taken === "phone"
+      ? { error: t("signup.phoneTaken"), field: "phone", values }
+      : { error: t("signup.usernameTaken"), field: "username", values };
+  }
+
+  await createSession(outcome.user.id);
+  // Same as sign-in: redirect throws, so nothing after this line runs.
+  redirect(await landingFor(outcome.user, locale));
 }
 
 // A simpler action: one argument, not the `(prev, formData)` pair, because it

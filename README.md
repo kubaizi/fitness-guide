@@ -211,14 +211,14 @@ correct one. Each guarded page sends
 signed-out visitors to the door that fits: `/memberships` to the member door,
 `/manage/*` and `/admin/*` to the gym door.
 
-| Username   | Phone      | Role      | Password | Sees                        |
-| ---------- | ---------- | --------- | -------- | --------------------------- |
-| `emad`     | `51338855` | member    | `123`    | Memberships                 |
-| `rodi`     | `50946363` | member    | `123`    | Memberships                 |
-| `ironclub` | `55512345` | gym owner | `123`    | **My gym** → Iron Club only |
-| `admin`    | —          | admin     | `123`    | **Everything** — see below  |
+| Username   | Phone      | Role      | Password   | Sees                        |
+| ---------- | ---------- | --------- | ---------- | --------------------------- |
+| `emad`     | `51338855` | member    | `12345678` | Memberships                 |
+| `rodi`     | `50946363` | member    | `12345678` | Memberships                 |
+| `ironclub` | `55512345` | gym owner | `12345678` | **My gym** → Iron Club only |
+| `admin`    | —          | admin     | `12345678` | **Everything** — see below  |
 
-Plus ten seeded members (`yousef`, `bader`, `khaled`, … also `123`) who exist
+Plus ten seeded members (`yousef`, `bader`, `khaled`, … also `12345678`) who exist
 to give the gym dashboard a roster worth reading.
 
 Admin sees the whole platform from `/{locale}/admin`, which has six sections
@@ -231,7 +231,7 @@ visible rather than mysterious. Sessions last 30 days — if the navigation show
 more than you expect, you are probably still signed in from earlier.
 
 Either the username or the phone number works. Passwords are scrypt-hashed
-with a per-user salt — `123` is a demo password,
+with a per-user salt — `12345678` is a demo password,
 but the storage is the real shape.
 
 There is no sign-up — the accounts above are the whole user list.

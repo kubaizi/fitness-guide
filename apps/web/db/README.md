@@ -57,13 +57,13 @@ Two rules worth keeping:
 
 ## Demo accounts
 
-| Username          | Phone      | Role      | Password |
-| ----------------- | ---------- | --------- | -------- |
-| `emad`            | `51338855` | member    | `123`    |
-| `rodi`            | `50946363` | member    | `123`    |
-| `ironclub`        | `55512345` | gym owner | `123`    |
-| `admin`           | —          | admin     | `123`    |
-| 10 seeded members | `5550xxxx` | member    | `123`    |
+| Username          | Phone      | Role      | Password   |
+| ----------------- | ---------- | --------- | ---------- |
+| `emad`            | `51338855` | member    | `12345678` |
+| `rodi`            | `50946363` | member    | `12345678` |
+| `ironclub`        | `55512345` | gym owner | `12345678` |
+| `admin`           | —          | admin     | `12345678` |
+| 10 seeded members | `5550xxxx` | member    | `12345678` |
 
 The ten seeded members exist to make the gym dashboard worth looking at — a
 roster of two proves nothing about sorting, states, or attendance.
@@ -75,8 +75,8 @@ normalised before matching. The admin has no phone and signs in by username
 only.
 
 Passwords are stored as **scrypt hashes with a per-user salt**, never in plain
-text. That is why all of them share the password `123` yet have completely
-different hashes. `123` is obviously not a real password — the point is that
+text. That is why all of them share the password `12345678` yet have completely
+different hashes. `12345678` is obviously not a real password — the point is that
 the storage is the correct shape, so a real one dropped in later is actually
 protected.
 

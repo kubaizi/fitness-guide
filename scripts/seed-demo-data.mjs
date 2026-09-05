@@ -65,12 +65,12 @@ const NEW_MEMBERS = [
 const users = JSON.parse(readFileSync("db/users.json", "utf8"));
 const memberships = JSON.parse(readFileSync("db/memberships.json", "utf8"));
 
-// Every demo account uses "123". Deterministic salt so the hash is stable
+// Every demo account uses "12345678". Deterministic salt so the hash is stable
 // across runs — real accounts get a random salt from hashPassword().
 for (const [i, m] of NEW_MEMBERS.entries()) {
   if (users.some((u) => u.username === m.u)) continue;
   const salt = `demo${String(i).padStart(2, "0")}`.padEnd(32, "0");
-  const { hash } = hashPassword("123", salt);
+  const { hash } = hashPassword("12345678", salt);
   users.push({
     id: `usr-${m.u}`,
     username: m.u,

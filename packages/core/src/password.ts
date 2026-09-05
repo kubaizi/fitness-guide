@@ -21,8 +21,8 @@ import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
  * password produce different hashes and one cracked hash reveals nothing
  * about the other.
  *
- * The demo passwords are "123", which no amount of hashing makes safe — but
- * hashing is the correct shape, so a real password dropped in later is
+ * The demo passwords are "12345678", which no amount of hashing makes safe —
+ * but hashing is the correct shape, so a real password dropped in later is
  * actually protected rather than sitting in a file in plain text.
  */
 

@@ -306,7 +306,7 @@ export const ar = {
     memberTitle: "دخول الأعضاء",
     memberSubtitle: "لعرض اشتراكاتك وبطاقة الدخول",
     memberPlaceholder: "emad أو 51338855",
-    memberDemo: "حسابات تجريبية: emad أو rodi — كلمة المرور 123",
+    memberDemo: "حسابات تجريبية: emad أو rodi — كلمة المرور 12345678",
     toPartner: "هل تدير نادياً؟ ادخل من هنا",
     wrongDoorMember: "هذا الحساب خاص بالأندية. استخدم دخول الأندية بالأسفل.",
 
@@ -314,9 +314,42 @@ export const ar = {
     partnerTitle: "دخول الأندية",
     partnerSubtitle: "لإدارة ناديك وأسعارك وأعضائك",
     partnerPlaceholder: "ironclub",
-    partnerDemo: "حسابات تجريبية: ironclub أو admin — كلمة المرور 123",
+    partnerDemo: "حسابات تجريبية: ironclub أو admin — كلمة المرور 12345678",
     toMember: "هل أنت عضو؟ ادخل من هنا",
     wrongDoorPartner: "هذا حساب عضو. استخدم دخول الأعضاء بالأسفل.",
+    // Shown under the member sign-in form, for people who have no account yet.
+    noAccount: "ليس لديك حساب؟ أنشئ حساباً",
+  },
+
+  // إنشاء حساب — للأعضاء فقط. حسابات الأندية تُنشأ يدوياً بعد التوثيق.
+  signup: {
+    title: "إنشاء حساب",
+    subtitle: "للاشتراك في الأندية وحفظ بطاقة الدخول",
+
+    nameLabel: "الاسم",
+    namePlaceholder: "عماد الكبيزي",
+    usernameLabel: "اسم المستخدم",
+    // The rule stated up front rather than only in the error, so it is read
+    // before the mistake and not after it.
+    usernameHint: "حروف إنجليزية صغيرة وأرقام و _ ، من ٣ إلى ٢٠ خانة",
+    phoneLabel: "رقم الهاتف",
+    phonePlaceholder: "51338855",
+    passwordLabel: "كلمة المرور",
+    passwordHint: "٨ خانات على الأقل",
+    confirmLabel: "تأكيد كلمة المرور",
+    // No password reset exists yet, so a typo would lock the account for good.
+    // That is the whole reason the field is asked for twice.
+    confirmHint: "لا توجد حالياً طريقة لاستعادة كلمة المرور، فتأكّد منها",
+    submit: "إنشاء الحساب",
+    haveAccount: "لديك حساب؟ سجّل الدخول",
+
+    nameInvalid: "اكتب اسمك، من حرفين إلى ٦٠ حرفاً",
+    usernameInvalid: "اسم المستخدم: حروف إنجليزية صغيرة وأرقام و _ ، من ٣ إلى ٢٠ خانة",
+    usernameTaken: "اسم المستخدم محجوز، اختر غيره",
+    phoneInvalid: "رقم هاتف كويتي غير صحيح",
+    phoneTaken: "يوجد حساب بهذا الرقم. سجّل الدخول بدلاً من ذلك.",
+    passwordShort: "كلمة المرور ٨ خانات على الأقل",
+    passwordMismatch: "كلمتا المرور غير متطابقتين",
   },
   account: {
     title: "حسابي",

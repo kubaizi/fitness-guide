@@ -298,7 +298,7 @@ export const en = {
     memberTitle: "Member sign in",
     memberSubtitle: "To see your memberships and entry card",
     memberPlaceholder: "emad or 51338855",
-    memberDemo: "Demo accounts: emad or rodi — password 123",
+    memberDemo: "Demo accounts: emad or rodi — password 12345678",
     toPartner: "Run a gym? Sign in here",
     wrongDoorMember: "That account belongs to a gym. Use the gym sign-in below.",
 
@@ -306,9 +306,37 @@ export const en = {
     partnerTitle: "Gym sign in",
     partnerSubtitle: "To manage your gym, its prices and its members",
     partnerPlaceholder: "ironclub",
-    partnerDemo: "Demo accounts: ironclub or admin — password 123",
+    partnerDemo: "Demo accounts: ironclub or admin — password 12345678",
     toMember: "Are you a member? Sign in here",
     wrongDoorPartner: "That is a member account. Use the member sign-in below.",
+    noAccount: "No account? Create one",
+  },
+
+  // Sign-up — members only. Gym accounts are made by hand after verification.
+  signup: {
+    title: "Create an account",
+    subtitle: "To join gyms and keep your entry card",
+
+    nameLabel: "Name",
+    namePlaceholder: "Emad Alkubaizi",
+    usernameLabel: "Username",
+    usernameHint: "Lowercase letters, numbers and _ , 3 to 20 characters",
+    phoneLabel: "Phone number",
+    phonePlaceholder: "51338855",
+    passwordLabel: "Password",
+    passwordHint: "At least 8 characters",
+    confirmLabel: "Confirm password",
+    confirmHint: "There is no password reset yet, so make sure of it",
+    submit: "Create account",
+    haveAccount: "Already have an account? Sign in",
+
+    nameInvalid: "Enter your name, between 2 and 60 characters",
+    usernameInvalid: "Username: lowercase letters, numbers and _ , 3 to 20 characters",
+    usernameTaken: "That username is taken — pick another",
+    phoneInvalid: "That is not a valid Kuwait phone number",
+    phoneTaken: "An account already uses that number. Sign in instead.",
+    passwordShort: "Password must be at least 8 characters",
+    passwordMismatch: "The two passwords do not match",
   },
   account: {
     title: "My account",

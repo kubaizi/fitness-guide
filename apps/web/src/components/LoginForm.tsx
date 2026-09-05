@@ -170,6 +170,15 @@ export function LoginForm({ locale, door }: { locale: Locale; door: Door }) {
       <p className={state.wrongDoor ? styles.altStrong : styles.alt}>
         <Link href={otherHref}>{t(isMember ? "auth.toPartner" : "auth.toMember")}</Link>
       </p>
+
+      {/* Members only. A gym cannot sign itself up — it has to be verified
+          first — so this link is absent from the partner door rather than
+          leading somewhere that would reject them. */}
+      {isMember && (
+        <p className={styles.alt}>
+          <Link href={`/${locale}/signup`}>{t("auth.noAccount")}</Link>
+        </p>
+      )}
     </form>
   );
 }
