@@ -44,6 +44,36 @@ npm run format:check  # Prettier, reports without writing
 The first four are Turborepo tasks that fan out across the workspaces and cache
 results, so re-running an unchanged package is instant.
 
+### Adding an environment variable — read this before you do
+
+**A new variable that the build reads must also be named in `turbo.json`.**
+
+Turbo can only reuse a cached build when it is certain nothing changed, so it
+fingerprints every input: source files, package versions, the command. Files it
+can see for itself. Environment variables it cannot — a variable lives in the
+computer's memory, not on disk — so Turbo takes the safe route and **removes
+all of them**. A task gets only what its `env` list names.
+
+```json
+"build": {
+  "env": ["DATABASE_URL", "SESSION_SECRET"]
+}
+```
+
+That line does two jobs: it lets the variable reach the build, and it puts the
+variable in the fingerprint, so changing the value rebuilds instead of serving
+a cached build made against the old one.
+
+Forget it and there is no error message. The variable is simply absent, and the
+failure surfaces wherever the code first tries to use it — which cost three
+Vercel deploys to find once already. `DATABASE_URL` was set correctly the whole
+time; Turbo was dropping it on the way in.
+
+Variables read only at RUNTIME need no entry. Turbo runs during the build and
+is gone by the time a request arrives — the server reads those straight from
+the hosting platform. That is why `SESSION_SECRET` worked for months without
+being listed.
+
 ## VS Code
 
 Open the repo root — not a subfolder, or the workspace links break. VS Code
