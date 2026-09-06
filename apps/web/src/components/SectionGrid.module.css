@@ -29,6 +29,10 @@
   border-radius: var(--radius-lg);
   background: var(--surface);
   color: var(--ink);
+  /* Anchors the background art, and crops it to the rounded corners. An
+     outline is not clipped by overflow, so the focus ring still shows. */
+  position: relative;
+  overflow: hidden;
   /*
    * Grid items default to min-width:auto, so a tile refuses to shrink below
    * the widest word inside it — which pinned every tile at 162px and pushed
@@ -59,10 +63,69 @@ a.tile:focus-visible {
   color: var(--ink-2);
 }
 
+/*
+ * The background art.
+ *
+ * ── Where it sits, and why there ──
+ * The block-end / inline-end corner is the only part of a tile the content
+ * leaves empty: the status chip is pinned to the opposite side by
+ * `align-self: flex-start`. Putting the drawing anywhere else would mean
+ * putting it behind text, and Arabic suffers from that more than English does
+ * — the letterforms are finer and carry dots above and below.
+ *
+ * `inset-inline-end` rather than `right`, so it moves to the other corner in
+ * Arabic without a second rule. The drawings are near-symmetric for the same
+ * reason — see the note above ART in SectionGrid.tsx.
+ *
+ * ── Why it is bigger than it needs to be ──
+ * 108px in a 140px-wide tile, hanging off both edges. A small centred
+ * watermark reads as an accident; something clearly cropped by the tile reads
+ * as a decision.
+ */
+.art {
+  position: absolute;
+  /* Enough bleed to read as cropped rather than centred, and no more. At -16px
+     the wider drawings lost the parts that identified them. */
+  inset-block-end: -12px;
+  inset-inline-end: -10px;
+  width: 108px;
+  height: 108px;
+  fill: none;
+  stroke: currentColor;
+  /* Holds the line at 1.6 CSS pixels however far the 48-unit drawing is
+     scaled up. Without it the stroke would scale with the art and land near
+     3.5px, which is a diagram rather than a watermark. */
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--gold);
+  opacity: 0.14;
+  /* z-index rather than source order alone: an absolutely positioned element
+     paints above ordinary in-flow content regardless of where it appears in
+     the markup, so without this the art would sit ON TOP of the text. */
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Dimmer on an unbuilt tile, so the art carries the same live/soon signal the
+   border and the chip already carry rather than fighting it. */
+.tileSoon .art {
+  color: var(--ink-2);
+  opacity: 0.09;
+}
+
+a.tile:hover .art {
+  opacity: 0.2;
+}
+
 .head {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+  /* Lifted above the art. Same for .items and the chips below. */
+  position: relative;
+  z-index: 1;
 }
 
 .icon {
@@ -94,6 +157,8 @@ a.tile:focus-visible {
  */
 .items {
   flex: 1;
+  position: relative;
+  z-index: 1;
   list-style: none;
   padding: 0;
   margin: 0;
@@ -127,6 +192,8 @@ a.tile:focus-visible {
 .live,
 .soon {
   align-self: flex-start;
+  position: relative;
+  z-index: 1;
   font-size: 0.7rem;
   letter-spacing: 0.04em;
   padding: 2px var(--sp-2);

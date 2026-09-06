@@ -63,6 +63,111 @@ const icon = (...d: readonly string[]) => (
   </svg>
 );
 
+/*
+ * The background art: one oversized line drawing per tile, cropped by the
+ * tile's own edge.
+ *
+ * ── Why it exists ──
+ * Ten tiles that differ only in four words are hard to scan. A large silhouette
+ * gives each section something you recognise BEFORE you read it, which is what
+ * a category grid is for.
+ *
+ * ── Why these particular subjects ──
+ * Every one is near-symmetric on the vertical axis, and that is not an
+ * accident. The art sits in the corner nearest the tile's outer edge, which
+ * `inset-inline-end` moves to the opposite side in Arabic. A directional
+ * object — a price tag, a running shoe — would point off the page in one of
+ * the two languages. A ticket notched on both sides, a kettlebell, a t-shirt
+ * and a centre-tailed speech bubble read the same either way.
+ *
+ * ── Why it is kept apart from SECTIONS ──
+ * A section is defined by its name, its sub-items and whether it is built. The
+ * drawing behind it is decoration, and mixing decoration into the data would
+ * suggest a tile could not exist without one. Keyed by id, so a missing entry
+ * renders nothing rather than breaking.
+ */
+const art = (...d: readonly string[]) => (
+  <svg viewBox="0 0 48 48" aria-hidden="true" className={styles.art}>
+    {d.map((path) => (
+      <path key={path} d={path} />
+    ))}
+  </svg>
+);
+
+const ART: Record<string, React.ReactNode> = {
+  // A ticket, notched on both sides. The marketplace's own object for a deal,
+  // and symmetric where a price tag would not be.
+  offers: art(
+    "M8 14h32v6a4 4 0 0 0 0 8v6H8v-6a4 4 0 0 0 0-8z",
+    "M24 18v3",
+    "M24 25v3",
+    "M24 29v3",
+  ),
+  // A dumbbell, plates and all. The one section that is actually built gets
+  // the most literal drawing in the set.
+  //
+  // Drawn narrower than it wants to be — x from 11 to 37 rather than the full
+  // 48 — because a wide horizontal object loses its identity the moment the
+  // tile crops it. The first version bled off both ends and read as a capital
+  // H.
+  gyms: art("M11 18v12", "M17 12v24", "M17 24h14", "M31 12v24", "M37 18v12"),
+  // A stopwatch — a trainer's instrument. Deliberately not a human figure:
+  // this platform lists men's, women's and mixed gyms, and a drawn body would
+  // pick a side of that for no reason.
+  trainers: art(
+    "M24 13a16 16 0 1 0 0 32 16 16 0 0 0 0-32z",
+    "M20 6h8",
+    "M24 6v7",
+    "M24 22v8h6",
+  ),
+  equipment: art(
+    "M16 21v-4a8 8 0 0 1 16 0v4",
+    "M32 21c5 3 8 9 8 14a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4c0-5 3-11 8-14z",
+  ),
+  // A doctor's bag, matching the small icon in the tile header.
+  doctors: art("M6 17h36v23H6z", "M18 17v-5h12v5", "M24 23v11", "M18.5 28.5h11"),
+  // An Erlenmeyer flask, with the liquid line that says "measured".
+  labs: art(
+    "M19 6h10",
+    "M21 6v13L9.5 38A3 3 0 0 0 12 42.5h24A3 3 0 0 0 38.5 38L27 19V6",
+    "M14.5 32h19",
+  ),
+  sportswear: art(
+    "M18 8 8 13.5l4 8.5 5-2.5V42h14V19.5l5 2.5 4-8.5L30 8",
+    "M18 8a6 6 0 0 0 12 0",
+  ),
+  // A bowl with steam rising off it.
+  //
+  // This replaced a plate seen from above with a two-lobed leaf at its centre.
+  // On screen the two lobes closed up into a heart, and a heart on a tile means
+  // "saved" or "favourite" in every app anyone has used. Meaning the reader
+  // already holds beats the meaning you intended.
+  //
+  // A bowl is also symmetric, where the obvious alternative — a plate with a
+  // fork and a knife — would point the wrong way in one of the two languages.
+  restaurants: art(
+    "M7 25h34a17 17 0 0 1-34 0z",
+    "M15 42h18",
+    "M18 11v6",
+    "M24 8v9",
+    "M30 11v6",
+  ),
+  supplements: art(
+    "M17 6h14v6H17z",
+    "M15 12h18v26a4 4 0 0 1-4 4H19a4 4 0 0 1-4-4z",
+    "M20 22h8",
+    "M20 29h8",
+  ),
+  // The tail is centred rather than in a corner, so it hangs correctly in both
+  // reading directions.
+  complaints: art(
+    "M10 7h28a4 4 0 0 1 4 4v17a4 4 0 0 1-4 4h-9l-5 8-5-8h-9a4 4 0 0 1-4-4V11a4 4 0 0 1 4-4z",
+    "M16 19h2",
+    "M23 19h2",
+    "M30 19h2",
+  ),
+};
+
 const SECTIONS: readonly Section[] = [
   {
     id: "offers",
@@ -191,6 +296,10 @@ export function SectionGrid({ locale }: { locale: Locale }) {
         // markup between two different wrappers.
         const body = (
           <>
+            {/* First in the DOM so it sits behind everything — the CSS puts it
+                on its own layer, but source order is the honest default. */}
+            {ART[s.id]}
+
             <div className={styles.head}>
               {s.icon}
               <span className={styles.name}>{t(s.name)}</span>
