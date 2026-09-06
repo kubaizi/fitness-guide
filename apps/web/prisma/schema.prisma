@@ -300,6 +300,29 @@ model CheckIn {
   @@index([gymId, scannedAt])
 }
 
+/// One row per sign-in or sign-up attempt, so the app can refuse a source that
+/// is trying too often. See src/lib/rate-limit.ts for the policy.
+///
+/// A log of attempts rather than a running counter. A counter is fewer rows,
+/// but it needs read-then-write to increment, which two requests arriving
+/// together can get wrong. Inserting a row cannot be got wrong, and counting
+/// them is one indexed query. The cost is rows to tidy up, which the same file
+/// does as it goes.
+model AttemptLog {
+  id String @id @default(cuid())
+
+  /// What is being counted — today the caller's IP address.
+  key String
+  /// Which action: "signin" or "signup".
+  kind String
+
+  createdAt DateTime @default(now())
+
+  // Every query asks the same question: how many rows of this kind, for this
+  // key, since this time. The index answers it in that order.
+  @@index([kind, key, createdAt])
+}
+
 model Review {
   id     String @id @default(cuid())
   user   User   @relation(fields: [userId], references: [id])

@@ -310,6 +310,7 @@ export const en = {
     toMember: "Are you a member? Sign in here",
     wrongDoorPartner: "That is a member account. Use the member sign-in below.",
     noAccount: "No account? Create one",
+    tooMany: "Too many attempts. Wait a little and try again.",
   },
 
   // Sign-up — members only. Gym accounts are made by hand after verification.
@@ -337,6 +338,7 @@ export const en = {
     phoneTaken: "An account already uses that number. Sign in instead.",
     passwordShort: "Password must be at least 8 characters",
     passwordMismatch: "The two passwords do not match",
+    tooMany: "Too many attempts from this device. Try again later.",
   },
   account: {
     title: "My account",

@@ -319,6 +319,9 @@ export const ar = {
     wrongDoorPartner: "هذا حساب عضو. استخدم دخول الأعضاء بالأسفل.",
     // Shown under the member sign-in form, for people who have no account yet.
     noAccount: "ليس لديك حساب؟ أنشئ حساباً",
+    // Deliberately says nothing about how many tries are left, or how long the
+    // wait is. Both would tell someone guessing exactly how to pace themselves.
+    tooMany: "محاولات كثيرة. انتظر قليلاً ثم حاول مرة أخرى.",
   },
 
   // إنشاء حساب — للأعضاء فقط. حسابات الأندية تُنشأ يدوياً بعد التوثيق.
@@ -350,6 +353,7 @@ export const ar = {
     phoneTaken: "يوجد حساب بهذا الرقم. سجّل الدخول بدلاً من ذلك.",
     passwordShort: "كلمة المرور ٨ خانات على الأقل",
     passwordMismatch: "كلمتا المرور غير متطابقتين",
+    tooMany: "محاولات كثيرة من هذا الجهاز. حاول لاحقاً.",
   },
   account: {
     title: "حسابي",

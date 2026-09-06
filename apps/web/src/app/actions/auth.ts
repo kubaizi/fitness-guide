@@ -30,6 +30,7 @@ import { normalizeKuwaitPhone, verifyPassword } from "@fg/core";
 import { DEFAULT_LOCALE, createTranslator, isLocale } from "@fg/i18n";
 import { createUser, findUserForLogin, findUserById } from "@/lib/db";
 import { createSession, destroySession } from "@/lib/session";
+import { clearAttempts, recordAttempt, tooManyAttempts } from "@/lib/rate-limit";
 import { doorFor, landingFor, type Door } from "@/lib/roles";
 
 /**
@@ -96,6 +97,16 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
 
   if (identifier === "" || password === "") return { error: failed };
 
+  // ── Before any real work ──
+  // Checked here rather than after the lookup, deliberately. Verifying a
+  // password runs scrypt, which is slow ON PURPOSE — that is what makes
+  // guessing expensive. It also makes a flood of guesses an easy way to pin
+  // the server's CPU. Refusing first means a blocked caller costs one small
+  // indexed count instead.
+  if (await tooManyAttempts("signin")) {
+    return { error: t("auth.tooMany") };
+  }
+
   // Try the identifier as typed, then as a normalised phone number.
   // So "51338855" is found even though the stored value is "+96551338855".
   const asPhone = normalizeKuwaitPhone(identifier);
@@ -103,7 +114,10 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
     (await findUserForLogin(identifier)) ??
     (asPhone ? await findUserForLogin(asPhone) : null);
 
-  if (!user) return { error: failed };
+  if (!user) {
+    await recordAttempt("signin");
+    return { error: failed };
+  }
 
   // `ok` here is a local boolean, unrelated to the `ok()` helper in
   // @fg/core's Result type.
@@ -111,7 +125,10 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
     salt: user.passwordSalt,
     hash: user.passwordHash,
   });
-  if (!ok) return { error: failed };
+  if (!ok) {
+    await recordAttempt("signin");
+    return { error: failed };
+  }
 
   /*
    * Right password, wrong door.
@@ -133,6 +150,10 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
 
   // Everything checked out. Set the signed cookie — see lib/session.ts.
   await createSession(user.id);
+
+  // Succeeding wipes the earlier failures, so two mistyped passwords this
+  // morning are not still counted against them this afternoon.
+  await clearAttempts("signin");
 
   // findUserById returns the public shape landingFor expects — no hash in it.
   // A small deliberate step: `user` at this point is the StoredUser including
@@ -210,6 +231,13 @@ export async function signUp(
   // Handed back with every rejection below.
   const values = { name, username, phone: phoneInput };
 
+  // Checked before the validation rules, not after. A script does not care
+  // whether its made-up phone number was valid — the point is to stop
+  // answering it at all.
+  if (await tooManyAttempts("signup")) {
+    return { error: t("signup.tooMany"), values };
+  }
+
   // ── Validation, in the order the fields appear on screen ──
   // Guard clauses again, one per rule. The alternative — collecting every
   // error and returning them together — is better for long forms, but it needs
@@ -251,6 +279,11 @@ export async function signUp(
       ? { error: t("signup.phoneTaken"), field: "phone", values }
       : { error: t("signup.usernameTaken"), field: "username", values };
   }
+
+  // Counted only once the account actually exists. A rejected form is usually
+  // someone getting the rules wrong, and spending their budget on that would
+  // lock out the very person who is trying hardest to join.
+  await recordAttempt("signup");
 
   await createSession(outcome.user.id);
   // Same as sign-in: redirect throws, so nothing after this line runs.
