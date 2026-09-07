@@ -369,9 +369,50 @@ export const ar = {
     medicalSoon:
       "قسم اختياري للحالة الصحية والتحاليل، يرسله العضو لطبيب أو مدرب. لم يُبنَ بعد.",
     photo: "الصورة الشخصية",
-    photoSoon: "صورة شخصية فقط. لم تُبنَ بعد.",
     soon: "قريباً",
     myMemberships: "اشتراكاتي",
+  },
+
+  // تعديل الملف الشخصي. كل الحقول اختيارية عدا الاسم.
+  profile: {
+    edit: "تعديل الملف الشخصي",
+    save: "حفظ التغييرات",
+    saved: "تم الحفظ",
+
+    photo: "الصورة الشخصية",
+    photoPick: "اختيار صورة",
+    photoRemove: "إزالة الصورة",
+    // The browser shrinks the picture before it is sent, and saying so
+    // explains why a 5 MB photo is accepted without complaint.
+    photoHint: "صورة شخصية فقط. تُصغَّر تلقائياً قبل الحفظ.",
+
+    email: "البريد الإلكتروني",
+    dateOfBirth: "تاريخ الميلاد",
+    occupation: "المهنة",
+    occupationPlaceholder: "مهندس، معلّم، طالب…",
+
+    social: "حسابات التواصل",
+    socialHint: "اكتب اسم الحساب فقط، بدون رابط",
+
+    weight: "الوزن",
+    weightHint: "سجلّك أنت فقط — لا يظهر لأي أحد في دليل اللياقة",
+    weightKg: "الوزن بالكيلوغرام",
+    weightDate: "تاريخ القياس",
+    weightAdd: "إضافة قياس",
+    weightNone: "لا توجد قياسات بعد",
+    weightRemove: "حذف",
+    weightUnit: "كجم",
+
+    nameInvalid: "اكتب اسمك، من حرفين إلى ٦٠ حرفاً",
+    emailInvalid: "بريد إلكتروني غير صحيح",
+    emailTaken: "هذا البريد مستخدم في حساب آخر",
+    dobInvalid: "تاريخ ميلاد غير صحيح",
+    occupationInvalid: "المهنة ٦٠ حرفاً كحد أقصى",
+    photoInvalid: "تعذّر حفظ الصورة. جرّب صورة أخرى.",
+    handleInvalid: "اسم الحساب: حروف وأرقام و . و _ فقط",
+    weightInvalid: "وزن غير صحيح",
+    weightDateInvalid: "تاريخ القياس غير صحيح",
+    saveFailed: "تعذّر الحفظ. حاول مرة أخرى.",
   },
   admin: {
     usersTitle: "المستخدمون",

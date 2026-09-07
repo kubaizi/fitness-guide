@@ -108,8 +108,31 @@ model User {
   // everyone (docs/product-decisions.md).
   gender      String?
   dateOfBirth DateTime? @db.Date
+  occupation  String?
   role        UserRole  @default(member)
   locale      String    @default("ar")
+
+  /// The profile picture, as a `data:image/...;base64,` string.
+  ///
+  /// Stored in the row rather than in object storage, deliberately. The
+  /// browser shrinks the image to 256px before sending, which lands around
+  /// 20–40 KB — small enough that a column is honest, and it needs no second
+  /// service, no bucket and no card on file. When this platform has thousands
+  /// of members it moves to real object storage and this column holds a URL
+  /// instead; nothing else has to change, because it is a string either way.
+  ///
+  /// A profile picture ONLY. Not body or progress photos — those would carry
+  /// the same weight as medical data and are not covered by any decision Emad
+  /// has made.
+  photo String?
+
+  /// Social handles, not URLs. The link is built from these, so a stored value
+  /// can only ever point at that network — where a URL field would happily
+  /// hold `javascript:` or a link anywhere at all.
+  instagram String?
+  x         String?
+  snapchat  String?
+  tiktok    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -117,12 +140,51 @@ model User {
   memberships Membership[]
   reviews     Review[]
   checkIns    CheckIn[]
+  weights     WeightEntry[]
   // A gym owner or staff member is linked to the gym they work at.
   staffAtGym   Gym?    @relation("GymStaff", fields: [staffAtGymId], references: [id])
   staffAtGymId String?
 
   @@index([staffAtGymId])
 }
+
+/// One weighing, on one day.
+///
+/// ── This is health data, and it is treated as such ──
+/// Emad listed weight under the profile rather than the medical file, but a
+/// record of someone's body over time is health data by any ordinary reading.
+/// The confirmed rule for the medical section is that nobody at Fitness Guide
+/// may read it, admins included (docs/product-decisions.md).
+///
+/// So this table is deliberately absent from every admin query. The member
+/// sees their own history and nobody else does. If Emad decides in writing
+/// that weight is ordinary profile data, that is a change to make then — the
+/// safe reading costs nothing now.
+model WeightEntry {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  /// Grams, as an integer. The same discipline as money in fils, for the same
+  /// reason: 82.5 stored as a float is not exactly 82.5, and a weight chart
+  /// that drifts is worse than useless. 82.5 kg is 82500.
+  grams Int
+
+  /// The day it was measured, not the day it was typed in. Someone entering
+  /// last Friday's weighing should see it on Friday.
+  measuredOn DateTime @db.Date
+
+  createdAt DateTime @default(now())
+
+  /// One weighing per person per day. A second entry for the same day replaces
+  /// the first rather than sitting beside it, which is what someone means when
+  /// they correct a number they mistyped.
+  @@unique([userId, measuredOn])
+  @@index([userId, measuredOn])
+}
+
+/// `onDelete: Cascade` above is doing real work: deleting the account erases
+/// the weight history with it, which is rule 1 of the medical decisions.
 
 model Gym {
   id   String @id @default(cuid())

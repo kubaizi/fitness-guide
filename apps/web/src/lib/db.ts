@@ -418,6 +418,189 @@ export async function findUserForLogin(identifier: string): Promise<StoredUser |
   return prisma.user.findFirst({ where: { phone: needle } });
 }
 
+// ──────────────────────────────────────────────────────────────────── profile
+
+/**
+ * The member's own profile, as their own page shows it.
+ *
+ * Note what is NOT here and never will be: the password hash and salt. This
+ * reads a named list of columns, so a new secret column added to the table
+ * cannot leak through it by accident.
+ */
+export interface Profile {
+  readonly name: string;
+  readonly username: string;
+  readonly phone: string | null;
+  readonly email: string | null;
+  readonly role: string;
+  /** ISO date, `YYYY-MM-DD`, or null. Never a timestamp — this is a birthday. */
+  readonly dateOfBirth: string | null;
+  readonly occupation: string | null;
+  /** A `data:image/...` string, or null. See the note in schema.prisma. */
+  readonly photo: string | null;
+  readonly instagram: string | null;
+  readonly x: string | null;
+  readonly snapchat: string | null;
+  readonly tiktok: string | null;
+}
+
+/** One weighing. Grams and an ISO date, ready for the page to format. */
+export interface WeightPoint {
+  readonly id: string;
+  readonly grams: number;
+  readonly measuredOn: string;
+}
+
+// `@db.Date` columns come back as a Date at UTC midnight. Taking the first ten
+// characters of the ISO string is the reliable way to get the calendar day
+// back: going through the local timezone would shift a birthday to the day
+// before for anyone west of UTC.
+const isoDay = (d: Date): string => d.toISOString().slice(0, 10);
+
+const profileColumns = {
+  name: true,
+  username: true,
+  phone: true,
+  email: true,
+  role: true,
+  dateOfBirth: true,
+  occupation: true,
+  photo: true,
+  instagram: true,
+  x: true,
+  snapchat: true,
+  tiktok: true,
+} as const;
+
+export async function profileFor(userId: string): Promise<Profile | null> {
+  const u = await prisma.user.findUnique({
+    where: { id: userId },
+    select: profileColumns,
+  });
+  if (!u) return null;
+
+  return {
+    ...u,
+    dateOfBirth: u.dateOfBirth ? isoDay(u.dateOfBirth) : null,
+  };
+}
+
+/** What the profile form submits. Already validated by the action. */
+export interface ProfileInput {
+  readonly name: string;
+  readonly email: string | null;
+  readonly dateOfBirth: string | null;
+  readonly occupation: string | null;
+  readonly photo: string | null;
+  readonly instagram: string | null;
+  readonly x: string | null;
+  readonly snapchat: string | null;
+  readonly tiktok: string | null;
+}
+
+export type ProfileSaveOutcome =
+  | { readonly saved: true }
+  | { readonly saved: false; readonly reason: "email_taken" | "not_found" };
+
+export async function updateProfile(
+  userId: string,
+  input: ProfileInput,
+): Promise<ProfileSaveOutcome> {
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: input.name,
+        email: input.email,
+        // `new Date("1990-05-04")` is parsed as UTC midnight, which is what a
+        // `@db.Date` column wants. Appending a time would drag a timezone in.
+        dateOfBirth: input.dateOfBirth ? new Date(input.dateOfBirth) : null,
+        occupation: input.occupation,
+        photo: input.photo,
+        instagram: input.instagram,
+        x: input.x,
+        snapchat: input.snapchat,
+        tiktok: input.tiktok,
+      },
+    });
+    return { saved: true };
+  } catch (error) {
+    // Email is @unique, so two members claiming one address is a P2002 — the
+    // same race-proof check as sign-up. Everything else is a real fault and
+    // travels up rather than being reported as a taken email.
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
+      return { saved: false, reason: "email_taken" };
+    }
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2025"
+    ) {
+      return { saved: false, reason: "not_found" };
+    }
+    throw error;
+  }
+}
+
+/**
+ * The member's weight history, newest first.
+ *
+ * Only ever called with the signed-in member's own id. There is deliberately
+ * no "weights for any user" function, and no admin query touches this table —
+ * see the note above WeightEntry in schema.prisma.
+ */
+export async function weightsFor(
+  userId: string,
+  limit = 60,
+): Promise<readonly WeightPoint[]> {
+  const rows = await prisma.weightEntry.findMany({
+    where: { userId },
+    orderBy: { measuredOn: "desc" },
+    take: limit,
+  });
+
+  return rows.map((w) => ({
+    id: w.id,
+    grams: w.grams,
+    measuredOn: isoDay(w.measuredOn),
+  }));
+}
+
+/**
+ * Records a weighing, replacing any entry already on that day.
+ *
+ * `upsert` rather than `create`: the table allows one row per person per day,
+ * so a second entry for today is someone correcting a number they mistyped,
+ * not a second weighing. Doing it in one statement also means two quick
+ * submissions cannot race into a unique-constraint error.
+ */
+export async function recordWeight(
+  userId: string,
+  grams: number,
+  measuredOn: string,
+): Promise<void> {
+  const day = new Date(measuredOn);
+
+  await prisma.weightEntry.upsert({
+    where: { userId_measuredOn: { userId, measuredOn: day } },
+    create: { userId, grams, measuredOn: day },
+    update: { grams },
+  });
+}
+
+/** Deletes one weighing, scoped to its owner so nobody can delete another's. */
+// The userId is in the `where`, not checked afterwards — the same shape as
+// findMembershipForUser, and for the same reason.
+export async function deleteWeight(userId: string, id: string): Promise<void> {
+  await prisma.weightEntry.deleteMany({ where: { id, userId } });
+}
+
 /** What a sign-up needs. Already validated and normalised by the caller. */
 export interface NewUser {
   readonly name: string;

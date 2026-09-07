@@ -354,9 +354,47 @@ export const en = {
     medicalSoon:
       "An optional section for health conditions and lab results, which the member sends to a doctor or trainer. Not built yet.",
     photo: "Profile picture",
-    photoSoon: "A profile picture only. Not built yet.",
     soon: "Soon",
     myMemberships: "My memberships",
+  },
+
+  profile: {
+    edit: "Edit profile",
+    save: "Save changes",
+    saved: "Saved",
+
+    photo: "Profile picture",
+    photoPick: "Choose a picture",
+    photoRemove: "Remove picture",
+    photoHint: "A profile picture only. Shrunk automatically before saving.",
+
+    email: "Email",
+    dateOfBirth: "Date of birth",
+    occupation: "Occupation",
+    occupationPlaceholder: "Engineer, teacher, student…",
+
+    social: "Social accounts",
+    socialHint: "Just the account name, not a link",
+
+    weight: "Weight",
+    weightHint: "Your record alone — nobody at Fitness Guide can see it",
+    weightKg: "Weight in kilograms",
+    weightDate: "Date measured",
+    weightAdd: "Add a measurement",
+    weightNone: "No measurements yet",
+    weightRemove: "Delete",
+    weightUnit: "kg",
+
+    nameInvalid: "Enter your name, between 2 and 60 characters",
+    emailInvalid: "That is not a valid email address",
+    emailTaken: "Another account already uses that email",
+    dobInvalid: "That is not a valid date of birth",
+    occupationInvalid: "Occupation can be at most 60 characters",
+    photoInvalid: "That picture could not be saved. Try another one.",
+    handleInvalid: "Account name: letters, numbers, . and _ only",
+    weightInvalid: "That is not a valid weight",
+    weightDateInvalid: "That is not a valid measurement date",
+    saveFailed: "Could not save. Try again.",
   },
   admin: {
     usersTitle: "Users",
