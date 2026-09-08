@@ -12,7 +12,7 @@
       "env": ["DATABASE_URL", "SESSION_SECRET"]
     },
     "lint": { "dependsOn": ["^build"] },
-    "typecheck": { "dependsOn": ["^build"] },
+    "typecheck": { "dependsOn": ["^build", "build"] },
     "test": { "dependsOn": ["^build"] }
   }
 }

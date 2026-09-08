@@ -21,12 +21,15 @@ import styles from "./AccountMenu.module.css";
 export function AccountMenu({
   locale,
   name,
+  photo,
   items,
   signOut,
   variant = "header",
 }: {
   locale: Locale;
   name: string;
+  /** Their profile picture as a data URI, or null — see lib/db.ts. */
+  photo?: string | null;
   items: readonly NavItem[];
   /** The sign-out form, rendered on the server — it posts a Server Action. */
   signOut: React.ReactNode;
@@ -72,6 +75,28 @@ export function AccountMenu({
   // plain [0] would split them.
   const initial = [...name][0] ?? "?";
 
+  /**
+   * Their picture if they have set one, otherwise the initial.
+   *
+   * Built once and used in both the header and the drawer below, so the two
+   * cannot drift — the drawer showing a letter while the header shows a face
+   * is exactly the kind of difference nobody notices until a member does.
+   *
+   * `alt=""` on purpose. The name is right beside it in readable text, so a
+   * screen reader announcing "photo of Emad, Emad" says everything twice. An
+   * empty alt marks the image as decorative, which here it is.
+   */
+  const face = photo ? (
+    // A plain <img> rather than next/image: the source is a data URI already
+    // in the page, so there is nothing to fetch, optimise or cache.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={photo} alt="" className={styles.avatarPhoto} />
+  ) : (
+    <span className={styles.avatar} aria-hidden="true">
+      {initial}
+    </span>
+  );
+
   const links = items.map((it) => (
     <Link key={it.href} href={it.href} className={styles.item} onClick={close}>
       {it.label}
@@ -82,9 +107,7 @@ export function AccountMenu({
     return (
       <div className={styles.drawer}>
         <div className={styles.drawerWho}>
-          <span className={styles.avatar} aria-hidden="true">
-            {initial}
-          </span>
+          {face}
           <span className={styles.drawerName}>{name}</span>
         </div>
         <nav className={styles.drawerLinks} aria-label={t("nav.profile")}>
@@ -105,9 +128,7 @@ export function AccountMenu({
         aria-haspopup="menu"
         onClick={() => setOpen((v) => !v)}
       >
-        <span className={styles.avatar} aria-hidden="true">
-          {initial}
-        </span>
+        {face}
         <span className={styles.name}>{name}</span>
         <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.chevron}>
           <path d="M6 9l6 6 6-6" />

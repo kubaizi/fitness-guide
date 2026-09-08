@@ -11,7 +11,7 @@ import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { DEFAULT_LOCALE, type Locale } from "@fg/i18n";
 import { getSessionUserId } from "./session";
-import { findUserById, gymForStaff, type DemoUser } from "./db";
+import { findUserById, gymForStaff, type CurrentUserRow } from "./db";
 
 /**
  * The Data Access Layer.
@@ -45,8 +45,9 @@ import { findUserById, gymForStaff, type DemoUser } from "./db";
 // ═══════════════════════════════════════════════════════════════════════════
 
 // A type alias re-exported under a name that fits this layer. Callers say
-// `CurrentUser` (a role in the app) rather than `DemoUser` (a storage detail).
-export type CurrentUser = DemoUser;
+// `CurrentUser` (a role in the app) rather than `CurrentUserRow` (a storage
+// detail).
+export type CurrentUser = CurrentUserRow;
 
 // ── React's `cache()` ──
 // Wraps a function so that within a SINGLE server render, repeated calls with

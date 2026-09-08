@@ -387,9 +387,29 @@ const publicColumns = {
   locale: true,
 } as const;
 
-export async function findUserById(id: string): Promise<DemoUser | null> {
-  const u = await prisma.user.findUnique({ where: { id }, select: publicColumns });
-  return u ? publicUser(u) : null;
+/**
+ * The signed-in member, as the header needs them.
+ *
+ * `DemoUser` plus the profile picture. A separate type rather than a field on
+ * `DemoUser`, because that shape is also what the admin user list and a gym's
+ * member roster are built from — and those show a name, not a face. Widening
+ * `DemoUser` would make every one of those queries fetch a few kilobytes of
+ * image per row to display none of it.
+ */
+export interface CurrentUserRow extends DemoUser {
+  /** A `data:image/...` string, or null when they have not set one. */
+  readonly photo: string | null;
+}
+
+export async function findUserById(id: string): Promise<CurrentUserRow | null> {
+  const u = await prisma.user.findUnique({
+    where: { id },
+    select: { ...publicColumns, photo: true },
+  });
+  // Still through `publicUser` for everything it covers, so the allowlist that
+  // keeps the password hash out of this object governs here too. The photo is
+  // then added by name — deliberately one visible line rather than a spread.
+  return u ? { ...publicUser(u), photo: u.photo } : null;
 }
 
 /**

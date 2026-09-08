@@ -1,5 +1,4 @@
 import type { Locale } from "@fg/i18n";
-import type { CurrentUser } from "./dal";
 import { gymForStaff } from "./db";
 
 /**
@@ -49,7 +48,16 @@ export function doorFor(role: string): Door {
 // the decision, and the caller (the sign-in action) carries it out. That is
 // still worth doing, though the function is no longer pure — finding the gym
 // an owner runs is now a database read, which is why it is async.
-export async function landingFor(user: CurrentUser, locale: Locale): Promise<string> {
+// ── Takes a shape, not a type ──
+// It reads exactly two fields, so it asks for exactly two fields. Declaring
+// `CurrentUser` would demand a profile picture this function never looks at,
+// and sign-up — which has a freshly created account and no picture — could not
+// call it. Ask for what you use, and more callers fit without widening
+// anything.
+export async function landingFor(
+  user: { readonly id: string; readonly role: string },
+  locale: Locale,
+): Promise<string> {
   // Every path is built with the locale prefix, because every route in this
   // app lives under /[locale]/ — see apps/web/src/app/page.tsx.
   if (user.role === "admin") return `/${locale}/admin`;
