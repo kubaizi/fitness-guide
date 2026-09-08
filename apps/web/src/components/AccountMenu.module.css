@@ -40,14 +40,11 @@
   border: 1px solid var(--gold-dim);
 }
 
+/* The empty state. The `color` here is not decoration: the placeholder figure
+   is drawn in currentColor, so this line is what tints it. */
 .avatar {
-  display: grid;
-  place-items: center;
   background: var(--gold-wash);
   color: var(--gold-bright);
-  font-weight: 700;
-  font-size: 0.85rem;
-  line-height: 1;
 }
 
 /*

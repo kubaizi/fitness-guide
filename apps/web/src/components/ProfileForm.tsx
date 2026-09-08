@@ -5,6 +5,7 @@ import type { Locale } from "@fg/i18n";
 import { createTranslator } from "@fg/i18n";
 import { saveProfile, type ProfileState } from "@/app/actions/profile";
 import type { Profile } from "@/lib/db";
+import { AvatarPlaceholder } from "./AvatarPlaceholder";
 import styles from "./ProfileForm.module.css";
 
 /**
@@ -130,9 +131,7 @@ export function ProfileForm({ locale, profile }: { locale: Locale; profile: Prof
             // eslint-disable-next-line @next/next/no-img-element
             <img src={photo} alt="" className={styles.photo} />
           ) : (
-            <span className={styles.photoEmpty} aria-hidden="true">
-              {[...profile.name][0] ?? "?"}
-            </span>
+            <AvatarPlaceholder className={styles.photoEmpty} />
           )}
 
           <div className={styles.photoActions}>

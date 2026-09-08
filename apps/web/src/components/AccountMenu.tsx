@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Locale } from "@fg/i18n";
 import { createTranslator } from "@fg/i18n";
 import type { NavItem } from "@/lib/nav";
+import { AvatarPlaceholder } from "./AvatarPlaceholder";
 import styles from "./AccountMenu.module.css";
 
 /**
@@ -70,13 +71,8 @@ export function AccountMenu({
     };
   }, [open, close]);
 
-  // The first character of the member's name. Works for Arabic and Latin
-  // alike, and `Intl.Segmenter` keeps multi-code-unit characters whole where a
-  // plain [0] would split them.
-  const initial = [...name][0] ?? "?";
-
   /**
-   * Their picture if they have set one, otherwise the initial.
+   * Their picture if they have set one, otherwise a generic figure.
    *
    * Built once and used in both the header and the drawer below, so the two
    * cannot drift — the drawer showing a letter while the header shows a face
@@ -92,9 +88,7 @@ export function AccountMenu({
     // eslint-disable-next-line @next/next/no-img-element
     <img src={photo} alt="" className={styles.avatarPhoto} />
   ) : (
-    <span className={styles.avatar} aria-hidden="true">
-      {initial}
-    </span>
+    <AvatarPlaceholder className={styles.avatar} />
   );
 
   const links = items.map((it) => (

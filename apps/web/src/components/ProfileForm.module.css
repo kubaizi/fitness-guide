@@ -130,14 +130,11 @@
   border: 1px solid var(--gold-dim);
 }
 
+/* Same pairing as the header avatar: the wash fills the circle, and the colour
+   tints the placeholder figure, which is drawn in currentColor. */
 .photoEmpty {
-  display: grid;
-  place-items: center;
   background: var(--gold-wash);
   color: var(--gold-bright);
-  font-weight: 700;
-  font-size: 2rem;
-  line-height: 1;
 }
 
 .photoActions {
