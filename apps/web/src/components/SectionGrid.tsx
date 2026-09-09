@@ -4,7 +4,7 @@ import { createTranslator } from "@fg/i18n";
 import styles from "./SectionGrid.module.css";
 
 /**
- * Emad's ten sections, as a marketplace category grid.
+ * Emad's sections, as a marketplace category grid.
  *
  * The order is his mockup's, not the build order — Offers leads, the way a
  * marketplace opens on its deals. His build priority is a separate list, in
@@ -18,12 +18,13 @@ import styles from "./SectionGrid.module.css";
  * thing that goes somewhere.
  */
 
-// A DATA-DRIVEN component: the ten tiles are described as data below, and one
+// A DATA-DRIVEN component: the tiles are described as data below, and one
 // small piece of rendering code at the bottom turns them into markup. Adding a
 // section means adding an entry to the array — never touching the JSX.
 //
-// Compare with writing ten near-identical blocks of markup by hand, where the
-// eleventh inevitably differs from the rest in some small way.
+// That paid for itself immediately: institutes, the eleventh, was an entry in
+// the array and a drawing. Compare with eleven near-identical blocks of markup
+// written by hand, where one inevitably differs from the rest.
 interface Section {
   readonly id: string;
   // Typed `TranslationKey`, not `string`, so a mistyped key in the array
@@ -68,7 +69,7 @@ const icon = (...d: readonly string[]) => (
  * tile's own edge.
  *
  * ── Why it exists ──
- * Ten tiles that differ only in four words are hard to scan. A large silhouette
+ * Tiles that differ only in four words are hard to scan. A large silhouette
  * gives each section something you recognise BEFORE you read it, which is what
  * a category grid is for.
  *
@@ -157,6 +158,15 @@ const ART: Record<string, React.ReactNode> = {
     "M15 12h18v26a4 4 0 0 1-4 4H19a4 4 0 0 1-4-4z",
     "M20 22h8",
     "M20 29h8",
+  ),
+  // A certificate with a seal at its foot. The seal sits on the centre line
+  // and the ribbons fall straight down, so nothing points sideways.
+  institutes: art(
+    "M8 8h32v22H8z",
+    "M14 15h20",
+    "M14 21h13",
+    "M24 30a6 6 0 1 0 0 12 6 6 0 0 0 0-12z",
+    "M21 41l-2 6 5-2 5 2-2-6",
   ),
   // The tail is centred rather than in a corner, so it hangs correctly in both
   // reading directions.
@@ -261,6 +271,22 @@ const SECTIONS: readonly Section[] = [
       "M8.5 6h7v13a2 2 0 0 1-2 2h-3a2 2 0 0 1-2-2z",
       "M12 11v5",
       "M9.5 13.5h5",
+    ),
+  },
+  {
+    id: "institutes",
+    name: "sections.institutes",
+    items: [
+      "sections.institutes1",
+      "sections.institutes2",
+      "sections.institutes3",
+      "sections.institutes4",
+    ],
+    icon: icon(
+      "M5 9h14v10H5z",
+      "M8 13h8",
+      "M8 16h5",
+      "M18 15a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
     ),
   },
   {

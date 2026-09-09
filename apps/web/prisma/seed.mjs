@@ -14,6 +14,8 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { PrismaPg } from "@prisma/adapter-pg";
+
+import { MEDICAL, PHOTOS, REPORT, WEIGHTS } from "./demo-emad.mjs";
 import { PrismaClient } from "@prisma/client";
 
 process.loadEnvFile(fileURLToPath(new URL("../.env", import.meta.url)));
@@ -46,6 +48,14 @@ async function main() {
 
   // Delete children before parents. A row cannot go while another row still
   // points at it — that is the whole point of a foreign key.
+  // The private tables go first: they hang off User, and Postgres will not let
+  // a user row go while anything still points at it. The cascade rules would
+  // handle it, but deleting explicitly keeps the order of this function honest
+  // about what depends on what.
+  await prisma.progressPhoto.deleteMany();
+  await prisma.medicalReport.deleteMany();
+  await prisma.medicalFile.deleteMany();
+  await prisma.weightEntry.deleteMany();
   await prisma.checkIn.deleteMany();
   await prisma.review.deleteMany();
   await prisma.payment.deleteMany();
@@ -160,11 +170,53 @@ async function main() {
     })),
   });
 
+  // ── Emad's own private data ──
+  // One demo account with something in every private section, so the gallery
+  // and the medical file can be looked at with content in them rather than as
+  // empty states. All invented, and only ever attached to this one account.
+  const emad = users.find((u) => u.username === "emad");
+  if (emad) {
+    await prisma.weightEntry.createMany({
+      data: WEIGHTS.map((w) => ({
+        userId: emad.id,
+        grams: w.grams,
+        measuredOn: new Date(w.measuredOn),
+      })),
+    });
+
+    await prisma.progressPhoto.createMany({
+      data: PHOTOS.map((p) => ({
+        userId: emad.id,
+        image: p.image,
+        note: p.note,
+        takenOn: new Date(p.takenOn),
+      })),
+    });
+
+    await prisma.medicalFile.create({ data: { userId: emad.id, ...MEDICAL } });
+
+    await prisma.medicalReport.create({
+      data: {
+        userId: emad.id,
+        title: REPORT.title,
+        content: REPORT.content,
+        kind: REPORT.kind,
+      },
+    });
+  }
+
   console.log(
     `Seeded: ${gyms.length} gyms, ${users.length} users, ${plans.length} plans, ` +
       `${memberships.length} memberships, ${payments.length} payments, ` +
       `${checkIns.length} check-ins.`,
   );
+
+  if (emad) {
+    console.log(
+      `Emad also has ${WEIGHTS.length} weighings, ${PHOTOS.length} private photos, ` +
+        `a medical file and 1 report.`,
+    );
+  }
 }
 
 try {

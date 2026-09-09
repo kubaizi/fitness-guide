@@ -621,6 +621,161 @@ export async function deleteWeight(userId: string, id: string): Promise<void> {
   await prisma.weightEntry.deleteMany({ where: { id, userId } });
 }
 
+// ─────────────────────────────────────────────────── private: photos & health
+//
+// Everything from here to the sign-up section is the member's own and nobody
+// else's. Two rules hold across all of it, and both are enforced by shape
+// rather than by remembering:
+//
+//   1. Every function takes a userId and filters by it IN THE QUERY. There is
+//      no "photos for any member" function to call by mistake.
+//   2. No admin query touches these tables. Check before adding one.
+//
+// See the four confirmed rules in docs/product-decisions.md.
+
+export interface ProgressPhotoRow {
+  readonly id: string;
+  readonly image: string;
+  readonly note: string | null;
+  readonly takenOn: string;
+}
+
+export async function photosFor(
+  userId: string,
+  limit = 60,
+): Promise<readonly ProgressPhotoRow[]> {
+  const rows = await prisma.progressPhoto.findMany({
+    where: { userId },
+    orderBy: { takenOn: "desc" },
+    take: limit,
+  });
+
+  return rows.map((p) => ({
+    id: p.id,
+    image: p.image,
+    note: p.note,
+    takenOn: isoDay(p.takenOn),
+  }));
+}
+
+/** How many the member already has — the cap is checked against this. */
+export async function photoCountFor(userId: string): Promise<number> {
+  return prisma.progressPhoto.count({ where: { userId } });
+}
+
+export async function addPhoto(
+  userId: string,
+  image: string,
+  takenOn: string,
+  note: string | null,
+): Promise<void> {
+  await prisma.progressPhoto.create({
+    data: { userId, image, takenOn: new Date(takenOn), note },
+  });
+}
+
+/** Scoped by owner in the query, so nobody can delete another member's. */
+export async function deletePhoto(userId: string, id: string): Promise<void> {
+  await prisma.progressPhoto.deleteMany({ where: { id, userId } });
+}
+
+/** The health answers. Null when the member has never opened the section. */
+export interface MedicalAnswers {
+  readonly allergies: string | null;
+  readonly disabilities: string | null;
+  readonly chronicInjuries: string | null;
+  readonly medications: string | null;
+  readonly bloodType: string | null;
+  readonly notes: string | null;
+}
+
+export async function medicalFor(userId: string): Promise<MedicalAnswers | null> {
+  return prisma.medicalFile.findUnique({
+    where: { userId },
+    select: {
+      allergies: true,
+      disabilities: true,
+      chronicInjuries: true,
+      medications: true,
+      bloodType: true,
+      notes: true,
+    },
+  });
+}
+
+/**
+ * Saves the answers, creating the row the first time.
+ *
+ * `upsert` rather than create-or-update by hand: a member has no row until they
+ * answer something, and two quick submissions would otherwise race into a
+ * unique-constraint error on userId.
+ */
+export async function saveMedical(
+  userId: string,
+  answers: MedicalAnswers,
+): Promise<void> {
+  await prisma.medicalFile.upsert({
+    where: { userId },
+    create: { userId, ...answers },
+    update: answers,
+  });
+}
+
+/**
+ * Erases the health answers entirely.
+ *
+ * Rule 1: the member can delete it at any time. Deleting the ROW rather than
+ * blanking the fields, so what is left is "they told us nothing" rather than
+ * "they told us six empty strings".
+ */
+export async function deleteMedical(userId: string): Promise<void> {
+  await prisma.medicalFile.deleteMany({ where: { userId } });
+}
+
+export interface MedicalReportRow {
+  readonly id: string;
+  readonly title: string;
+  readonly content: string;
+  readonly kind: string;
+  readonly uploadedAt: string;
+}
+
+export async function reportsFor(
+  userId: string,
+  limit = 30,
+): Promise<readonly MedicalReportRow[]> {
+  const rows = await prisma.medicalReport.findMany({
+    where: { userId },
+    orderBy: { uploadedAt: "desc" },
+    take: limit,
+  });
+
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    content: r.content,
+    kind: r.kind,
+    uploadedAt: r.uploadedAt.toISOString(),
+  }));
+}
+
+export async function reportCountFor(userId: string): Promise<number> {
+  return prisma.medicalReport.count({ where: { userId } });
+}
+
+export async function addReport(
+  userId: string,
+  title: string,
+  content: string,
+  kind: string,
+): Promise<void> {
+  await prisma.medicalReport.create({ data: { userId, title, content, kind } });
+}
+
+export async function deleteReport(userId: string, id: string): Promise<void> {
+  await prisma.medicalReport.deleteMany({ where: { id, userId } });
+}
+
 /** What a sign-up needs. Already validated and normalised by the caller. */
 export interface NewUser {
   readonly name: string;

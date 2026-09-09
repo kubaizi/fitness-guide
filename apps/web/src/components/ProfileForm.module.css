@@ -295,3 +295,110 @@
 .weightDelete {
   flex: none;
 }
+
+/* ─────────────────────────────────────────── the private gallery & reports */
+
+/* Matches .input, because a textarea that does not look like the boxes above
+   it reads as a different kind of control. `resize: vertical` lets someone
+   with a long answer make room without letting them break the layout
+   sideways, which `resize: both` would. */
+.textarea {
+  width: 100%;
+  padding: var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 3.4rem;
+}
+
+.textarea:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+  border-color: var(--gold-dim);
+}
+
+.subTitle {
+  font-size: 0.98rem;
+  font-weight: 650;
+  margin-block-start: var(--sp-6);
+  margin-block-end: var(--sp-2);
+  padding-block-start: var(--sp-4);
+  border-block-start: 1px solid var(--line);
+}
+
+.eraseRow {
+  margin-block-start: calc(var(--sp-5) * -1 + var(--sp-2));
+  margin-block-end: var(--sp-4);
+}
+
+/* The picture chosen but not yet saved. Capped in height rather than width, so
+   a portrait photo — which is what most of these will be — does not push the
+   Add button off the bottom of the screen. */
+.pendingPhoto {
+  display: block;
+  max-height: 220px;
+  max-width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--gold-dim);
+  margin-block-end: var(--sp-4);
+}
+
+/* `auto-fill` with `minmax` rather than a fixed column count: the browser fits
+   as many 120px columns as the width allows, so this needs no media query and
+   works at 320px and 1280px alike. */
+.grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--sp-3);
+}
+
+.gridItem {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg);
+  /* Grid children default to min-width:auto and would refuse to shrink below
+     their content — the same trap as the section tiles and the gym gallery. */
+  min-width: 0;
+}
+
+.gridPhoto {
+  display: block;
+  width: 100%;
+  /* A fixed shape for the thumbnails, so a row of portraits and landscapes
+     still lines up. The full picture opens at its own proportions. */
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+
+.gridMeta {
+  padding: var(--sp-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+}
+
+.gridDate {
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+
+.gridNote {
+  font-size: 0.78rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.reportTitle {
+  font-weight: 650;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

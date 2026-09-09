@@ -121,9 +121,10 @@ model User {
   /// of members it moves to real object storage and this column holds a URL
   /// instead; nothing else has to change, because it is a string either way.
   ///
-  /// A profile picture ONLY. Not body or progress photos — those would carry
-  /// the same weight as medical data and are not covered by any decision Emad
-  /// has made.
+  /// A profile picture ONLY — the one image other people are meant to see.
+  /// Body and progress photos live in ProgressPhoto below, which is private,
+  /// and they are kept apart on purpose: the moment those two share a column,
+  /// one careless query shows a private photo in a public place.
   photo String?
 
   /// Social handles, not URLs. The link is built from these, so a stored value
@@ -141,6 +142,9 @@ model User {
   reviews     Review[]
   checkIns    CheckIn[]
   weights     WeightEntry[]
+  photos      ProgressPhoto[]
+  medical     MedicalFile?
+  reports     MedicalReport[]
   // A gym owner or staff member is linked to the gym they work at.
   staffAtGym   Gym?    @relation("GymStaff", fields: [staffAtGymId], references: [id])
   staffAtGymId String?
@@ -185,6 +189,101 @@ model WeightEntry {
 
 /// `onDelete: Cascade` above is doing real work: deleting the account erases
 /// the weight history with it, which is rule 1 of the medical decisions.
+
+/// A photo the member took of themselves. Private.
+///
+/// Emad's earlier decision said the profile picture was a profile picture only,
+/// "not body or progress photos, which would need the same protection as
+/// medical data". He has now asked for them, and answered that objection in the
+/// same breath: private, visible only to the member. So they are built under
+/// the medical rules rather than beside the avatar.
+///
+/// No admin query touches this table, and there is no function that reads
+/// another member's photos.
+model ProgressPhoto {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  /// A `data:image/...;base64,` string, shrunk by the browser before sending.
+  /// See the note at the bottom of this file about where this has to go next.
+  image String
+  /// The member's own caption. Optional, like everything else here.
+  note  String?
+
+  takenOn   DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  @@index([userId, takenOn])
+}
+
+/// The member's answers to the health questions. One per member.
+///
+/// Every field is optional, including the whole row — a member who never opens
+/// this section has no MedicalFile at all, which is the honest representation
+/// of "they have not told us anything".
+///
+/// Read the four confirmed rules in docs/product-decisions.md before touching
+/// this. The one that shapes the code is rule 2: nobody at Fitness Guide may
+/// read it, admins included.
+model MedicalFile {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// One file per member, enforced by the database rather than by remembering.
+  userId String @unique
+
+  /// Free text, not a checklist. "Do you have allergies?" has a thousand
+  /// answers and a member describing theirs in their own words is far more use
+  /// to a doctor than a tick-box we invented.
+  allergies       String?
+  disabilities    String?
+  chronicInjuries String?
+  medications     String?
+  /// "O+", "AB-". Short and standard, so a plain string is enough.
+  bloodType       String?
+  /// Anything the questions above did not ask about.
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// A scan or photo of a medical report. Private, under the same rules.
+model MedicalReport {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  /// What it is, in the member's words — "blood test, March".
+  title String
+  /// A `data:` string: an image the browser shrunk, or a small PDF as-is.
+  content String
+  /// "image" or "pdf". Decides whether the page shows it or offers it as a
+  /// download, and is stored rather than parsed back out of the data URI.
+  kind String
+
+  uploadedAt DateTime @default(now())
+
+  @@index([userId, uploadedAt])
+}
+
+/// ─────────────────────────────────────────────────────────────────────────
+/// A LIMIT WORTH KNOWING ABOUT, on the three columns above that hold files.
+///
+/// `photo`, `ProgressPhoto.image` and `MedicalReport.content` all store the
+/// file itself, base64-encoded, inside the row. For one small avatar that is a
+/// fair trade — no bucket, no second service, no card on file.
+///
+/// A gallery is a different size of problem. Twelve progress photos and six
+/// reports is a few megabytes per member, and Neon's free plan holds half a
+/// gigabyte. That is fine for a demo and will not do for a real membership.
+/// The caps in the actions exist to keep this survivable, not because they are
+/// the right product answer.
+///
+/// Before real members arrive, these three move to object storage and the
+/// columns hold URLs instead. Nothing else changes, because a column that
+/// holds a data URI and a column that holds a URL are both just strings.
+/// ─────────────────────────────────────────────────────────────────────────
 
 model Gym {
   id   String @id @default(cuid())

@@ -7,7 +7,7 @@ is not somewhere a decision survives.
 Anything not listed here is still open. If you find yourself guessing, it
 belongs in the "Still open" section at the bottom rather than in the code.
 
-Last updated: 4 September 2026.
+Last updated: 9 September 2026.
 
 ---
 
@@ -19,7 +19,8 @@ no members and no advertising. Then finish one section at a time.**
 This replaced the earlier "gyms only for release one". Emad's words: the first
 release was experimental and was never approved.
 
-The ten sections, in his priority order:
+The sections, in his priority order. It was ten; institutes was added in
+September, making eleven:
 
 1. Gyms
 2. Personal trainers
@@ -31,6 +32,7 @@ The ten sections, in his priority order:
 8. Sportswear
 9. Discounts and offers
 10. Suggestions and complaints
+11. Institutes and certificates — **added September 2026**
 
 **Academies is dropped.** It was in the original brochure; he confirmed "no".
 
@@ -46,6 +48,10 @@ The ten sections, in his priority order:
 - **Diet restaurants** sell monthly subscriptions with meals, not a directory.
 - **Complaints and suggestions** live inside the user's account, not as a home
   page section — despite appearing as a card in his mockup.
+- **Institutes and certificates**, added September 2026. Bodies that run
+  courses and issue athletic certificates under their own accreditation. Its
+  sub-items: training institutes, accredited sports certificates, qualification
+  courses, exams and equivalency.
 
 ### Offers and discounts appear twice, deliberately
 
@@ -166,11 +172,41 @@ The profile page itself is at `/{locale}/account`.
 Three parts: personal information, a medical section, and a profile picture.
 **Everything is optional except the personal information.**
 
-- The **profile photo is a profile picture only** — not body or progress
-  photos, which would need the same protection as medical data.
+- The **profile photo is a profile picture only** — the one image other people
+  are meant to see.
 - The **medical section** holds health conditions and lab results, entered by
   the member if they want to. Its purpose is a file the member can send to a
   doctor or trainer registered on the platform.
+
+### Private photos — a decision that was reversed
+
+The line above used to end "not body or progress photos, which would need the
+same protection as medical data". **In September Emad asked for them**, and
+answered that objection in the same sentence: they are private, visible only to
+the member.
+
+So they exist, in their own section, under the four rules below rather than
+beside the avatar. The two are separate tables and separate screens on purpose:
+the moment one query can reach both, a private photo can appear in a public
+place.
+
+### What the medical section actually asks
+
+Emad's instruction was that the app should ask, rather than offer a blank box.
+The questions, all optional and all free text:
+
+- Do you have any allergies?
+- Do you have a disability or limited movement?
+- Do you have a chronic injury?
+- Do you take any medication regularly?
+- Blood type
+- Anything else you want to mention
+
+Plus **medical reports** — a photo or a PDF of a test result.
+
+Free text rather than tick-boxes, deliberately. "Do you have allergies" has a
+thousand answers, and a checklist quietly tells people that anything not on it
+does not count.
 
 **Confirmed by Emad, September 2026.** These four rules are settled and must
 hold in any code that touches the medical section:
@@ -185,6 +221,32 @@ hold in any code that touches the medical section:
 Health data carries obligations that a phone number does not. Anyone building
 this section reads these four rules first, and if a feature request conflicts
 with one of them, the rule wins until Emad says otherwise in writing.
+
+The weight log and the private photo gallery are built under these same four
+rules, even though weight was described as ordinary profile data. A record of
+someone's body over time is health data by any ordinary reading, and the safe
+choice costs nothing.
+
+### Where rule 2 currently stops — read this before launch
+
+**The code satisfies rule 2. The storage does not.**
+
+What is true today: no feature reads the medical file, no admin query touches
+any of those tables, there is no function anywhere that fetches another
+member's health data or photos, and deleting an account erases all of it.
+
+What is also true: anyone holding the database connection string can read every
+member's allergies, injuries and private photos in plain text. That includes
+us. Rule 2 says "nobody at Fitness Guide can read it — including admins", and
+at the level of the database that is not yet enforced.
+
+Closing the gap means encrypting these fields with a key the platform does not
+hold. That is real work, and it collides with something else missing: if the
+key is derived from the member's password, forgetting the password destroys the
+medical file, and there is no password reset either.
+
+**This is fine for a demo with invented data. It must be resolved before a real
+member types a real diagnosis into it.**
 
 ---
 

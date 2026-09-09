@@ -80,7 +80,8 @@ export const en = {
     demo: "Demo build — not a live service yet",
   },
   sections: {
-    // Emad's ten sections, in the order his home page mockup shows them.
+    // Emad's sections, in the order his home page mockup shows them. It was
+    // ten; institutes was added afterwards, in September.
     // The sub-items under each card are taken straight from that design.
     title: "Everything in Fitness Guide",
     subtitle: "Starting with gyms — the rest are on the way",
@@ -136,6 +137,12 @@ export const en = {
     supplements2: "Vitamins",
     supplements3: "Amino acids",
     supplements4: "Herbs & natural",
+
+    institutes: "Institutes & certificates",
+    institutes1: "Training institutes",
+    institutes2: "Accredited sports certificates",
+    institutes3: "Qualification courses",
+    institutes4: "Exams & equivalency",
 
     complaints: "Complaints & suggestions",
     complaints1: "Submit a complaint",
@@ -350,11 +357,6 @@ export const en = {
     language: "Language",
     role: "Account type",
     noPhone: "None",
-    medical: "Medical file",
-    medicalSoon:
-      "An optional section for health conditions and lab results, which the member sends to a doctor or trainer. Not built yet.",
-    photo: "Profile picture",
-    soon: "Soon",
     myMemberships: "My memberships",
   },
 
@@ -396,6 +398,59 @@ export const en = {
     weightDateInvalid: "That is not a valid measurement date",
     saveFailed: "Could not save. Try again.",
   },
+  gallery: {
+    title: "My photos",
+    hint: "Your photos alone — nobody at Fitness Guide can see them",
+    add: "Add a photo",
+    pick: "Choose a photo",
+    date: "Date taken",
+    note: "Note",
+    notePlaceholder: "Start of the programme, after 3 months…",
+    none: "No photos yet",
+    remove: "Delete",
+    photoInvalid: "That photo could not be saved. Try another one.",
+    dateInvalid: "That is not a valid date",
+    noteInvalid: "A note can be at most 120 characters",
+    full: "You have reached the photo limit. Delete one to add another.",
+  },
+
+  medical: {
+    title: "Medical file",
+    hint: "Your health information. Nobody at Fitness Guide reads it, not even admins.",
+    purpose:
+      "It is here so you can send it yourself to a doctor or trainer on the platform.",
+
+    allergies: "Do you have any allergies?",
+    allergiesPlaceholder: "A medicine, a food, something else…",
+    disabilities: "Do you have a disability or limited movement?",
+    disabilitiesPlaceholder: "Anything that affects training",
+    chronicInjuries: "Do you have a chronic injury?",
+    chronicInjuriesPlaceholder: "Knee, back, shoulder…",
+    medications: "Do you take any medication regularly?",
+    medicationsPlaceholder: "Name and dose",
+    bloodType: "Blood type",
+    notes: "Anything else you want to mention",
+
+    save: "Save medical file",
+    saved: "Saved",
+    erase: "Delete the whole medical file",
+    tooLong: "An answer can be at most 500 characters",
+
+    reports: "Medical reports",
+    reportsHint: "A photo or a PDF of a test or report",
+    reportTitle: "Report title",
+    reportTitlePlaceholder: "Blood test, March",
+    reportPick: "Choose a file",
+    reportAdd: "Add report",
+    reportOpen: "Open",
+    reportRemove: "Delete",
+    reportsNone: "No reports yet",
+    titleInvalid: "Enter a title, between 2 and 80 characters",
+    reportInvalid: "The file must be an image or a PDF",
+    reportTooBig: "That file is too big. The limit is about half a megabyte.",
+    reportsFull: "You have reached the report limit. Delete one to add another.",
+  },
+
   admin: {
     usersTitle: "Users",
     usersSubtitle: "Every account registered on the platform",

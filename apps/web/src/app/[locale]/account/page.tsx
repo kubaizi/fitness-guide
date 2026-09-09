@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 import type { TranslationKey } from "@fg/i18n";
 import { createTranslator, isLocale } from "@fg/i18n";
 import { requireUser } from "@/lib/dal";
-import { profileFor, weightsFor } from "@/lib/db";
+import { medicalFor, photosFor, profileFor, reportsFor, weightsFor } from "@/lib/db";
 import { ProfileForm } from "@/components/ProfileForm";
 import { WeightLog } from "@/components/WeightLog";
+import { PhotoGallery } from "@/components/PhotoGallery";
+import { MedicalFile } from "@/components/MedicalFile";
 import styles from "./page.module.css";
 
 const ROLE_KEY: Record<string, TranslationKey> = {
@@ -26,9 +28,13 @@ const ROLE_KEY: Record<string, TranslationKey> = {
  * here: the username identifies the account, the phone number is the identity
  * this market signs in with, and the role is set by the platform.
  *
- * The medical file is still shown as unbuilt. Its four rules are settled
- * (docs/product-decisions.md) but nothing of it is written yet, and weight —
- * which IS here — is treated under those same rules: see WeightLog.tsx.
+ * Three of the sections below are PRIVATE — the weight log, the photo gallery
+ * and the medical file. They are built under the four confirmed rules in
+ * docs/product-decisions.md, the sharpest of which is that nobody at Fitness
+ * Guide may read them, admins included. Each says so on screen, and no admin
+ * query touches any of their tables. Read MedicalFile.tsx before changing any
+ * of it: there is an honest note there about where that promise currently
+ * stops.
  */
 export default async function AccountPage({ params }: PageProps<"/[locale]/account">) {
   const { locale: raw } = await params;
@@ -45,9 +51,12 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/accou
   // Fetched together rather than one after the other — they do not depend on
   // each other, so waiting for them in turn would cost two round trips for no
   // reason.
-  const [profile, weights] = await Promise.all([
+  const [profile, weights, photos, medical, reports] = await Promise.all([
     profileFor(user.id),
     weightsFor(user.id),
+    photosFor(user.id),
+    medicalFor(user.id),
+    reportsFor(user.id),
   ]);
 
   // The session says this user exists and the row says otherwise — an account
@@ -88,24 +97,19 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/accou
 
       {/* Members only. An admin holds no memberships and does not weigh in on
           this platform; showing them an empty weight log would be noise. */}
-      {user.role !== "admin" && <WeightLog locale={locale} entries={weights} />}
+      {user.role !== "admin" && (
+        <>
+          <WeightLog locale={locale} entries={weights} />
+          <PhotoGallery locale={locale} photos={photos} />
+          <MedicalFile locale={locale} answers={medical} reports={reports} />
+        </>
+      )}
 
       {user.role !== "admin" && (
         <Link href={`/${locale}/memberships`} className={styles.cta}>
           {t("account.myMemberships")}
         </Link>
       )}
-
-      {/* Still unbuilt. Shown so the shape of the account is visible, and
-          because the four rules that govern it are agreed but nothing has been
-          written against them yet. */}
-      <section className={`${styles.card} ${styles.cardSoon}`}>
-        <div className={styles.soonHead}>
-          <h2 className={styles.cardTitle}>{t("account.medical")}</h2>
-          <span className={styles.soon}>{t("account.soon")}</span>
-        </div>
-        <p className={styles.note}>{t("account.medicalSoon")}</p>
-      </section>
     </main>
   );
 }

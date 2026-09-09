@@ -85,7 +85,7 @@ export const ar = {
     demo: "نسخة تجريبية — ليست خدمة فعلية بعد",
   },
   sections: {
-    // الأقسام العشرة من تصميم عماد، بترتيب صفحته الرئيسية نفسه.
+    // أقسام عماد، بترتيب صفحته الرئيسية نفسه. كانت عشرة، وأضاف المعاهد لاحقاً.
     // البنود الفرعية تحت كل قسم منقولة من التصميم كما هي.
     title: "كل أقسام دليل اللياقة",
     subtitle: "نبدأ بالأندية، وبقية الأقسام في الطريق",
@@ -141,6 +141,12 @@ export const ar = {
     supplements2: "فيتامينات",
     supplements3: "أحماض أمينية",
     supplements4: "أعشاب ومكملات طبيعية",
+
+    institutes: "المعاهد والشهادات",
+    institutes1: "معاهد تدريب",
+    institutes2: "شهادات رياضية معتمدة",
+    institutes3: "دورات تأهيلية",
+    institutes4: "اختبارات ومعادلة",
 
     complaints: "الشكاوى والاقتراحات",
     complaints1: "تقديم شكوى",
@@ -365,11 +371,6 @@ export const ar = {
     language: "اللغة",
     role: "نوع الحساب",
     noPhone: "لا يوجد",
-    medical: "الملف الطبي",
-    medicalSoon:
-      "قسم اختياري للحالة الصحية والتحاليل، يرسله العضو لطبيب أو مدرب. لم يُبنَ بعد.",
-    photo: "الصورة الشخصية",
-    soon: "قريباً",
     myMemberships: "اشتراكاتي",
   },
 
@@ -414,6 +415,61 @@ export const ar = {
     weightDateInvalid: "تاريخ القياس غير صحيح",
     saveFailed: "تعذّر الحفظ. حاول مرة أخرى.",
   },
+  // معرض الصور الخاص — صور العضو لنفسه. خاصة تماماً.
+  gallery: {
+    title: "صوري",
+    // The privacy line matters more here than anywhere else on the page.
+    hint: "صورك أنت فقط — لا يراها أي أحد في دليل اللياقة",
+    add: "إضافة صورة",
+    pick: "اختيار صورة",
+    date: "تاريخ الصورة",
+    note: "ملاحظة",
+    notePlaceholder: "بداية البرنامج، بعد ٣ أشهر…",
+    none: "لا توجد صور بعد",
+    remove: "حذف",
+    photoInvalid: "تعذّر حفظ الصورة. جرّب صورة أخرى.",
+    dateInvalid: "تاريخ غير صحيح",
+    noteInvalid: "الملاحظة ١٢٠ حرفاً كحد أقصى",
+    full: "وصلت الحد الأقصى للصور. احذف واحدة لإضافة غيرها.",
+  },
+
+  // الملف الطبي. القواعد الأربع في docs/product-decisions.md.
+  medical: {
+    title: "الملف الطبي",
+    hint: "معلوماتك الصحية. لا يقرأها أي أحد في دليل اللياقة، ولا حتى الإدارة.",
+    purpose: "الغرض منها أن ترسلها بنفسك لطبيب أو مدرب مسجّل في المنصة.",
+
+    allergies: "هل لديك حساسية؟",
+    allergiesPlaceholder: "حساسية من دواء، طعام، شيء آخر…",
+    disabilities: "هل لديك إعاقة أو محدودية حركة؟",
+    disabilitiesPlaceholder: "شيء يؤثر على التمرين",
+    chronicInjuries: "هل لديك إصابة مزمنة؟",
+    chronicInjuriesPlaceholder: "الركبة، الظهر، الكتف…",
+    medications: "هل تأخذ أدوية بشكل منتظم؟",
+    medicationsPlaceholder: "اسم الدواء والجرعة",
+    bloodType: "فصيلة الدم",
+    notes: "أي شيء آخر تحب ذكره",
+
+    save: "حفظ الملف الطبي",
+    saved: "تم الحفظ",
+    erase: "حذف الملف الطبي بالكامل",
+    tooLong: "الإجابة ٥٠٠ حرف كحد أقصى",
+
+    reports: "التقارير الطبية",
+    reportsHint: "صورة أو ملف PDF لتحليل أو تقرير",
+    reportTitle: "عنوان التقرير",
+    reportTitlePlaceholder: "تحليل دم، مارس",
+    reportPick: "اختيار ملف",
+    reportAdd: "إضافة تقرير",
+    reportOpen: "فتح",
+    reportRemove: "حذف",
+    reportsNone: "لا توجد تقارير بعد",
+    titleInvalid: "اكتب عنواناً، من حرفين إلى ٨٠ حرفاً",
+    reportInvalid: "الملف يجب أن يكون صورة أو PDF",
+    reportTooBig: "الملف كبير. الحد الأقصى تقريباً نصف ميغابايت.",
+    reportsFull: "وصلت الحد الأقصى للتقارير. احذف واحداً لإضافة غيره.",
+  },
+
   admin: {
     usersTitle: "المستخدمون",
     usersSubtitle: "كل الحسابات المسجّلة في المنصة",
