@@ -190,7 +190,9 @@ export async function logWeight(
     return { error: t("profile.weightDateInvalid") };
   }
 
-  await recordWeight(user.id, grams, measuredOn);
+  const added = await recordWeight(user.id, grams, measuredOn);
+  if (!added) return { error: t("profile.weightExists") };
+
   revalidatePath(`/${locale}/account`);
   return { saved: true };
 }

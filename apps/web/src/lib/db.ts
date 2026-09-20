@@ -581,9 +581,7 @@ export async function weightsFor(
 ): Promise<readonly WeightPoint[]> {
   const rows = await prisma.weightEntry.findMany({
     where: { userId },
-    // Newest day first; within a day, the order they were added. Two keys, so
-    // a morning and an evening weighing on the same date do not shuffle.
-    orderBy: [{ measuredOn: "desc" }, { createdAt: "desc" }],
+    orderBy: { measuredOn: "desc" },
     take: limit,
   });
 
@@ -595,21 +593,40 @@ export async function weightsFor(
 }
 
 /**
- * Records a weighing. Every call is a new row, including two on one day.
+ * Records a weighing. One per day: a second on the same date is refused.
  *
- * This used to be an upsert that replaced a same-day entry, on the theory that
- * a second number for today was a correction. Emad's answer was that morning
- * and evening are both real and each should be its own row — and the replace
- * had read to him as "adding stopped working", which is worse than either.
+ * Returns false when that day already has one, and does NOT overwrite it.
+ * The first version of this replaced the earlier number silently, which read
+ * as "adding stopped working" to the person pressing the button. Refusing out
+ * loud is the same rule made visible: the member sees why, and the delete
+ * button beside the existing row is the way to change it.
+ *
+ * The refusal comes from the database, not from a lookup first. The pair
+ * (userId, measuredOn) is unique, so two requests arriving together cannot both
+ * get through — Postgres lets one in and rejects the other with P2002, and
+ * that is what the catch turns into `false`.
  */
 export async function recordWeight(
   userId: string,
   grams: number,
   measuredOn: string,
-): Promise<void> {
-  await prisma.weightEntry.create({
-    data: { userId, grams, measuredOn: new Date(measuredOn) },
-  });
+): Promise<boolean> {
+  try {
+    await prisma.weightEntry.create({
+      data: { userId, grams, measuredOn: new Date(measuredOn) },
+    });
+    return true;
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
+      return false;
+    }
+    throw error;
+  }
 }
 
 /** Deletes one weighing, scoped to its owner so nobody can delete another's. */

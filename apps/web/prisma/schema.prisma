@@ -183,10 +183,15 @@ model WeightEntry {
 
   createdAt DateTime @default(now())
 
-  /// Several weighings on one day are allowed and each is its own row —
-  /// morning and evening are both real, and Emad asked for it that way after
-  /// the first version replaced same-day entries and read as "it stopped
-  /// working". Rows on the same day keep the order they were added in.
+  /// One weighing per person per day, and the database enforces it.
+  ///
+  /// This went back and forth. The first version replaced a same-day entry
+  /// silently, which read to Emad as "adding stopped working". The second
+  /// allowed several a day. Rodi then settled it: once per day. So the unique
+  /// pair is back — but a second entry on the same day is now REFUSED with a
+  /// message, never quietly overwritten. The difference between the two is
+  /// the whole lesson: same rule, and one of them looks broken.
+  @@unique([userId, measuredOn])
   @@index([userId, measuredOn, createdAt])
 }
 

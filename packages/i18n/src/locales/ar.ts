@@ -414,6 +414,9 @@ export const ar = {
     handleInvalid: "اسم الحساب: حروف وأرقام و . و _ فقط",
     weightInvalid: "وزن غير صحيح",
     weightDateInvalid: "تاريخ القياس غير صحيح",
+    // Says what to do, not only what went wrong — the delete button is right
+    // there on the existing row.
+    weightExists: "يوجد قياس لهذا اليوم بالفعل. احذفه أولاً إذا أردت تغييره.",
     saveFailed: "تعذّر الحفظ. حاول مرة أخرى.",
   },
   // معرض الصور الخاص — صور العضو لنفسه. خاصة تماماً.
@@ -530,7 +533,6 @@ export const ar = {
     dismiss: "تجاهل البلاغ",
     openCount: "بلاغ مفتوح",
   },
-
 
   admin: {
     usersTitle: "المستخدمون",

@@ -377,7 +377,8 @@ export const en = {
     occupationPlaceholder: "Engineer, teacher, student…",
 
     social: "Social accounts",
-    socialHint: "Just the account name, not a link. Tap the network name to open your account.",
+    socialHint:
+      "Just the account name, not a link. Tap the network name to open your account.",
 
     weight: "Weight",
     weightHint: "Your record alone — nobody at Fitness Guide can see it",
@@ -397,6 +398,8 @@ export const en = {
     handleInvalid: "Account name: letters, numbers, . and _ only",
     weightInvalid: "That is not a valid weight",
     weightDateInvalid: "That is not a valid measurement date",
+    weightExists:
+      "There is already a measurement for that day. Delete it first to change it.",
     saveFailed: "Could not save. Try again.",
   },
   gallery: {
@@ -413,7 +416,8 @@ export const en = {
     vMembers: "Members",
     vMembersHint: "Every signed-in member, with your name and profile picture.",
     vPublic: "Public",
-    vPublicHint: "Anyone on the internet, with your name and profile picture. No sign-in needed.",
+    vPublicHint:
+      "Anyone on the internet, with your name and profile picture. No sign-in needed.",
     change: "Change",
     date: "Date taken",
     note: "Note",
@@ -506,7 +510,6 @@ export const en = {
     dismiss: "Dismiss report",
     openCount: "open reports",
   },
-
 
   admin: {
     usersTitle: "Users",

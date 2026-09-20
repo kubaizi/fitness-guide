@@ -251,9 +251,13 @@ this section reads these four rules first, and if a feature request conflicts
 with one of them, the rule wins until Emad says otherwise in writing.
 
 The weight log is built under these same four rules, even though weight was
-described as ordinary profile data. **Several weighings a day are allowed** and
-each is its own row — Emad's answer, after a first version that replaced
-same-day entries read to him as "adding stopped working". A record of
+described as ordinary profile data. **One weighing per day.** This went back
+and forth: the first version silently replaced a same-day entry, which read to
+Emad as "adding stopped working"; a second version briefly allowed several a
+day; Rodi then settled it on 20 September as once per day. The rule is the
+same as the first version — the difference is that a second entry is now
+**refused with a message** rather than quietly overwritten, and that is the
+whole difference between a rule and a bug. A record of
 someone's body over time is health data by any ordinary reading, and the safe
 choice costs nothing.
 
