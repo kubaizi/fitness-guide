@@ -1,0 +1,101 @@
+/*
+ * The loading skeleton. Grey shapes where content will be, breathing gently.
+ *
+ * The width matches the account page, which is the one people wait for most.
+ * Wider pages get a narrower skeleton for a moment; that is fine, because the
+ * point is to show that something is happening, not to predict the layout.
+ */
+
+.main {
+  max-width: 720px;
+  margin-inline: auto;
+  padding: var(--sp-7) var(--sp-5) var(--sp-8);
+}
+
+/* Standard visually-hidden recipe: present for a screen reader, no pixels for
+   anyone else. `display: none` would hide it from both. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Every shape shares the fill and the pulse. */
+.title,
+.subtitle,
+.line,
+.lineShort,
+.block {
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.title {
+  height: 2.2rem;
+  width: 40%;
+  margin-block-end: var(--sp-3);
+}
+
+.subtitle {
+  height: 1rem;
+  width: 60%;
+  margin-block-end: var(--sp-6);
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: var(--sp-5);
+  margin-block-end: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.line {
+  height: 1rem;
+  width: 100%;
+}
+
+.lineShort {
+  height: 1rem;
+  width: 45%;
+}
+
+.block {
+  height: 5rem;
+  width: 100%;
+}
+
+/*
+ * A slow fade between two greys. Slow on purpose: a fast pulse looks anxious,
+ * and the one thing a loading screen must not do is make the wait feel longer.
+ */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title,
+  .subtitle,
+  .line,
+  .lineShort,
+  .block {
+    animation: none;
+    opacity: 0.7;
+  }
+}

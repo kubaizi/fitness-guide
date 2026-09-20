@@ -6,6 +6,7 @@ import { navItemsFor } from "@/lib/nav";
 import { LocaleSwitch } from "./LocaleSwitch";
 import { MobileMenu } from "./MobileMenu";
 import { AuthButton } from "./AuthButton";
+import { LinkPending } from "./LinkPending";
 import styles from "./SiteHeader.module.css";
 
 /**
@@ -63,6 +64,9 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
           {items.map((it) => (
             <Link key={it.href} href={it.href} className={styles.link}>
               {it.label}
+              {/* Spins on the link that was tapped while its page loads. See
+                  LinkPending.tsx — it only works from inside a <Link>. */}
+              <LinkPending />
             </Link>
           ))}
         </nav>

@@ -91,6 +91,10 @@ export function AccountMenu({
     <AvatarPlaceholder className={styles.avatar} />
   );
 
+  // No LinkPending spinner here, unlike the header nav: this menu closes the
+  // moment an item is tapped, so a spinner inside it would vanish with it.
+  // The loading skeleton (app/[locale]/loading.tsx) is what the member sees
+  // after tapping one of these.
   const links = items.map((it) => (
     <Link key={it.href} href={it.href} className={styles.item} onClick={close}>
       {it.label}

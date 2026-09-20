@@ -1,0 +1,55 @@
+/*
+ * The spinner beside a link while its page loads.
+ *
+ * Two classes rather than one class and a modifier, so a stale modifier can
+ * never leave a spinner spinning on a page that has already arrived.
+ */
+
+.off {
+  display: none;
+}
+
+.on {
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  margin-inline-start: 0.4em;
+  vertical-align: -0.1em;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  /*
+   * Two animations: the spin, and a fade-in that starts after 150ms.
+   *
+   * The delay is the whole trick. It begins at opacity 0 and stays there for
+   * 150ms, so a navigation that finishes in that time never shows a spinner at
+   * all — the page simply arrives. Only a slow one gets the indicator. Without
+   * this every tap would flash a spinner for a few frames, which reads as
+   * something going wrong rather than something loading.
+   */
+  opacity: 0;
+  animation:
+    spin 0.7s linear infinite,
+    appear 0.15s linear 0.15s forwards;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
+}
+
+/* No spinning for anyone who has asked their system for less motion. The
+   spinner still appears, as a still ring — the information survives, the
+   movement does not. */
+@media (prefers-reduced-motion: reduce) {
+  .on {
+    animation: appear 0.15s linear 0.15s forwards;
+  }
+}
