@@ -9,8 +9,9 @@ import styles from "./ManageForm.module.css";
 // Exported so each admin page can declare which tab it is by passing
 // `current="gyms"`. Because it is a union, a page cannot pass a section that
 // does not exist.
-export type AdminTab =
-  "overview" | "gyms" | "users" | "memberships" | "checkIns" | "payments";
+// Derived from TABS below rather than written twice, so adding a tab is one
+// edit and the two cannot disagree.
+export type AdminTab = (typeof TABS)[number]["id"];
 
 // Data-driven again, like SectionGrid. `as const` keeps the `label` values as
 // exact literals so they satisfy `TranslationKey` when passed to `t()`.
@@ -24,6 +25,7 @@ const TABS = [
   { id: "memberships", path: "/memberships", label: "admin.tabMemberships" },
   { id: "checkIns", path: "/check-ins", label: "admin.tabCheckIns" },
   { id: "payments", path: "/payments", label: "admin.tabPayments" },
+  { id: "reports", path: "/reports", label: "admin.tabReports" },
 ] as const;
 
 /**

@@ -72,11 +72,71 @@ function solidPng(size, [r, g, b]) {
   return `data:image/png;base64,${png.toString("base64")}`;
 }
 
-/** Three invented progress photos, in the order they were taken. */
+/**
+ * Emad's photos, one of each visibility, so every state of the gallery and the
+ * feed can be seen with one account.
+ */
 export const PHOTOS = [
-  { image: solidPng(64, [86, 104, 128]), takenOn: "2026-06-01", note: "بداية البرنامج" },
-  { image: solidPng(64, [104, 128, 96]), takenOn: "2026-07-15", note: "بعد ٦ أسابيع" },
-  { image: solidPng(64, [140, 150, 116]), takenOn: "2026-09-01", note: "بعد ٣ أشهر" },
+  {
+    image: solidPng(64, [86, 104, 128]),
+    takenOn: "2026-06-01",
+    note: "بداية البرنامج",
+    visibility: "private",
+  },
+  {
+    image: solidPng(64, [104, 128, 96]),
+    takenOn: "2026-07-15",
+    note: "بعد ٦ أسابيع",
+    visibility: "members",
+  },
+  {
+    image: solidPng(64, [140, 150, 116]),
+    takenOn: "2026-09-01",
+    note: "بعد ٣ أشهر 💪",
+    visibility: "public",
+  },
+];
+
+/**
+ * A few other members' shared photos, so the feed is a feed and not one
+ * person. Keyed by username; the seed looks the ids up.
+ */
+export const FEED = [
+  {
+    username: "rodi",
+    image: solidPng(64, [120, 90, 140]),
+    takenOn: "2026-08-20",
+    note: "أول سباق ١٠ كم",
+    visibility: "public",
+  },
+  {
+    username: "noura",
+    image: solidPng(64, [160, 120, 100]),
+    takenOn: "2026-09-05",
+    note: "تمرين الصباح",
+    visibility: "public",
+  },
+  {
+    username: "bader",
+    image: solidPng(64, [90, 130, 150]),
+    takenOn: "2026-09-10",
+    note: "رقم جديد في الديدلفت",
+    visibility: "members",
+  },
+];
+
+/** Who liked and said what. Photos are referred to by their owner and index. */
+export const LIKES = [
+  { on: ["emad", 2], by: ["rodi", "noura", "bader"] },
+  { on: ["rodi", 0], by: ["emad", "noura"] },
+  { on: ["noura", 0], by: ["emad", "rodi", "bader", "faisal"] },
+];
+
+export const COMMENTS = [
+  { on: ["emad", 2], by: "rodi", body: "ما شاء الله، فرق واضح!" },
+  { on: ["emad", 2], by: "noura", body: "استمر 👏" },
+  { on: ["noura", 0], by: "emad", body: "الله يعطيك العافية" },
+  { on: ["rodi", 0], by: "bader", body: "مبروك، الجاية نص ماراثون" },
 ];
 
 /** Invented health answers, written in Arabic the way a member would write. */

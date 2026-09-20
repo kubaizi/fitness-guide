@@ -1,0 +1,115 @@
+/* The moderation queue. One card per report, the thing and two buttons. */
+
+.empty {
+  color: var(--muted);
+  padding: var(--sp-6) 0;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.report {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: var(--sp-4);
+  display: flex;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.what {
+  display: flex;
+  gap: var(--sp-4);
+  flex: 1 1 20rem;
+  min-width: 0;
+}
+
+.thumb {
+  width: 96px;
+  height: 96px;
+  flex: none;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+
+.text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.kind {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.body {
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* The reporter's reason: set apart, because it is the one line the admin is
+   actually here to read. */
+.reason {
+  font-size: 0.9rem;
+  color: var(--ink-2);
+  padding-inline-start: var(--sp-3);
+  border-inline-start: 2px solid var(--gold-dim);
+}
+
+.open {
+  font-size: 0.85rem;
+  color: var(--gold);
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  flex: none;
+}
+
+.remove,
+.dismiss {
+  font: inherit;
+  font-size: 0.88rem;
+  padding: var(--sp-2) var(--sp-4);
+  min-height: 36px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.remove {
+  border: 1px solid var(--crit, #e07a63);
+  background: var(--crit-wash, #26140f);
+  color: var(--crit, #e07a63);
+}
+
+.dismiss {
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.remove:focus-visible,
+.dismiss:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}

@@ -73,6 +73,11 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/accou
         </div>
       </div>
 
+      {/* The profile form renders the picture card FIRST, then the personal
+          details, then the social accounts. Emad's point 1: the picture is the
+          first thing on the page. The read-only block follows it. */}
+      <ProfileForm locale={locale} profile={profile} />
+
       {/* What the member cannot change here, kept short and stated plainly
           rather than shown as disabled boxes — a greyed-out field invites
           people to try to edit it and then wonder why they cannot. */}
@@ -92,8 +97,6 @@ export default async function AccountPage({ params }: PageProps<"/[locale]/accou
           ))}
         </dl>
       </section>
-
-      <ProfileForm locale={locale} profile={profile} />
 
       {/* Members only. An admin holds no memberships and does not weigh in on
           this platform; showing them an empty weight log would be noise. */}

@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 
 import { PrismaPg } from "@prisma/adapter-pg";
 
-import { MEDICAL, PHOTOS, REPORT, WEIGHTS } from "./demo-emad.mjs";
+import { COMMENTS, FEED, LIKES, MEDICAL, PHOTOS, REPORT, WEIGHTS } from "./demo-emad.mjs";
 import { PrismaClient } from "@prisma/client";
 
 process.loadEnvFile(fileURLToPath(new URL("../.env", import.meta.url)));
@@ -52,7 +52,10 @@ async function main() {
   // a user row go while anything still points at it. The cascade rules would
   // handle it, but deleting explicitly keeps the order of this function honest
   // about what depends on what.
-  await prisma.progressPhoto.deleteMany();
+  await prisma.contentReport.deleteMany();
+  await prisma.photoComment.deleteMany();
+  await prisma.photoLike.deleteMany();
+  await prisma.photo.deleteMany();
   await prisma.medicalReport.deleteMany();
   await prisma.medicalFile.deleteMany();
   await prisma.weightEntry.deleteMany();
@@ -184,12 +187,13 @@ async function main() {
       })),
     });
 
-    await prisma.progressPhoto.createMany({
+    await prisma.photo.createMany({
       data: PHOTOS.map((p) => ({
         userId: emad.id,
         image: p.image,
         note: p.note,
         takenOn: new Date(p.takenOn),
+        visibility: p.visibility,
       })),
     });
 
@@ -205,6 +209,56 @@ async function main() {
     });
   }
 
+  // ── The feed: other members' shared photos, with likes and comments ──
+  // Ids are looked up by username, so the demo file can name people rather
+  // than carry database ids that change on every seed.
+  const idOf = (username) => users.find((u) => u.username === username)?.id;
+
+  for (const f of FEED) {
+    const userId = idOf(f.username);
+    if (!userId) continue;
+    await prisma.photo.create({
+      data: {
+        userId,
+        image: f.image,
+        note: f.note,
+        takenOn: new Date(f.takenOn),
+        visibility: f.visibility,
+      },
+    });
+  }
+
+  // "The third photo of emad" → its id. Both lists above refer to photos this
+  // way, and both need it resolved after the photos exist.
+  const photoOf = async ([username, index]) => {
+    const userId = idOf(username);
+    if (!userId) return null;
+    const rows = await prisma.photo.findMany({
+      where: { userId },
+      orderBy: { takenOn: "asc" },
+      select: { id: true },
+    });
+    return rows[index]?.id ?? null;
+  };
+
+  for (const like of LIKES) {
+    const photoId = await photoOf(like.on);
+    if (!photoId) continue;
+    await prisma.photoLike.createMany({
+      data: like.by
+        .map(idOf)
+        .filter(Boolean)
+        .map((userId) => ({ photoId, userId })),
+    });
+  }
+
+  for (const c of COMMENTS) {
+    const photoId = await photoOf(c.on);
+    const userId = idOf(c.by);
+    if (!photoId || !userId) continue;
+    await prisma.photoComment.create({ data: { photoId, userId, body: c.body } });
+  }
+
   console.log(
     `Seeded: ${gyms.length} gyms, ${users.length} users, ${plans.length} plans, ` +
       `${memberships.length} memberships, ${payments.length} payments, ` +
@@ -213,8 +267,10 @@ async function main() {
 
   if (emad) {
     console.log(
-      `Emad also has ${WEIGHTS.length} weighings, ${PHOTOS.length} private photos, ` +
-        `a medical file and 1 report.`,
+      `Emad also has ${WEIGHTS.length} weighings, ${PHOTOS.length} photos, ` +
+        `a medical file and 1 report. The feed has ${PHOTOS.length + FEED.length} ` +
+        `shared photos, ${LIKES.reduce((n, l) => n + l.by.length, 0)} likes and ` +
+        `${COMMENTS.length} comments.`,
     );
   }
 }

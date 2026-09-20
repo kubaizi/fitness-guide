@@ -92,6 +92,18 @@ export function ProfileForm({ locale, profile }: { locale: Locale; profile: Prof
   // The picture currently shown, which is not the same as the picture saved:
   // it changes the moment one is chosen and only reaches the database on save.
   const [photo, setPhoto] = useState<string | null>(profile.photo);
+
+  // The four handles as typed. Controlled inputs — the one place on this form
+  // where React holds the value — because the link beside each box has to
+  // change as the member types, and only state can drive that.
+  const [handles, setHandles] = useState<Record<(typeof SOCIALS)[number]["key"], string>>(
+    {
+      instagram: profile.instagram ?? "",
+      x: profile.x ?? "",
+      snapchat: profile.snapchat ?? "",
+      tiktok: profile.tiktok ?? "",
+    },
+  );
   const [photoError, setPhotoError] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -237,36 +249,51 @@ export function ProfileForm({ locale, profile }: { locale: Locale; profile: Prof
         <p className={styles.hint}>{t("profile.socialHint")}</p>
 
         {SOCIALS.map(({ key, label, url }) => {
-          const saved = profile[key];
+          // What is in the box right now, not what was saved. The link follows
+          // the typing, which is what Emad asked for: type a handle, tap the
+          // network's name, land on that account — no Save in between.
+          const typed = handles[key].replace(/^@/, "");
           return (
-            <Field key={key} id={key} label={label} error={errorFor(key)}>
-              <input
-                id={key}
-                name={key}
-                type="text"
-                defaultValue={saved ?? ""}
-                className={styles.input}
-                dir="ltr"
-                // Latin handles, so left-to-right even on the Arabic page.
-                placeholder="@name"
-              />
-              {/* Only shown for a handle already saved. Offering a link to
-                  something half-typed would be a broken link. */}
-              {saved && (
+            <div key={key} className={styles.field}>
+              {/* The label IS the link when there is something to link to.
+                  `htmlFor` still points at the box, so tapping the empty
+                  label focuses it, and tapping a filled one opens the page —
+                  each does the one useful thing for its state. */}
+              {typed ? (
                 <a
-                  href={url(saved)}
+                  href={url(typed)}
                   target="_blank"
                   // `noopener` stops the opened page reaching back through
                   // window.opener; `noreferrer` stops it learning where the
                   // visitor came from. Both belong on every external link that
                   // opens in a new tab.
                   rel="noopener noreferrer"
-                  className={styles.socialLink}
+                  className={styles.socialLabelLink}
                 >
-                  {url(saved)}
+                  {label} ↗
                 </a>
+              ) : (
+                <label className={styles.label} htmlFor={key}>
+                  {label}
+                </label>
               )}
-            </Field>
+              <input
+                id={key}
+                name={key}
+                type="text"
+                value={handles[key]}
+                onChange={(e) => setHandles({ ...handles, [key]: e.target.value })}
+                className={styles.input}
+                dir="ltr"
+                // Latin handles, so left-to-right even on the Arabic page.
+                placeholder="@name"
+              />
+              {errorFor(key) && (
+                <p className={styles.error} role="alert">
+                  {errorFor(key)}
+                </p>
+              )}
+            </div>
           );
         })}
       </section>

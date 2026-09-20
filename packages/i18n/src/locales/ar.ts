@@ -53,6 +53,7 @@ export const ar = {
     profile: "حسابي",
     admin: "لوحة التحكم",
     myGym: "ناديي",
+    feed: "صور الأعضاء",
   },
   home: {
     // The brochure's own headline, under the FITNESS GUIDE wordmark:
@@ -393,7 +394,7 @@ export const ar = {
     occupationPlaceholder: "مهندس، معلّم، طالب…",
 
     social: "حسابات التواصل",
-    socialHint: "اكتب اسم الحساب فقط، بدون رابط",
+    socialHint: "اكتب اسم الحساب فقط، بدون رابط. اضغط اسم الشبكة لفتح حسابك.",
 
     weight: "الوزن",
     weightHint: "سجلّك أنت فقط — لا يظهر لأي أحد في دليل اللياقة",
@@ -419,9 +420,22 @@ export const ar = {
   gallery: {
     title: "صوري",
     // The privacy line matters more here than anywhere else on the page.
-    hint: "صورك أنت فقط — لا يراها أي أحد في دليل اللياقة",
-    add: "إضافة صورة",
-    pick: "اختيار صورة",
+    // The old single privacy line is gone: the promise now depends on the
+    // choice the member makes per photo, so it is stated beside that choice.
+    hint: "اختر لكل صورة من يراها",
+    open: "فتح الألبوم",
+    add: "إضافة الصور",
+    addOne: "إضافة صورة",
+    pick: "اختيار صور",
+    picked: "صورة مختارة",
+    visibility: "من يرى هذه الصور؟",
+    vPrivate: "خاصة",
+    vPrivateHint: "أنت فقط. لا يراها أي أحد في دليل اللياقة.",
+    vMembers: "الأعضاء",
+    vMembersHint: "كل عضو مسجّل في المنصة، مع اسمك وصورتك الشخصية.",
+    vPublic: "عامة",
+    vPublicHint: "أي شخص على الإنترنت، مع اسمك وصورتك الشخصية. بدون تسجيل دخول.",
+    change: "تغيير",
     date: "تاريخ الصورة",
     note: "ملاحظة",
     notePlaceholder: "بداية البرنامج، بعد ٣ أشهر…",
@@ -436,6 +450,7 @@ export const ar = {
   // الملف الطبي. القواعد الأربع في docs/product-decisions.md.
   medical: {
     title: "الملف الطبي",
+    open: "فتح الملف الطبي",
     hint: "معلوماتك الصحية. لا يقرأها أي أحد في دليل اللياقة، ولا حتى الإدارة.",
     purpose: "الغرض منها أن ترسلها بنفسك لطبيب أو مدرب مسجّل في المنصة.",
 
@@ -457,18 +472,65 @@ export const ar = {
 
     reports: "التقارير الطبية",
     reportsHint: "صورة أو ملف PDF لتحليل أو تقرير",
-    reportTitle: "عنوان التقرير",
+    reportTitle: "عنوان التقرير (اختياري)",
     reportTitlePlaceholder: "تحليل دم، مارس",
     reportPick: "اختيار ملف",
     reportAdd: "إضافة تقرير",
     reportOpen: "فتح",
     reportRemove: "حذف",
     reportsNone: "لا توجد تقارير بعد",
-    titleInvalid: "اكتب عنواناً، من حرفين إلى ٨٠ حرفاً",
+    untitled: "تقرير بلا عنوان",
+    titleInvalid: "العنوان ٨٠ حرفاً كحد أقصى",
     reportInvalid: "الملف يجب أن يكون صورة أو PDF",
     reportTooBig: "الملف كبير. الحد الأقصى تقريباً نصف ميغابايت.",
     reportsFull: "وصلت الحد الأقصى للتقارير. احذف واحداً لإضافة غيره.",
   },
+  // الفيد العام — صور الأعضاء التي اختاروا إظهارها. "مثل إنستغرام، لكن تابع
+  // للمنصة فقط"، بكلمات عماد.
+  feed: {
+    title: "صور الأعضاء",
+    subtitle: "صور اختار أعضاء المنصة مشاركتها",
+    empty: "لا توجد صور مشتركة بعد",
+    homeButton: "صور الأعضاء",
+    like: "إعجاب",
+    unlike: "إلغاء الإعجاب",
+    likes: "إعجاب",
+    comments: "تعليق",
+    comment: "تعليق",
+    commentPlaceholder: "اكتب تعليقاً…",
+    send: "إرسال",
+    deleteComment: "حذف",
+    report: "إبلاغ",
+    reportReason: "ما المشكلة؟ (اختياري)",
+    reportSend: "إرسال البلاغ",
+    reported: "وصل البلاغ. شكراً لك.",
+    signInToLike: "سجّل الدخول كعضو للإعجاب أو التعليق",
+    signInToComment: "سجّل الدخول كعضو للتعليق",
+    signInToReport: "سجّل الدخول كعضو للإبلاغ",
+    commentInvalid: "التعليق من حرف إلى ٣٠٠ حرف",
+    commentFailed: "تعذّر إضافة التعليق",
+    reportFailed: "تعذّر إرسال البلاغ",
+    membersOnly: "للأعضاء فقط",
+    open: "فتح",
+    back: "كل الصور",
+    notFound: "الصورة غير موجودة",
+  },
+
+  // قائمة البلاغات في لوحة التحكم.
+  moderation: {
+    title: "البلاغات",
+    subtitle: "ما أبلغ عنه الأعضاء ولم يُراجع بعد",
+    empty: "لا توجد بلاغات مفتوحة",
+    reportedBy: "أبلغ عنه",
+    postedBy: "نشره",
+    photo: "صورة",
+    comment: "تعليق",
+    noReason: "بدون سبب",
+    remove: "حذف المحتوى",
+    dismiss: "تجاهل البلاغ",
+    openCount: "بلاغ مفتوح",
+  },
+
 
   admin: {
     usersTitle: "المستخدمون",
@@ -505,6 +567,7 @@ export const ar = {
     tabMemberships: "الاشتراكات",
     tabCheckIns: "سجل الدخول",
     tabPayments: "المدفوعات",
+    tabReports: "البلاغات",
 
     overviewTitle: "نظرة عامة",
     overviewSubtitle: "كل ما يجري على المنصة",

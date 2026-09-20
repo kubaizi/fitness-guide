@@ -1,0 +1,47 @@
+/* The feed page: a single readable column, like a phone. */
+
+.main {
+  max-width: 560px;
+  margin-inline: auto;
+  padding: var(--sp-6) var(--sp-4) var(--sp-8);
+}
+
+.head {
+  margin-block-end: var(--sp-5);
+}
+
+.title {
+  font-size: clamp(1.6rem, 4vw, var(--step-4));
+  font-weight: 700;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-block-start: var(--sp-1);
+  font-size: 0.92rem;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.empty {
+  color: var(--muted);
+  padding: var(--sp-7) 0;
+  text-align: center;
+}
+
+.back {
+  margin-block-end: var(--sp-4);
+  font-size: 0.9rem;
+}
+
+.back a {
+  color: var(--muted);
+}
+
+.back a:hover {
+  color: var(--gold);
+}

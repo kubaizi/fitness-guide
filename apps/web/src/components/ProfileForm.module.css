@@ -402,3 +402,237 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+/* ─────────────────────────────────────────────────────────────── the folders */
+
+/*
+ * A card that opens. <details> is the browser's own disclosure widget: it
+ * opens and closes with no JavaScript, the keyboard reaches it, and a screen
+ * reader says "collapsed" or "expanded". Emad's wording was "a closed file
+ * that opens when tapped", and this is exactly that element.
+ */
+.folder {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  margin-block-end: var(--sp-4);
+}
+
+.folder[open] {
+  border-color: var(--line-strong);
+}
+
+/* The <summary> is the tap target — the whole row, not just the words, so it
+   is easy to hit on a phone. `list-style: none` removes the default triangle;
+   the "open" label on the end does that job in words. */
+.folderSummary {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.folderSummary::-webkit-details-marker {
+  display: none;
+}
+
+.folderSummary:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+  border-radius: var(--radius-lg);
+}
+
+/* The title inside a summary should not carry the card-title bottom margin. */
+.folderSummary .cardTitle {
+  margin-block-end: 0;
+  flex: 1;
+}
+
+.folderCount {
+  font-size: 0.8rem;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 2px var(--sp-2);
+  min-width: 1.6em;
+  text-align: center;
+}
+
+.folderOpen {
+  font-size: 0.82rem;
+  color: var(--gold);
+}
+
+.folder[open] .folderOpen {
+  display: none;
+}
+
+.folderBody {
+  padding: 0 var(--sp-5) var(--sp-5);
+  border-block-start: 1px solid var(--line);
+  padding-block-start: var(--sp-4);
+}
+
+/* ───────────────────────────────────────────────────── choosing photos */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  margin-block-end: var(--sp-4);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+/* Thumbnails of what was chosen, before Add. Small and in a row, so five
+   pictures do not push the visibility choice off the screen. */
+.pendingRow {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.pendingThumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--gold-dim);
+}
+
+/* ────────────────────────────────────────────────── who can see it */
+
+.fieldset {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.fieldset legend {
+  padding-inline: var(--sp-2);
+}
+
+/* Each choice is one row: the radio, then the word in bold with its sentence
+   under it. The whole row is the label, so tapping the sentence selects it. */
+.radio {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.radio input {
+  margin-block-start: 0.3em;
+  accent-color: var(--gold);
+  flex: none;
+}
+
+.radio strong {
+  display: block;
+  font-weight: 650;
+}
+
+.radioHint {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-block-start: 2px;
+}
+
+/* ─────────────────────────────────────────────── the badge on a photo */
+
+.badge {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  padding: 2px var(--sp-2);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.badge_private {
+  color: var(--muted);
+  background: var(--surface-2);
+}
+
+.badge_members {
+  color: var(--gold-bright);
+  background: var(--gold-wash);
+}
+
+/* Public is the one that costs something, so it is the one that stands out. */
+.badge_public {
+  color: var(--ok);
+  background: var(--ok-wash);
+}
+
+.gridActions {
+  margin-block-start: var(--sp-1);
+}
+
+.smallSelect {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 2px var(--sp-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink);
+  max-width: 100%;
+}
+
+/*
+ * A button that means "remove", sized so a thumb can hit it.
+ *
+ * The first version was an underlined word, 29px by 22px. Emad reported that
+ * deleting a photo did nothing; a real click on this machine deleted fine, so
+ * the likeliest story is a finger missing a target that small. This one is
+ * padded and bordered — a button, not a word — and the row of them lines up.
+ */
+.dangerSmall {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: var(--sp-2) var(--sp-3);
+  min-height: 36px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.dangerSmall:hover {
+  border-color: var(--crit, #e07a63);
+  color: var(--crit, #e07a63);
+}
+
+.dangerSmall:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* ──────────────────────────────────────────── the social label as a link */
+
+.socialLabelLink {
+  display: inline-block;
+  color: var(--gold);
+  font-size: 0.88rem;
+  margin-block-end: var(--sp-2);
+  text-decoration: none;
+}
+
+.socialLabelLink:hover {
+  text-decoration: underline;
+}

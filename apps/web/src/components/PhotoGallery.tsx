@@ -1,58 +1,62 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
-import type { Locale } from "@fg/i18n";
+import type { Locale, TranslationKey } from "@fg/i18n";
 import { createTranslator, formatDate } from "@fg/i18n";
 import {
-  addProgressPhoto,
-  removeProgressPhoto,
+  addPhotos,
+  changePhotoVisibility,
+  removePhoto,
   type PrivateState,
 } from "@/app/actions/private";
-import type { ProgressPhotoRow } from "@/lib/db";
+import type { PhotoRow, Visibility } from "@/lib/db";
 import styles from "./ProfileForm.module.css";
 
 /**
- * The member's own photos of themselves. Private.
+ * The member's own photos, with a choice per photo of who may see it.
  *
- * ## Why this is separate from the profile picture
+ * ## Three visibilities, one gallery
  *
- * They are two different things that happen to both be images. The avatar is
- * the one picture other people are meant to see; these are nobody's business
- * but the member's. Keeping them in different tables and different components
- * means no single careless query can put one where the other belongs.
+ * Emad's answer was "public, members only, or private", chosen by the member.
+ * So this is one album with a badge on each picture, not three albums — a
+ * photo moves between the three with one control, and the member sees all of
+ * theirs in one place regardless.
  *
- * Emad's earlier decision ruled these out — "not body or progress photos,
- * which would need the same protection as medical data". He has since asked
- * for them, and answered his own objection: private, visible only to the
- * member. So they are built under the medical rules.
+ * `private` is the default and is under the medical rules. `public` puts the
+ * member's name and avatar on the open web, and the form says so in plain
+ * words beside that choice: that is the one line on this page nobody should
+ * be able to miss.
  *
- * The line under the heading says so on screen, which is not decoration. Anyone
- * deciding whether to photograph themselves for a gym app deserves the answer
- * without having to go looking for it.
+ * ## The folder
+ *
+ * Closed by default — a `<details>` element, which the browser handles with
+ * no JavaScript: it opens and closes, it is keyboard-reachable, and a screen
+ * reader announces it correctly. Emad's words were "like the phone's photo
+ * album": a thing you open, not a wall of pictures on the profile.
+ *
+ * ## Several at once
+ *
+ * The file input is `multiple`. Each chosen file is shrunk in the browser and
+ * becomes one hidden `image` field, and the action reads them all with
+ * `formData.getAll`. Pick five, press Add once.
  */
 
-/** How many the server will accept. Mirrored from actions/private.ts. */
-// Duplicated on purpose, and the server is the one that counts. This copy only
-// decides whether to show the form — a member who has reached the limit should
-// see why, not submit and be refused.
 const MAX_PHOTOS = 12;
 
-/**
- * Shrinks a photo to fit inside a box, keeping its shape.
- *
- * Different from the avatar's `shrinkToSquare`: a progress photo must not be
- * cropped. Someone photographing themselves has framed it the way they meant
- * to, and a square crop would cut off exactly what they were trying to record.
- *
- * So this scales the longest edge down to `maxEdge` and leaves the proportions
- * alone. 720px lands around 100 KB at this quality — small enough for the
- * column it goes into, large enough to see a change over three months.
- */
+/** The three choices, with the sentence that explains each. */
+const VISIBILITIES: readonly {
+  value: Visibility;
+  label: TranslationKey;
+  hint: TranslationKey;
+}[] = [
+  { value: "private", label: "gallery.vPrivate", hint: "gallery.vPrivateHint" },
+  { value: "members", label: "gallery.vMembers", hint: "gallery.vMembersHint" },
+  { value: "public", label: "gallery.vPublic", hint: "gallery.vPublicHint" },
+];
+
+/** Shrinks a photo to fit inside a box, keeping its shape. */
 async function shrinkToFit(file: File, maxEdge = 720): Promise<string> {
   const bitmap = await createImageBitmap(file);
-
-  // `Math.min(1, ...)` so a small photo is never scaled UP. Enlarging adds
-  // bytes and invents detail that was never there.
   const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
   const w = Math.round(bitmap.width * scale);
   const h = Math.round(bitmap.height * scale);
@@ -60,7 +64,6 @@ async function shrinkToFit(file: File, maxEdge = 720): Promise<string> {
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
-
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D context unavailable");
   ctx.drawImage(bitmap, 0, 0, w, h);
@@ -74,141 +77,233 @@ export function PhotoGallery({
   photos,
 }: {
   locale: Locale;
-  photos: readonly ProgressPhotoRow[];
+  photos: readonly PhotoRow[];
 }) {
   const t = createTranslator(locale);
-  const [state, action, pending] = useActionState<PrivateState, FormData>(
-    addProgressPhoto,
-    {},
-  );
+  const [state, action, pending] = useActionState<PrivateState, FormData>(addPhotos, {});
 
-  const [image, setImage] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
   const [pickError, setPickError] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // ── Clearing the chosen pictures once they are saved ──
+  // Without this, the previous batch stays in `images` after a successful add,
+  // and pressing Add again silently saves the same photos twice. This was a
+  // real bug: it is what made the report upload look like it "worked once".
+  //
+  // The shape is React's own recipe for "reset some state when a value
+  // changes": remember the last value seen, and when it differs, reset during
+  // render. Not an effect — the React Compiler refuses setState in an effect,
+  // and with reason: it would paint the stale pictures for one frame first.
+  const [seenSave, setSeenSave] = useState(state);
+  if (state !== seenSave) {
+    setSeenSave(state);
+    if (state.added) setImages([]);
+  }
+
   const today = new Date().toISOString().slice(0, 10);
-  const full = photos.length >= MAX_PHOTOS;
+  const room = MAX_PHOTOS - photos.length;
 
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = [...(e.target.files ?? [])];
+    if (files.length === 0) return;
     setPickError(false);
     try {
-      setImage(await shrinkToFit(file));
+      // `Promise.all` shrinks them all at once rather than one after another;
+      // decoding five photos serially would be a visible wait.
+      const shrunk = await Promise.all(files.slice(0, room).map((f) => shrinkToFit(f)));
+      setImages(shrunk);
     } catch {
       setPickError(true);
     }
-    // So choosing the same file twice still fires `change`.
     e.target.value = "";
   }
 
   return (
-    <section className={styles.card}>
-      <h2 className={styles.cardTitle}>{t("gallery.title")}</h2>
-      <p className={styles.privacy}>{t("gallery.hint")}</p>
+    <details className={styles.folder}>
+      <summary className={styles.folderSummary}>
+        <span className={styles.cardTitle}>{t("gallery.title")}</span>
+        <span className={styles.folderCount}>{photos.length}</span>
+        <span className={styles.folderOpen}>{t("gallery.open")}</span>
+      </summary>
 
-      {full ? (
-        <p className={styles.hint}>{t("gallery.full")}</p>
-      ) : (
-        <form action={action} className={styles.weightForm}>
-          <input type="hidden" name="locale" value={locale} />
-          <input type="hidden" name="image" value={image ?? ""} />
+      <div className={styles.folderBody}>
+        <p className={styles.hint}>{t("gallery.hint")}</p>
 
-          <div className={styles.field}>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              onChange={onPick}
-              className={styles.file}
-              aria-label={t("gallery.pick")}
-            />
-            <button
-              type="button"
-              className={styles.secondary}
-              onClick={() => fileRef.current?.click()}
-            >
-              {t("gallery.pick")}
-            </button>
-          </div>
+        {room <= 0 ? (
+          <p className={styles.hint}>{t("gallery.full")}</p>
+        ) : (
+          <form action={action} className={styles.stack}>
+            <input type="hidden" name="locale" value={locale} />
+            {/* One hidden field per picture, all named `image`. The action
+                reads them with getAll, so five pictures are five values under
+                one name rather than image1, image2, image3… */}
+            {images.map((img, i) => (
+              <input key={i} type="hidden" name="image" value={img} />
+            ))}
 
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="takenOn">
-              {t("gallery.date")}
-            </label>
-            <input
-              id="takenOn"
-              name="takenOn"
-              type="date"
-              defaultValue={today}
-              max={today}
-              className={styles.input}
-              dir="ltr"
-            />
-          </div>
+            <div className={styles.row}>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={onPick}
+                className={styles.file}
+                aria-label={t("gallery.pick")}
+              />
+              <button
+                type="button"
+                className={styles.secondary}
+                onClick={() => fileRef.current?.click()}
+              >
+                {t("gallery.pick")}
+              </button>
+              {images.length > 0 && (
+                <span className={styles.hint}>
+                  {images.length} {t("gallery.picked")}
+                </span>
+              )}
+            </div>
 
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="note">
-              {t("gallery.note")}
-            </label>
-            <input
-              id="note"
-              name="note"
-              type="text"
-              maxLength={120}
-              placeholder={t("gallery.notePlaceholder")}
-              className={styles.input}
-            />
-          </div>
-
-          {/* Disabled until a picture is chosen: the date and the note are
-              optional, but there is nothing to add without an image. */}
-          <button
-            type="submit"
-            className={styles.secondary}
-            disabled={pending || image === null}
-          >
-            {pending ? t("common.loading") : t("gallery.add")}
-          </button>
-        </form>
-      )}
-
-      {/* The chosen picture, before it is saved. Shown at a readable size so
-          the member can see they picked the right one. */}
-      {image && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={image} alt="" className={styles.pendingPhoto} />
-      )}
-
-      {(pickError || state.error) && (
-        <p className={styles.error} role="alert">
-          {pickError ? t("gallery.photoInvalid") : state.error}
-        </p>
-      )}
-
-      {photos.length === 0 ? (
-        <p className={styles.hint}>{t("gallery.none")}</p>
-      ) : (
-        <ul className={styles.grid}>
-          {photos.map((p) => (
-            <li key={p.id} className={styles.gridItem}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.image} alt={p.note ?? ""} className={styles.gridPhoto} />
-              <div className={styles.gridMeta}>
-                <span className={styles.gridDate}>{formatDate(p.takenOn, locale)}</span>
-                {p.note && <span className={styles.gridNote}>{p.note}</span>}
-                <form action={removeProgressPhoto}>
-                  <input type="hidden" name="locale" value={locale} />
-                  <input type="hidden" name="id" value={p.id} />
-                  <button type="submit" className={styles.linkBtn}>
-                    {t("gallery.remove")}
-                  </button>
-                </form>
+            {images.length > 0 && (
+              <div className={styles.pendingRow}>
+                {images.map((img, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={i} src={img} alt="" className={styles.pendingThumb} />
+                ))}
               </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+            )}
+
+            {/* The choice that matters. Radio buttons rather than a dropdown,
+                so all three sentences are readable at once and nobody has to
+                open a menu to discover what "public" costs them. */}
+            <fieldset className={styles.fieldset}>
+              <legend className={styles.label}>{t("gallery.visibility")}</legend>
+              {VISIBILITIES.map((v) => (
+                <label key={v.value} className={styles.radio}>
+                  <input
+                    type="radio"
+                    name="visibility"
+                    value={v.value}
+                    defaultChecked={v.value === "private"}
+                  />
+                  <span>
+                    <strong>{t(v.label)}</strong>
+                    <span className={styles.radioHint}>{t(v.hint)}</span>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+
+            <div className={styles.weightForm}>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="takenOn">
+                  {t("gallery.date")}
+                </label>
+                <input
+                  id="takenOn"
+                  name="takenOn"
+                  type="date"
+                  defaultValue={today}
+                  max={today}
+                  className={styles.input}
+                  dir="ltr"
+                />
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="note">
+                  {t("gallery.note")}
+                </label>
+                <input
+                  id="note"
+                  name="note"
+                  type="text"
+                  maxLength={120}
+                  placeholder={t("gallery.notePlaceholder")}
+                  className={styles.input}
+                />
+              </div>
+              <button
+                type="submit"
+                className={styles.submit}
+                disabled={pending || images.length === 0}
+              >
+                {pending
+                  ? t("common.loading")
+                  : images.length > 1
+                    ? t("gallery.add")
+                    : t("gallery.addOne")}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {(pickError || state.error) && (
+          <p className={styles.error} role="alert">
+            {pickError ? t("gallery.photoInvalid") : state.error}
+          </p>
+        )}
+
+        {photos.length === 0 ? (
+          <p className={styles.hint}>{t("gallery.none")}</p>
+        ) : (
+          <ul className={styles.grid}>
+            {photos.map((p) => (
+              <li key={p.id} className={styles.gridItem}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.image} alt={p.note ?? ""} className={styles.gridPhoto} />
+                <div className={styles.gridMeta}>
+                  <span className={`${styles.badge} ${styles[`badge_${p.visibility}`]}`}>
+                    {t(
+                      VISIBILITIES.find((v) => v.value === p.visibility)?.label ??
+                        "gallery.vPrivate",
+                    )}
+                  </span>
+                  <span className={styles.gridDate}>{formatDate(p.takenOn, locale)}</span>
+                  {p.note && <span className={styles.gridNote}>{p.note}</span>}
+                  {p.visibility !== "private" && (
+                    <span className={styles.gridNote}>
+                      ♥ {p.likeCount} · {p.commentCount} {t("feed.comments")}
+                    </span>
+                  )}
+
+                  {/* Change who sees it: a tiny form with a <select> that
+                      submits itself on change. No Save button, because one
+                      choice is the whole action. */}
+                  <form action={changePhotoVisibility} className={styles.gridActions}>
+                    <input type="hidden" name="locale" value={locale} />
+                    <input type="hidden" name="id" value={p.id} />
+                    <select
+                      name="visibility"
+                      defaultValue={p.visibility}
+                      onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                      className={styles.smallSelect}
+                      aria-label={t("gallery.change")}
+                    >
+                      {VISIBILITIES.map((v) => (
+                        <option key={v.value} value={v.value}>
+                          {t(v.label)}
+                        </option>
+                      ))}
+                    </select>
+                  </form>
+
+                  {/* A real button with padding rather than an underlined
+                      word — Emad could not hit the old one on a phone. */}
+                  <form action={removePhoto}>
+                    <input type="hidden" name="locale" value={locale} />
+                    <input type="hidden" name="id" value={p.id} />
+                    <button type="submit" className={styles.dangerSmall}>
+                      {t("gallery.remove")}
+                    </button>
+                  </form>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </details>
   );
 }

@@ -581,7 +581,9 @@ export async function weightsFor(
 ): Promise<readonly WeightPoint[]> {
   const rows = await prisma.weightEntry.findMany({
     where: { userId },
-    orderBy: { measuredOn: "desc" },
+    // Newest day first; within a day, the order they were added. Two keys, so
+    // a morning and an evening weighing on the same date do not shuffle.
+    orderBy: [{ measuredOn: "desc" }, { createdAt: "desc" }],
     take: limit,
   });
 
@@ -593,24 +595,20 @@ export async function weightsFor(
 }
 
 /**
- * Records a weighing, replacing any entry already on that day.
+ * Records a weighing. Every call is a new row, including two on one day.
  *
- * `upsert` rather than `create`: the table allows one row per person per day,
- * so a second entry for today is someone correcting a number they mistyped,
- * not a second weighing. Doing it in one statement also means two quick
- * submissions cannot race into a unique-constraint error.
+ * This used to be an upsert that replaced a same-day entry, on the theory that
+ * a second number for today was a correction. Emad's answer was that morning
+ * and evening are both real and each should be its own row — and the replace
+ * had read to him as "adding stopped working", which is worse than either.
  */
 export async function recordWeight(
   userId: string,
   grams: number,
   measuredOn: string,
 ): Promise<void> {
-  const day = new Date(measuredOn);
-
-  await prisma.weightEntry.upsert({
-    where: { userId_measuredOn: { userId, measuredOn: day } },
-    create: { userId, grams, measuredOn: day },
-    update: { grams },
+  await prisma.weightEntry.create({
+    data: { userId, grams, measuredOn: new Date(measuredOn) },
   });
 }
 
@@ -633,21 +631,33 @@ export async function deleteWeight(userId: string, id: string): Promise<void> {
 //
 // See the four confirmed rules in docs/product-decisions.md.
 
-export interface ProgressPhotoRow {
+export type Visibility = "private" | "members" | "public";
+
+/** A member's own photo, as their own gallery shows it. */
+export interface PhotoRow {
   readonly id: string;
   readonly image: string;
   readonly note: string | null;
   readonly takenOn: string;
+  readonly visibility: Visibility;
+  readonly likeCount: number;
+  readonly commentCount: number;
 }
 
+/**
+ * The member's OWN photos, every visibility. Only ever called with the
+ * signed-in id — this is the one place a private photo is read, and it is
+ * read by its owner.
+ */
 export async function photosFor(
   userId: string,
   limit = 60,
-): Promise<readonly ProgressPhotoRow[]> {
-  const rows = await prisma.progressPhoto.findMany({
+): Promise<readonly PhotoRow[]> {
+  const rows = await prisma.photo.findMany({
     where: { userId },
     orderBy: { takenOn: "desc" },
     take: limit,
+    include: { _count: { select: { likes: true, comments: true } } },
   });
 
   return rows.map((p) => ({
@@ -655,12 +665,15 @@ export async function photosFor(
     image: p.image,
     note: p.note,
     takenOn: isoDay(p.takenOn),
+    visibility: p.visibility,
+    likeCount: p._count.likes,
+    commentCount: p._count.comments,
   }));
 }
 
 /** How many the member already has — the cap is checked against this. */
 export async function photoCountFor(userId: string): Promise<number> {
-  return prisma.progressPhoto.count({ where: { userId } });
+  return prisma.photo.count({ where: { userId } });
 }
 
 export async function addPhoto(
@@ -668,15 +681,317 @@ export async function addPhoto(
   image: string,
   takenOn: string,
   note: string | null,
+  visibility: Visibility,
 ): Promise<void> {
-  await prisma.progressPhoto.create({
-    data: { userId, image, takenOn: new Date(takenOn), note },
+  await prisma.photo.create({
+    data: { userId, image, takenOn: new Date(takenOn), note, visibility },
   });
+}
+
+/** Changes who may see one of the member's own photos. Owner-scoped. */
+export async function setPhotoVisibility(
+  userId: string,
+  id: string,
+  visibility: Visibility,
+): Promise<void> {
+  await prisma.photo.updateMany({ where: { id, userId }, data: { visibility } });
 }
 
 /** Scoped by owner in the query, so nobody can delete another member's. */
 export async function deletePhoto(userId: string, id: string): Promise<void> {
-  await prisma.progressPhoto.deleteMany({ where: { id, userId } });
+  await prisma.photo.deleteMany({ where: { id, userId } });
+}
+
+// ───────────────────────────────────────────────────────────────── the feed
+//
+// Photos members chose to show. Nothing here can reach a private photo: every
+// query says `visibility: { in: visibleTo(...) }`, and that list never holds
+// "private". That filter is the whole reason the medical rules survive a
+// public feed.
+
+/** Who is looking. Null is a visitor who has not signed in. */
+export interface Viewer {
+  readonly id: string;
+  readonly role: string;
+}
+
+/**
+ * What a viewer is allowed to see. A visitor gets public only; a signed-in
+ * member gets public and members-only. Nobody gets private through here.
+ *
+ * `role === "member"`, not merely "signed in": Emad's answer was that a gym
+ * owner is not a member of the community. They can look at what is public,
+ * like anyone on the web, and no further.
+ */
+function visibleTo(viewer: Viewer | null): Visibility[] {
+  return viewer?.role === "member" ? ["public", "members"] : ["public"];
+}
+
+const authorColumns = { id: true, name: true, username: true, photo: true } as const;
+
+/** A photo as the feed shows it: the picture, who posted it, and the counts. */
+export interface FeedPhoto {
+  readonly id: string;
+  readonly image: string;
+  readonly note: string | null;
+  readonly takenOn: string;
+  readonly visibility: Visibility;
+  readonly author: {
+    readonly id: string;
+    readonly name: string;
+    readonly username: string;
+    readonly photo: string | null;
+  };
+  readonly likeCount: number;
+  readonly commentCount: number;
+  /** Whether the viewer has liked it. Always false for a visitor. */
+  readonly likedByViewer: boolean;
+}
+
+export async function feedPhotos(
+  viewer: Viewer | null,
+  limit = 60,
+): Promise<readonly FeedPhoto[]> {
+  const rows = await prisma.photo.findMany({
+    where: { visibility: { in: visibleTo(viewer) } },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    include: {
+      user: { select: authorColumns },
+      _count: { select: { likes: true, comments: true } },
+      // Just this viewer's own like, if any — one row or none per photo. A
+      // visitor has no id, and `where: { userId: "" }` matches nothing.
+      likes: { where: { userId: viewer?.id ?? "" }, select: { userId: true } },
+    },
+  });
+
+  return rows.map((p) => ({
+    id: p.id,
+    image: p.image,
+    note: p.note,
+    takenOn: isoDay(p.takenOn),
+    visibility: p.visibility,
+    author: p.user,
+    likeCount: p._count.likes,
+    commentCount: p._count.comments,
+    likedByViewer: p.likes.length > 0,
+  }));
+}
+
+export interface CommentRow {
+  readonly id: string;
+  readonly body: string;
+  readonly createdAt: string;
+  readonly author: {
+    readonly id: string;
+    readonly name: string;
+    readonly photo: string | null;
+  };
+}
+
+/**
+ * One photo with its comments, for the photo's own page.
+ *
+ * Returns null both when the photo does not exist AND when the viewer may not
+ * see it. The same answer for both, on purpose: a 404 tells nobody whether a
+ * private photo exists behind it.
+ */
+export async function feedPhoto(
+  id: string,
+  viewer: Viewer | null,
+): Promise<(FeedPhoto & { readonly comments: readonly CommentRow[] }) | null> {
+  const p = await prisma.photo.findFirst({
+    where: { id, visibility: { in: visibleTo(viewer) } },
+    include: {
+      user: { select: authorColumns },
+      _count: { select: { likes: true, comments: true } },
+      likes: { where: { userId: viewer?.id ?? "" }, select: { userId: true } },
+      comments: {
+        orderBy: { createdAt: "asc" },
+        include: { user: { select: { id: true, name: true, photo: true } } },
+      },
+    },
+  });
+  if (!p) return null;
+
+  return {
+    id: p.id,
+    image: p.image,
+    note: p.note,
+    takenOn: isoDay(p.takenOn),
+    visibility: p.visibility,
+    author: p.user,
+    likeCount: p._count.likes,
+    commentCount: p._count.comments,
+    likedByViewer: p.likes.length > 0,
+    comments: p.comments.map((c) => ({
+      id: c.id,
+      body: c.body,
+      createdAt: c.createdAt.toISOString(),
+      author: c.user,
+    })),
+  };
+}
+
+/**
+ * Likes or unlikes. Returns the new state.
+ *
+ * The (photoId, userId) pair is the table's primary key, so "like twice" is
+ * impossible at the database — the second insert fails rather than counting
+ * double. That is what lets this be a toggle safely: try to delete; if nothing
+ * was there to delete, insert.
+ *
+ * The photo must be visible to the liker. A like on a private photo is refused
+ * by the query finding nothing, not by a check that could be forgotten.
+ */
+export async function toggleLike(viewer: Viewer, photoId: string): Promise<boolean> {
+  const visible = await prisma.photo.findFirst({
+    where: { id: photoId, visibility: { in: visibleTo(viewer) } },
+    select: { id: true },
+  });
+  if (!visible) return false;
+
+  const removed = await prisma.photoLike.deleteMany({
+    where: { photoId, userId: viewer.id },
+  });
+  if (removed.count > 0) return false;
+
+  await prisma.photoLike.create({ data: { photoId, userId: viewer.id } });
+  return true;
+}
+
+/** Adds a comment. Refused silently if the photo is not visible to them. */
+export async function addComment(
+  viewer: Viewer,
+  photoId: string,
+  body: string,
+): Promise<boolean> {
+  const visible = await prisma.photo.findFirst({
+    where: { id: photoId, visibility: { in: visibleTo(viewer) } },
+    select: { id: true },
+  });
+  if (!visible) return false;
+
+  await prisma.photoComment.create({ data: { photoId, userId: viewer.id, body } });
+  return true;
+}
+
+/**
+ * Deletes a comment the caller is entitled to delete: their own, or any comment
+ * on their own photo. Both conditions live in the query, so there is no path
+ * that fetches first and forgets to check.
+ */
+export async function deleteComment(userId: string, commentId: string): Promise<void> {
+  await prisma.photoComment.deleteMany({
+    where: { id: commentId, OR: [{ userId }, { photo: { userId } }] },
+  });
+}
+
+/** Flags a photo or a comment for an admin. */
+export async function reportContent(
+  reporterId: string,
+  target: { photoId: string } | { commentId: string },
+  reason: string | null,
+): Promise<void> {
+  await prisma.contentReport.create({ data: { reporterId, reason, ...target } });
+}
+
+// ───────────────────────────────────────────────────────────── moderation
+//
+// The admin's side of the feed. These reach ONLY photos and comments that were
+// reported, and a report can only be made on something visible — so a private
+// photo is unreachable from here by construction, not by discipline.
+
+export interface ReportRow {
+  readonly id: string;
+  readonly reason: string | null;
+  readonly createdAt: string;
+  readonly reporter: { readonly name: string; readonly username: string };
+  readonly photo: {
+    readonly id: string;
+    readonly image: string;
+    readonly note: string | null;
+    readonly author: { readonly name: string; readonly username: string };
+  } | null;
+  readonly comment: {
+    readonly id: string;
+    readonly body: string;
+    readonly photoId: string;
+    readonly author: { readonly name: string; readonly username: string };
+  } | null;
+}
+
+/** Open reports, oldest first — the queue an admin works through. */
+export async function openReports(limit = 100): Promise<readonly ReportRow[]> {
+  const rows = await prisma.contentReport.findMany({
+    where: {
+      status: "open",
+      // Belt and braces: a report on a private photo cannot be made, but if
+      // one somehow existed, the admin still must not see the photo through it.
+      OR: [{ photoId: null }, { photo: { visibility: { not: "private" } } }],
+    },
+    orderBy: { createdAt: "asc" },
+    take: limit,
+    include: {
+      reporter: { select: { name: true, username: true } },
+      photo: {
+        select: {
+          id: true,
+          image: true,
+          note: true,
+          user: { select: { name: true, username: true } },
+        },
+      },
+      comment: {
+        select: {
+          id: true,
+          body: true,
+          photoId: true,
+          user: { select: { name: true, username: true } },
+        },
+      },
+    },
+  });
+
+  return rows.map((r) => ({
+    id: r.id,
+    reason: r.reason,
+    createdAt: r.createdAt.toISOString(),
+    reporter: r.reporter,
+    photo: r.photo
+      ? { id: r.photo.id, image: r.photo.image, note: r.photo.note, author: r.photo.user }
+      : null,
+    comment: r.comment
+      ? {
+          id: r.comment.id,
+          body: r.comment.body,
+          photoId: r.comment.photoId,
+          author: r.comment.user,
+        }
+      : null,
+  }));
+}
+
+export async function openReportCount(): Promise<number> {
+  return prisma.contentReport.count({ where: { status: "open" } });
+}
+
+/** Closes a report without removing anything. */
+export async function dismissReport(id: string): Promise<void> {
+  await prisma.contentReport.updateMany({ where: { id }, data: { status: "dismissed" } });
+}
+
+/**
+ * Removes a reported photo. Only a non-private one — the `visibility` filter
+ * is what keeps an admin out of the medical rules, and it sits in the delete
+ * itself. Reports on it cascade away with it.
+ */
+export async function adminDeletePhoto(id: string): Promise<void> {
+  await prisma.photo.deleteMany({ where: { id, visibility: { not: "private" } } });
+}
+
+export async function adminDeleteComment(id: string): Promise<void> {
+  await prisma.photoComment.deleteMany({ where: { id } });
 }
 
 /** The health answers. Null when the member has never opened the section. */

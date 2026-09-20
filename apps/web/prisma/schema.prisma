@@ -121,10 +121,10 @@ model User {
   /// of members it moves to real object storage and this column holds a URL
   /// instead; nothing else has to change, because it is a string either way.
   ///
-  /// A profile picture ONLY — the one image other people are meant to see.
-  /// Body and progress photos live in ProgressPhoto below, which is private,
-  /// and they are kept apart on purpose: the moment those two share a column,
-  /// one careless query shows a private photo in a public place.
+  /// A profile picture ONLY. The member's other photos live in Photo below,
+  /// each with its own visibility, and the two are kept apart on purpose: the
+  /// avatar is shown beside the name everywhere, and a column that could hold
+  /// a private photo must never be the one that does that.
   photo String?
 
   /// Social handles, not URLs. The link is built from these, so a stored value
@@ -142,9 +142,12 @@ model User {
   reviews     Review[]
   checkIns    CheckIn[]
   weights     WeightEntry[]
-  photos      ProgressPhoto[]
+  photos      Photo[]
   medical     MedicalFile?
   reports     MedicalReport[]
+  likes       PhotoLike[]
+  comments    PhotoComment[]
+  flagged     ContentReport[]
   // A gym owner or staff member is linked to the gym they work at.
   staffAtGym   Gym?    @relation("GymStaff", fields: [staffAtGymId], references: [id])
   staffAtGymId String?
@@ -180,27 +183,42 @@ model WeightEntry {
 
   createdAt DateTime @default(now())
 
-  /// One weighing per person per day. A second entry for the same day replaces
-  /// the first rather than sitting beside it, which is what someone means when
-  /// they correct a number they mistyped.
-  @@unique([userId, measuredOn])
-  @@index([userId, measuredOn])
+  /// Several weighings on one day are allowed and each is its own row —
+  /// morning and evening are both real, and Emad asked for it that way after
+  /// the first version replaced same-day entries and read as "it stopped
+  /// working". Rows on the same day keep the order they were added in.
+  @@index([userId, measuredOn, createdAt])
 }
 
 /// `onDelete: Cascade` above is doing real work: deleting the account erases
 /// the weight history with it, which is rule 1 of the medical decisions.
 
-/// A photo the member took of themselves. Private.
+/// Who may see a member's photo. Chosen per photo, at upload.
 ///
-/// Emad's earlier decision said the profile picture was a profile picture only,
-/// "not body or progress photos, which would need the same protection as
-/// medical data". He has now asked for them, and answered that objection in the
-/// same breath: private, visible only to the member. So they are built under
-/// the medical rules rather than beside the avatar.
+/// `private` is the default, and the only one of the three that the medical
+/// rules apply to. `members` needs a sign-in. `public` is the open web — it
+/// shows the member's name and avatar to anyone at all, and the upload form
+/// says so beside the choice.
+enum PhotoVisibility {
+  private
+  members
+  public
+}
+
+/// A photo the member took of themselves.
 ///
-/// No admin query touches this table, and there is no function that reads
-/// another member's photos.
-model ProgressPhoto {
+/// Started as a private-only table. Emad then asked for a public feed — his
+/// words were "like Instagram, but belonging to the platform" — with a choice
+/// per photo of public, members only, or private. So one table, three
+/// visibilities, and every read filters on it.
+///
+/// ── The rule that must not break ──
+/// A `private` photo is under the medical rules: nobody at Fitness Guide reads
+/// it, admins included. The feed query excludes private; the moderation
+/// queries exclude private; there is no function that returns another member's
+/// private photos. A `public` or `members` photo is the member's own choice to
+/// show, and admins CAN see and remove those when they are reported.
+model Photo {
   id     String @id @default(cuid())
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
@@ -211,10 +229,77 @@ model ProgressPhoto {
   /// The member's own caption. Optional, like everything else here.
   note  String?
 
+  visibility PhotoVisibility @default(private)
+
   takenOn   DateTime @db.Date
   createdAt DateTime @default(now())
 
+  likes    PhotoLike[]
+  comments PhotoComment[]
+  reports  ContentReport[]
+
   @@index([userId, takenOn])
+  /// The feed: newest first, among what the viewer is allowed to see.
+  @@index([visibility, createdAt])
+}
+
+/// One member liking one photo. The unique pair is what makes "like" a toggle
+/// rather than a counter that can be pushed up by tapping twice.
+model PhotoLike {
+  photo   Photo  @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  photoId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+
+  createdAt DateTime @default(now())
+
+  @@id([photoId, userId])
+}
+
+model PhotoComment {
+  id      String @id @default(cuid())
+  photo   Photo  @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  photoId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+
+  body String
+
+  createdAt DateTime @default(now())
+
+  reports ContentReport[]
+
+  @@index([photoId, createdAt])
+}
+
+/// A member flagging a photo or a comment for an admin to look at.
+///
+/// Exactly one of `photoId` and `commentId` is set. Kept in one table rather
+/// than two so the admin sees one queue, oldest first, and can clear it.
+///
+/// A report can only ever point at something the reporter could see, which
+/// means never at a private photo — those never appear anywhere a report
+/// button could be. That is what keeps moderation inside the medical rules.
+model ContentReport {
+  id         String @id @default(cuid())
+  reporter   User   @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  reporterId String
+
+  photo     Photo?        @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  photoId   String?
+  comment   PhotoComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId String?
+
+  /// In the reporter's words. Optional — "this is wrong" with no reason is
+  /// still a report worth a look.
+  reason String?
+
+  /// "open" until an admin either removes the thing or dismisses the report.
+  status String @default("open")
+
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
 }
 
 /// The member's answers to the health questions. One per member.
@@ -270,7 +355,7 @@ model MedicalReport {
 /// ─────────────────────────────────────────────────────────────────────────
 /// A LIMIT WORTH KNOWING ABOUT, on the three columns above that hold files.
 ///
-/// `photo`, `ProgressPhoto.image` and `MedicalReport.content` all store the
+/// `photo`, `Photo.image` and `MedicalReport.content` all store the
 /// file itself, base64-encoded, inside the row. For one small avatar that is a
 /// fair trade — no bucket, no second service, no card on file.
 ///

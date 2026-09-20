@@ -7,7 +7,7 @@ is not somewhere a decision survives.
 Anything not listed here is still open. If you find yourself guessing, it
 belongs in the "Still open" section at the bottom rather than in the code.
 
-Last updated: 9 September 2026.
+Last updated: 20 September 2026.
 
 ---
 
@@ -178,17 +178,40 @@ Three parts: personal information, a medical section, and a profile picture.
   the member if they want to. Its purpose is a file the member can send to a
   doctor or trainer registered on the platform.
 
-### Private photos — a decision that was reversed
+### Member photos — a decision that was reversed, then widened
 
 The line above used to end "not body or progress photos, which would need the
 same protection as medical data". **In September Emad asked for them**, and
 answered that objection in the same sentence: they are private, visible only to
 the member.
 
-So they exist, in their own section, under the four rules below rather than
-beside the avatar. The two are separate tables and separate screens on purpose:
-the moment one query can reach both, a private photo can appear in a public
-place.
+Then, on 20 September, he widened it into a feed — "like Instagram, but
+belonging to the platform only". The settled shape:
+
+- **Each photo has a visibility, chosen by the member: private, members, or
+  public.** Private is the default.
+- **Private** is under the four rules below. No admin query can reach it; no
+  feed query can reach it.
+- **Members** is seen by signed-in _members_ — people who signed up as members.
+  A gym owner is not a member of the community and sees only what is public.
+- **Public** is the open web, no sign-in, **with the member's name and avatar**.
+  The upload form says so beside that choice, in plain words.
+- The feed is at `/{locale}/feed`, in the public navigation beside Gyms, and
+  it is where a visitor lands from the home page.
+- Any signed-in member can like or comment on any photo they can see.
+- **Every photo and every comment has a Report button.** Reports go to a queue
+  in the admin console, where an admin can remove the thing or dismiss the
+  report. An admin can only ever reach a reported photo, and a report can only
+  be raised on something visible — so moderation lives inside the medical
+  rules rather than as an exception to them.
+
+Emad's answer on who moderates: "good catch, go ahead and do it." Nothing more
+than remove-or-dismiss is built. There is no warning system, no strike count,
+no automatic anything.
+
+The avatar and the photos stay in separate tables on purpose: the avatar is
+shown beside the name everywhere, and a column that could hold a private photo
+must never be the one that does that.
 
 ### What the medical section actually asks
 
@@ -202,7 +225,12 @@ The questions, all optional and all free text:
 - Blood type
 - Anything else you want to mention
 
-Plus **medical reports** — a photo or a PDF of a test result.
+Plus **medical reports** — a photo or a PDF of a test result. A report's title
+is optional; an untitled one shows by its date.
+
+Both the photo album and the medical file open as **closed folders** on the
+profile — "like the phone's photo album", in Emad's words — rather than
+showing everything at once.
 
 Free text rather than tick-boxes, deliberately. "Do you have allergies" has a
 thousand answers, and a checklist quietly tells people that anything not on it
@@ -222,8 +250,10 @@ Health data carries obligations that a phone number does not. Anyone building
 this section reads these four rules first, and if a feature request conflicts
 with one of them, the rule wins until Emad says otherwise in writing.
 
-The weight log and the private photo gallery are built under these same four
-rules, even though weight was described as ordinary profile data. A record of
+The weight log is built under these same four rules, even though weight was
+described as ordinary profile data. **Several weighings a day are allowed** and
+each is its own row — Emad's answer, after a first version that replaced
+same-day entries read to him as "adding stopped working". A record of
 someone's body over time is health data by any ordinary reading, and the safe
 choice costs nothing.
 
@@ -282,6 +312,13 @@ real number. Do not publish the mockup numbers.
 Phone and email support is a core part of the service, not an afterthought.
 
 ---
+
+## The phone app
+
+Emad wants a real App Store / Play Store app, not an installable web page.
+That is a separate project — its own codebase under `apps/mobile`, months of
+work — and Apple charges $99 a year before an app can even be listed, which is
+payment, which comes last. Nothing of it is started. It needs its own plan.
 
 ## Still open
 

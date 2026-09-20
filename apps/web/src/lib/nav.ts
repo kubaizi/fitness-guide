@@ -41,7 +41,11 @@ export function navItemsFor(_user: CurrentUser | null, locale: Locale): NavItem[
     label: t(key),
   });
 
-  return [item("", "nav.home"), item("gyms", "nav.explore")];
+  // The feed is public — a visitor sees the public photos — so it belongs in
+  // the public row, not under the member's name. Emad asked for "a feed
+  // button on the homepage that goes straight to all members' images"; this
+  // is that button, on every page.
+  return [item("", "nav.home"), item("gyms", "nav.explore"), item("feed", "nav.feed")];
 }
 
 /**
