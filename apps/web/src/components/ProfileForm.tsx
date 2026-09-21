@@ -271,10 +271,12 @@ export function ProfileForm({ locale, profile }: { locale: Locale; profile: Prof
                   rel="noopener noreferrer"
                   className={styles.socialLabelLink}
                 >
+                  <SocialIcon network={key} className={styles.socialLabelIcon} />
                   {label} ↗
                 </a>
               ) : (
-                <label className={styles.label} htmlFor={key}>
+                <label className={styles.socialLabel} htmlFor={key}>
+                  <SocialIcon network={key} className={styles.socialLabelIcon} />
                   {label}
                 </label>
               )}

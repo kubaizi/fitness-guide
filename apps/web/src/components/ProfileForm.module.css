@@ -258,19 +258,23 @@
 
 /* Each network in its own colour, so the four boxes read at a glance. X's
    mark is black on white everywhere, which on this dark page means white. */
-.socialIcon[data-network="instagram"] {
+.socialIcon[data-network="instagram"],
+.socialLabelIcon[data-network="instagram"] {
   color: #e4405f;
 }
 
-.socialIcon[data-network="x"] {
+.socialIcon[data-network="x"],
+.socialLabelIcon[data-network="x"] {
   color: var(--ink);
 }
 
-.socialIcon[data-network="snapchat"] {
+.socialIcon[data-network="snapchat"],
+.socialLabelIcon[data-network="snapchat"] {
   color: #fffc00;
 }
 
-.socialIcon[data-network="tiktok"] {
+.socialIcon[data-network="tiktok"],
+.socialLabelIcon[data-network="tiktok"] {
   color: #69c9d0;
 }
 
@@ -662,11 +666,28 @@
 /* ──────────────────────────────────────────── the social label as a link */
 
 .socialLabelLink {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
   color: var(--gold);
   font-size: 0.88rem;
   margin-block-end: var(--sp-2);
   text-decoration: none;
+}
+
+/* The plain label, laid out the same way so the mark sits beside the name
+   whether or not it is a link yet. */
+.socialLabel {
+  composes: label;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.socialLabelIcon {
+  width: 18px;
+  height: 18px;
+  flex: none;
 }
 
 .socialLabelLink:hover {
