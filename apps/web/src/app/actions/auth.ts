@@ -52,6 +52,13 @@ export interface AuthState {
   readonly error?: string;
   /** Set when the credentials were right but the door was wrong. */
   readonly wrongDoor?: Door;
+  /**
+   * What they typed in the username box, handed back so a failed attempt does
+   * not wipe it. The password is never handed back: it must not be written
+   * into the page's HTML, and retyping it is the one thing a wrong password
+   * should make you do.
+   */
+  readonly identifier?: string;
 }
 
 // ── The `(prevState, formData)` signature ──
@@ -95,7 +102,7 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
   // and "wrong password" indistinguishable from outside.
   const failed = t("auth.failed");
 
-  if (identifier === "" || password === "") return { error: failed };
+  if (identifier === "" || password === "") return { error: failed, identifier };
 
   // ── Before any real work ──
   // Checked here rather than after the lookup, deliberately. Verifying a
@@ -104,7 +111,7 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
   // the server's CPU. Refusing first means a blocked caller costs one small
   // indexed count instead.
   if (await tooManyAttempts("signin")) {
-    return { error: t("auth.tooMany") };
+    return { error: t("auth.tooMany"), identifier };
   }
 
   // Try the identifier as typed, then as a normalised phone number.
@@ -116,7 +123,7 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
 
   if (!user) {
     await recordAttempt("signin");
-    return { error: failed };
+    return { error: failed, identifier };
   }
 
   // `ok` here is a local boolean, unrelated to the `ok()` helper in
@@ -127,7 +134,7 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
   });
   if (!ok) {
     await recordAttempt("signin");
-    return { error: failed };
+    return { error: failed, identifier };
   }
 
   /*
@@ -145,6 +152,7 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
       // Returned so the form can emphasise the link to the other door — see
       // the `state.wrongDoor` check at the bottom of LoginForm.tsx.
       wrongDoor: doorFor(user.role),
+      identifier,
     };
   }
 

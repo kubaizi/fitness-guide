@@ -6,6 +6,7 @@ import { createTranslator } from "@fg/i18n";
 import { saveProfile, type ProfileState } from "@/app/actions/profile";
 import type { Profile } from "@/lib/db";
 import { AvatarPlaceholder } from "./AvatarPlaceholder";
+import { SocialIcon } from "./SocialIcon";
 import styles from "./ProfileForm.module.css";
 
 /**
@@ -277,17 +278,24 @@ export function ProfileForm({ locale, profile }: { locale: Locale; profile: Prof
                   {label}
                 </label>
               )}
-              <input
-                id={key}
-                name={key}
-                type="text"
-                value={handles[key]}
-                onChange={(e) => setHandles({ ...handles, [key]: e.target.value })}
-                className={styles.input}
-                dir="ltr"
-                // Latin handles, so left-to-right even on the Arabic page.
-                placeholder="@name"
-              />
+              {/* The network's mark sits inside the box, at its start. The
+                  wrapper is `dir="ltr"` like the box, so "start" is the left
+                  on both pages: a Latin handle reads left-to-right, and its
+                  icon belongs at the left of it. Each mark is drawn in
+                  SocialIcon.tsx. */}
+              <div className={styles.socialBox} dir="ltr">
+                <SocialIcon network={key} className={styles.socialIcon} />
+                <input
+                  id={key}
+                  name={key}
+                  type="text"
+                  value={handles[key]}
+                  onChange={(e) => setHandles({ ...handles, [key]: e.target.value })}
+                  className={styles.socialInput}
+                  // Latin handles, so left-to-right even on the Arabic page.
+                  placeholder="@name"
+                />
+              </div>
               {errorFor(key) && (
                 <p className={styles.error} role="alert">
                   {errorFor(key)}

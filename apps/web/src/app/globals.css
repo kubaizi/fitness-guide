@@ -33,6 +33,12 @@
   --ok: #5fa87a;
   --ok-wash: #14231a;
   --warn: #d99b3c;
+  /* For errors. Brighter than the old fallback, because a dark-red box on a
+     near-black page was easy to miss — a wrong password looked like nothing
+     had happened. */
+  --crit: #f0836b;
+  --crit-wash: #2e1712;
+  --crit-line: #8a3a2c;
   --warn-wash: #251b0c;
 
   /* Type */

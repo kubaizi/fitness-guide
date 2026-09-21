@@ -92,7 +92,14 @@ export function LoginForm({ locale, door }: { locale: Locale; door: Door }) {
           user gets nothing at all: focus does not move, so nothing is read. */}
       {state.error && (
         <p className={styles.error} role="alert">
-          {state.error}
+          {/* A drawn mark rather than an emoji: an emoji renders differently
+              on every phone, and one of them is a smiling face. */}
+          <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.errorIcon}>
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 7v6" />
+            <path d="M12 16.5v.5" />
+          </svg>
+          <span>{state.error}</span>
         </p>
       )}
 
@@ -120,6 +127,11 @@ export function LoginForm({ locale, door }: { locale: Locale; door: Door }) {
           // anything client-side can be bypassed.
           required
           autoFocus
+          // Handed back by the action on every failure, so a wrong password
+          // does not also wipe the username. The old behaviour — form reset,
+          // both boxes empty — read as "it just cleared, nothing told me
+          // why", and that is what the missing-error report actually was.
+          defaultValue={state.identifier ?? ""}
           placeholder={t(isMember ? "auth.memberPlaceholder" : "auth.partnerPlaceholder")}
           className={styles.input}
           // Forced left-to-right even in Arabic: usernames and phone numbers
@@ -144,7 +156,13 @@ export function LoginForm({ locale, door }: { locale: Locale; door: Door }) {
           // generate a fresh one.
           autoComplete="current-password"
           required
-          className={styles.input}
+          // `key` changes when an error arrives, which remounts the box and
+          // lets `autoFocus` fire again — focus lands on the password after
+          // a failed attempt, which is where the next thing to do is.
+          key={state.error ? "retry" : "first"}
+          autoFocus={Boolean(state.error)}
+          className={state.error ? styles.inputBad : styles.input}
+          aria-invalid={Boolean(state.error)}
           dir="ltr"
         />
       </div>
@@ -153,6 +171,7 @@ export function LoginForm({ locale, door }: { locale: Locale; door: Door }) {
           server action is running. It both disables the button — preventing a
           double submission — and swaps the label to a loading message. */}
       <button type="submit" className={styles.submit} disabled={pending}>
+        {pending && <span className={styles.spinner} aria-hidden="true" />}
         {pending ? t("common.loading") : t("auth.signIn")}
       </button>
 

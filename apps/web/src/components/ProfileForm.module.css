@@ -232,16 +232,52 @@
   margin-block-end: var(--sp-5);
 }
 
-.socialLink {
-  display: inline-block;
-  margin-block-start: var(--sp-2);
-  color: var(--muted);
-  font-size: 0.82rem;
-  overflow-wrap: anywhere;
+/*
+ * A handle box with the network's mark inside it, at the left.
+ *
+ * The wrapper is `dir="ltr"` in the markup, so `inset-inline-start` here
+ * means the left on the Arabic page too — the box holds Latin text and the
+ * mark leads it. The lint rule wants logical properties, and it is right to:
+ * `left` would also work here, but only by accident of the wrapper's
+ * direction, and the next person would not know that.
+ */
+.socialBox {
+  position: relative;
 }
 
-.socialLink:hover {
-  color: var(--gold);
+.socialIcon {
+  position: absolute;
+  inset-inline-start: var(--sp-3);
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  /* The box is a form control; a click on the mark should reach the input. */
+  pointer-events: none;
+}
+
+/* Each network in its own colour, so the four boxes read at a glance. X's
+   mark is black on white everywhere, which on this dark page means white. */
+.socialIcon[data-network="instagram"] {
+  color: #e4405f;
+}
+
+.socialIcon[data-network="x"] {
+  color: var(--ink);
+}
+
+.socialIcon[data-network="snapchat"] {
+  color: #fffc00;
+}
+
+.socialIcon[data-network="tiktok"] {
+  color: #69c9d0;
+}
+
+/* The input, with room at the start for the mark. */
+.socialInput {
+  composes: input;
+  padding-inline-start: calc(var(--sp-3) + 20px + var(--sp-3));
 }
 
 /* ─────────────────────────────────────────────────────────────── the weights */

@@ -86,12 +86,68 @@
   cursor: progress;
 }
 
+/*
+ * The error box. Louder than the first version on purpose: that one was a
+ * dark-red wash on a near-black page with no border, and a wrong password was
+ * being reported as "nothing happened". A border in the error colour and a
+ * mark beside the words make it read as an error from across the room.
+ */
 .error {
-  background: var(--crit-wash, #26140f);
-  color: var(--crit, #e07a63);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  background: var(--crit-wash);
+  color: var(--crit);
+  border: 1px solid var(--crit-line);
   border-radius: var(--radius);
   padding: var(--sp-3) var(--sp-4);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 550;
+}
+
+.errorIcon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  margin-block-start: 1px;
+}
+
+/* The password box after a failed attempt: the same box, outlined in the
+   error colour. Two classes rather than a modifier, so a stale modifier
+   cannot leave a red box on a page where nothing is wrong. */
+.inputBad {
+  composes: input;
+  border-color: var(--crit);
+  box-shadow: 0 0 0 1px var(--crit);
+}
+
+/* Inside the submit button while the server is checking. */
+.spinner {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-inline-end: 0.5em;
+  vertical-align: -0.1em;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
 }
 
 .hint {
